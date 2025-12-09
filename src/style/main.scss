@@ -1,0 +1,45 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// 主题色
+:root {
+  --theme-color-white: #fff;
+  --theme-color-darkgray: #fcfcfc;
+  --theme-color-beige: #f8f5f1;
+  --theme-color-active: #3b82f6;
+  --theme-color-active-text: #fff;
+  --theme-color-border: #0003;
+
+  --theme-color-hover: #858585;
+
+  --theme-hover-box-shadow: 0px 1px 5px 0px var(--theme-color-hover);
+  --theme-hover-text-shadow: 0px 1px 5px var(--theme-color-hover);
+
+  --bg: var(--theme-color-darkgray);
+  --panel: #fff;
+  --text: #000;
+}
+
+:root {
+  --width-container: 1200px;
+  --gap: 24px;
+  --content-w: 1200px;
+  --topbar-h: 60px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #0003;
+  border-radius: 10px;
+  transition: all 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+}
