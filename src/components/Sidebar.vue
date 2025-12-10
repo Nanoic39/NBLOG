@@ -2,21 +2,12 @@
   <div class="sidebar-wrap">
     <section class="card base-info">
       <div class="avatar">
-        <img src="@/static/Avatar.png" alt="Nanoic" />
+        <img src="@/static/image/Avatar.png" alt="Nanoic" />
       </div>
       <div class="info">
         <h2>Nanoic</h2>
-        <p>
-          <span
-            style="
-              border-radius: 5px;
-              border: 1px solid var(--bg);
-              padding: 2px 4px;
-              background-color: var(--bg);
-            "
-            >Java</span
-          >后端开发工程师
-        </p>
+        <p>虽说是主力做 Java 后端开发...</p>
+        <p>*但也稍微会那么一点点前端 =ω=</p>
       </div>
     </section>
   </div>
@@ -26,10 +17,10 @@
 .sidebar-wrap {
   max-height: calc(100vh - var(--topbar-h) - var(--gap) * 2);
   overflow: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--theme-color-border);
 }
 .card {
-  border-bottom: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--theme-color-border);
   padding-bottom: 12px;
   margin-bottom: 12px;
 }

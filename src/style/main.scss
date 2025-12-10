@@ -15,19 +15,45 @@
 
   --theme-color-hover: #858585;
 
-  --theme-hover-box-shadow: 0px 1px 5px 0px var(--theme-color-hover);
-  --theme-hover-text-shadow: 0px 1px 5px var(--theme-color-hover);
-
   --bg: var(--theme-color-darkgray);
   --panel: #fff;
   --text: #000;
 }
 
+/* 全局变量 */
 :root {
   --width-container: 1200px;
   --gap: 24px;
   --content-w: 1200px;
   --topbar-h: 60px;
+  --theme-hover-box-shadow: 0px 1px 5px 0px var(--theme-color-hover);
+  --theme-hover-text-shadow: 0px 1px 5px var(--theme-color-hover);
+  --font-en: "JetBrainsMonoNerdMono";
+  --font-zh: "AlibabaPuHuiTi-Regular";
+}
+
+@font-face {
+  font-family: "JetBrainsMonoNerdMono"; // 你给字体起的名字
+  src: url("./fonts/JetBrainsMonoNerdFontMono-Medium.ttf") format("truetype"); // 引入多种格式以提高兼容性
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "AlibabaPuHuiTi-Regular"; // 你给字体起的名字
+  src: url("./fonts/Alibaba_PuHuiTi_2.0_65_Medium_65_Medium.ttf")
+    format("truetype"); // 引入多种格式以提高兼容性
+  font-weight: normal;
+  font-style: normal;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-en), var(--font-zh), system-ui, -apple-system,
+    "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial;
 }
 
 ::-webkit-scrollbar {

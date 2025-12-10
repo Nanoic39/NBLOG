@@ -60,7 +60,7 @@ const { sorted } = storeToRefs(postsStore);
     background: rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(3px);
     padding: 12px 16px;
-    border: 1px solid var(--border);
+    border: 1px solid var(--theme-color-border);
     border-radius: 12px;
   
     transition: all 0.2s ease-in-out;
@@ -83,7 +83,7 @@ const { sorted } = storeToRefs(postsStore);
   position: relative;
   height: 240px;
   border-radius: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--theme-color-border);
   background: linear-gradient(
       135deg,
       rgba(59, 130, 246, 0.4),

@@ -22,6 +22,19 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition;
+    const raw = sessionStorage.getItem("read_positions");
+    if (raw) {
+      try {
+        const data = JSON.parse(raw);
+        const id = to.params?.id;
+        const pos = id && data[id] && typeof data[id].scrollY === "number" ? data[id].scrollY : null;
+        if (typeof pos === "number") return { left: 0, top: pos };
+      } catch {}
+    }
+    return { left: 0, top: 0 };
+  },
 });
 
 export default router;

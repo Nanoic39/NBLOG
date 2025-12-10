@@ -11,7 +11,10 @@
         <div class="meta">
           <span class="date">{{ formatDate(p.publishedAt) }}</span>
           <div class="tags">
-            <span v-for="t in p.tags" :key="t" class="tag">{{ t }}</span>
+            <span v-for="t in p.tags" :key="t" class="tag"
+              ><span class="ti">{{ tagIcon(t) }}</span
+              >{{ t }}</span
+            >
           </div>
         </div>
         <h3 class="title">{{ p.title }}</h3>
@@ -35,27 +38,40 @@ function formatDate(iso) {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${dd}`;
 }
+
+function tagIcon(name) {
+  const map = {
+    "Vue": "🟢",
+    "Composition API": "🧩",
+    "Pinia": "🌿",
+    "State": "🧠",
+    "Router": "🧭",
+    "SPA": "📄",
+  };
+  return map[name] || "🏷️";
+}
 </script>
 
-<style>
+<style lang="scss">
 .posts-list {
   display: grid;
   gap: 18px;
 }
 .post-item {
   display: grid;
-  grid-template-columns: 160px 1fr;
+  // tumb(图片)宽度
+  grid-template-columns: 300px 1fr;
   gap: 16px;
   position: relative;
   text-decoration: none;
   color: inherit;
   background: var(--panel);
-  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 16px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   overflow: hidden;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .post-item::before {
   content: "";
@@ -76,14 +92,18 @@ function formatDate(iso) {
   inset: 0;
   pointer-events: none;
   background-image: radial-gradient(
-    rgba(255, 255, 255, 0.06) 1px,
-    transparent 1px
-  );
-  background-size: 12px 12px;
-  opacity: 0.3;
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px
+    ),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.025) 0 2px,
+      transparent 2px 4px
+    );
+  background-size: 12px 12px, 8px 8px;
+  opacity: 0.18;
 }
 .post-item:hover {
-  border-color: var(--brand);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
   transform: translateY(-3px);
 }
@@ -91,7 +111,7 @@ function formatDate(iso) {
   position: relative;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--theme-color-border);
   background: #1b1b21;
 }
 .thumb img {
@@ -103,34 +123,66 @@ function formatDate(iso) {
 .content {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 .meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed var(--border);
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
 }
 .date {
   font-size: 12px;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.04)
+  );
+  border-radius: 5px;
+  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.18);
+}
+.date::before {
+  content: "📅";
+  font-size: 13px;
+  opacity: 0.85;
 }
 .tags {
   display: flex;
   gap: 6px;
+  align-items: center;
 }
 .tag {
   font-size: 12px;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.04)
+  );
   border-radius: 999px;
   padding: 2px 8px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.tag .ti {
+  margin-right: 6px;
+}
+.tag:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.06)
+  );
+  color: var(--text);
 }
 .title {
   margin: 8px 0 6px;
@@ -139,11 +191,12 @@ function formatDate(iso) {
   letter-spacing: 0.2px;
   color: var(--text);
   position: relative;
+  padding-left: 10px;
 }
 .title::after {
   content: "";
   position: absolute;
-  left: 0;
+  left: 10px;
   bottom: -6px;
   width: 0;
   height: 2px;
@@ -157,16 +210,17 @@ function formatDate(iso) {
   margin: 0;
   color: var(--muted);
   line-height: 1.7;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  padding-left: 10px;
   overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 10px;
+  padding: 20px 10px 0 10px;
 }
 .mins {
   font-size: 12px;
