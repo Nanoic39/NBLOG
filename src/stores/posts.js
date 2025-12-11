@@ -129,10 +129,7 @@ function expandPath(id: string) {
         <h3>音频播放器</h3>
         <div class="audio-player">
           <audio controls preload="none">
-            <source src="/media/sample.mp3" type="audio/mpeg" />
-            <source src="/media/sample.flac" type="audio/flac" />
-            <source src="/media/sample.aac" type="audio/aac" />
-            <source src="/media/sample.wav" type="audio/wav" />
+            <source src="http://localhost:5173/static/audio/sawg.mp3" type="audio/mpeg" />
             您的浏览器不支持音频播放。
           </audio>
         </div>
