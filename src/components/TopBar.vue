@@ -14,7 +14,7 @@
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 999;
   height: var(--topbar-h);
   box-shadow: var(--theme-hover-box-shadow);
   border-bottom-left-radius: 8px;

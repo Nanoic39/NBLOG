@@ -102,13 +102,57 @@ function expandPath(id: string) {
           </tbody>
         </table>
         <p>图片示例：</p>
-        <img src="https://picsum.photos/seed/vue-composition/800/420" alt="Vue Composition" />
+        <figure>
+          <img src="https://picsum.photos/seed/vue-composition/800/420" alt="Vue 组合式 API 示意图" loading="lazy" width="800" height="420" sizes="(max-width: 820px) 100vw, 800px" />
+          <figcaption>图片的描述文本，展示在图片的底部</figcaption>
+        </figure>
 
         <h2>常见坑与解决方案</h2>
         <h3>在窄屏下的显示策略</h3>
         <p>目录面板应在较窄屏幕隐藏，避免遮挡内容；也可以改为抽屉模式。正文应保持合理的内边距与行高，提升阅读舒适度。</p>
         <h3>过度依赖 watch 与计算开销</h3>
         <p>目录构建应尽量在挂载时一次性完成；当正文动态更新（如路由切换）再重建一次，避免频繁的 DOM 操作。</p>
+
+        <h2>多媒体与交互示例</h2>
+        <details class="fold">
+          <summary>展开更多内容（可折叠面板）</summary>
+          <div class="fold-body">
+            <p>这里是可折叠内容区域，可存放补充说明、提示或额外示例。</p>
+            <p>重点术语：<code class="inline-code">组合式 API</code>；你也可以使用删除线 <del>不推荐的旧方案</del> 来标记过时内容。</p>
+            <blockquote>
+              <p>引用：使用原生 <code>&lt;blockquote&gt;</code> 保持语义与风格一致。</p>
+            </blockquote>
+            <p>隐藏文本：<span class="hidden-text" title="悬停显示">这段内容在悬停时才会清晰显示</span>。</p>
+          </div>
+        </details>
+
+        <h3>音频播放器</h3>
+        <div class="audio-player">
+          <audio controls preload="none">
+            <source src="/media/sample.mp3" type="audio/mpeg" />
+            <source src="/media/sample.flac" type="audio/flac" />
+            <source src="/media/sample.aac" type="audio/aac" />
+            <source src="/media/sample.wav" type="audio/wav" />
+            您的浏览器不支持音频播放。
+          </audio>
+        </div>
+
+        <h3>视频播放器</h3>
+        <div class="video-player">
+          <video controls preload="none" width="800" height="450" poster="https://picsum.photos/seed/video-poster/800/450">
+            <source src="/media/sample.mp4" type="video/mp4" />
+            您的浏览器不支持视频播放。
+          </video>
+        </div>
+
+        <h3>链接卡片</h3>
+        <p>
+          <a class="link-card" href="https://vuejs.org/" target="_blank" rel="noopener noreferrer">
+            <span class="lc-title">Vue 官方文档</span>
+            <span class="lc-desc">探索组合式 API 与生态最佳实践</span>
+            <span class="lc-host">vuejs.org</span>
+          </a>
+        </p>
 
         <h2>总结与建议</h2>
         <p>结合组合式 API 的优势，我们可以将“目录生成、滚动同步、无障碍、动画与样式”这些逻辑聚合在一个可维护的模块中：初始化阶段只做一次性的结构计算，交互阶段尽量只更新状态，样式层通过变量与响应式布局保持一致性。</p>
@@ -336,6 +380,176 @@ export default router
       content: `<p>这是一篇示例文章，用于填充内容结构。</p>`,
       publishedAt: "2025-12-06T08:30:00.000Z",
       updatedAt: "2025-12-06T09:00:00.000Z",
+    },
+    {
+      id: "tooling-vite",
+      title: "前端工具链：使用 Vite 提升开发体验",
+      summary: "快速热更新与现代构建，让开发更高效。",
+      tags: ["Vite", "Tooling"],
+      cover: "https://picsum.photos/seed/vite/640/360",
+      readMins: 4,
+      content: `<p>介绍 Vite 的开发与构建体验，对比传统打包器。</p>`,
+      publishedAt: "2025-12-05T18:10:00.000Z",
+    },
+    {
+      id: "style-scss",
+      title: "使用 SCSS 管理样式与变量",
+      summary: "通过变量与嵌套提升样式的可维护性。",
+      tags: ["CSS", "SCSS"],
+      cover: "https://picsum.photos/seed/scss/640/360",
+      readMins: 5,
+      content: `<p>演示如何在项目中组织 SCSS 文件与全局变量。</p>`,
+      publishedAt: "2025-12-05T12:00:00.000Z",
+    },
+    {
+      id: "axios-fetching",
+      title: "Axios 与数据请求的最佳实践",
+      summary: "统一错误处理与拦截器，提升稳定性。",
+      tags: ["Axios", "HTTP"],
+      cover: "https://picsum.photos/seed/axios/640/360",
+      readMins: 5,
+      content: `<p>通过拦截器与统一封装完善请求流程。</p>`,
+      publishedAt: "2025-12-05T09:30:00.000Z",
+    },
+    {
+      id: "router-advanced",
+      title: "Vue Router 进阶：动态路由与守卫",
+      summary: "在复杂场景中保障导航与状态一致性。",
+      tags: ["Router", "Guard"],
+      cover: "https://picsum.photos/seed/router-advanced/640/360",
+      readMins: 6,
+      content: `<p>讨论导航守卫与权限控制的常见模式。</p>`,
+      publishedAt: "2025-12-04T20:40:00.000Z",
+    },
+    {
+      id: "pinia-persist",
+      title: "Pinia 状态持久化与模块化组织",
+      summary: "在刷新后保持关键数据一致。",
+      tags: ["Pinia", "Persist"],
+      cover: "https://picsum.photos/seed/pinia-persist/640/360",
+      readMins: 6,
+      content: `<p>通过插件或手动序列化实现持久化。</p>`,
+      publishedAt: "2025-12-04T10:15:00.000Z",
+    },
+    {
+      id: "prism-highlight",
+      title: "PrismJS 代码高亮与行号实现",
+      summary: "更好的阅读体验与复制交互。",
+      tags: ["Prism", "Code"],
+      cover: "https://picsum.photos/seed/prism/640/360",
+      readMins: 5,
+      content: `<p>在文章中集成代码高亮与复制按钮。</p>`,
+      publishedAt: "2025-12-03T16:20:00.000Z",
+    },
+    {
+      id: "router-scroll",
+      title: "滚动行为与阅读位置记忆",
+      summary: "提升返回文章后的阅读连续性。",
+      tags: ["Router", "UX"],
+      cover: "https://picsum.photos/seed/scroll/640/360",
+      readMins: 4,
+      content: `<p>利用 scrollBehavior 记忆并恢复滚动位置。</p>`,
+      publishedAt: "2025-12-03T08:50:00.000Z",
+    },
+    {
+      id: "perf-lazyload",
+      title: "性能优化：图片懒加载与资源策略",
+      summary: "减少首屏开销并提升流畅度。",
+      tags: ["Performance", "Image"],
+      cover: "https://picsum.photos/seed/lazy/640/360",
+      readMins: 6,
+      content: `<p>讨论图片懒加载与缓存策略的实践。</p>`,
+      publishedAt: "2025-12-02T19:00:00.000Z",
+    },
+    {
+      id: "accessibility-a11y",
+      title: "无障碍基础：语义与 ARIA",
+      summary: "让更多用户更容易获取内容。",
+      tags: ["A11y", "Accessibility"],
+      cover: "https://picsum.photos/seed/a11y/640/360",
+      readMins: 5,
+      content: `<p>介绍可访问性的基本语义与常见属性。</p>`,
+      publishedAt: "2025-12-02T10:25:00.000Z",
+    },
+    {
+      id: "testing-vitest",
+      title: "前端测试：使用 Vitest 构建单元测试",
+      summary: "保证组件与逻辑的稳定性。",
+      tags: ["Testing", "Vitest"],
+      cover: "https://picsum.photos/seed/vitest/640/360",
+      readMins: 7,
+      content: `<p>介绍基本的测试结构与断言。</p>`,
+      publishedAt: "2025-12-01T21:30:00.000Z",
+    },
+    {
+      id: "composition-patterns",
+      title: "组合式模式：提取与复用业务逻辑",
+      summary: "构建可维护、可测试的模块。",
+      tags: ["Vue", "Patterns"],
+      cover: "https://picsum.photos/seed/patterns/640/360",
+      readMins: 6,
+      content: `<p>讨论 useXxx 模式与抽象组织。</p>`,
+      publishedAt: "2025-12-01T09:00:00.000Z",
+    },
+    {
+      id: "router-links",
+      title: "RouterLink 与可访问性考量",
+      summary: "在导航中平衡语义与交互。",
+      tags: ["Router", "A11y"],
+      cover: "https://picsum.photos/seed/routerlink/640/360",
+      readMins: 4,
+      content: `<p>为链接添加合适的可访问性标注。</p>`,
+      publishedAt: "2025-11-30T18:45:00.000Z",
+    },
+    {
+      id: "pinia-actions",
+      title: "Pinia Actions 与异步流程",
+      summary: "更清晰地组织副作用与请求。",
+      tags: ["Pinia", "Async"],
+      cover: "https://picsum.photos/seed/pinia-actions/640/360",
+      readMins: 5,
+      content: `<p>用 actions 管理异步与状态变更。</p>`,
+      publishedAt: "2025-11-30T10:20:00.000Z",
+    },
+    {
+      id: "router-meta",
+      title: "路由元信息与页面标题管理",
+      summary: "统一设置标题与描述，利于 SEO。",
+      tags: ["Router", "Meta"],
+      cover: "https://picsum.photos/seed/meta/640/360",
+      readMins: 4,
+      content: `<p>通过导航守卫设置文案与标题。</p>`,
+      publishedAt: "2025-11-29T15:30:00.000Z",
+    },
+    {
+      id: "scss-utilities",
+      title: "SCSS 工具类与设计令牌",
+      summary: "统一样式语言与组件风格。",
+      tags: ["SCSS", "Design"],
+      cover: "https://picsum.photos/seed/design-token/640/360",
+      readMins: 5,
+      content: `<p>讨论常用工具类与设计令牌的组织。</p>`,
+      publishedAt: "2025-11-29T08:10:00.000Z",
+    },
+    {
+      id: "perf-bundle",
+      title: "打包优化：代码分割与按需加载",
+      summary: "缩减包体并提升首屏速度。",
+      tags: ["Performance", "Bundle"],
+      cover: "https://picsum.photos/seed/split/640/360",
+      readMins: 7,
+      content: `<p>分析拆分策略与按需加载的取舍。</p>`,
+      publishedAt: "2025-11-28T20:00:00.000Z",
+    },
+    {
+      id: "ux-list",
+      title: "列表体验：骨架屏与占位策略",
+      summary: "改善加载中的界面感受。",
+      tags: ["UX", "Loading"],
+      cover: "https://picsum.photos/seed/skeleton/640/360",
+      readMins: 4,
+      content: `<p>引入骨架屏与渐进增强的策略。</p>`,
+      publishedAt: "2025-11-28T09:25:00.000Z",
     },
   ]);
 

@@ -1,7 +1,7 @@
 <template>
   <div class="post">
     <div class="hero" v-if="post?.cover">
-      <img :src="post.cover" :alt="post.title" />
+      <img :src="resolvedCover(post.cover)" :alt="post.title" />
     </div>
     <div class="head">
       <h1 class="title">{{ post?.title }}</h1>
@@ -103,6 +103,7 @@
 <script setup>
 import { useRoute, useRouter } from "vue-router";
 import { usePostsStore } from "@/stores/posts";
+import { pagePreloader } from "@/utils/PagePreloader.js";
 import {
   computed,
   ref,
@@ -117,10 +118,16 @@ import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-css";
+import { attachImageZoom } from "@/script/imageZoom.js";
 const route = useRoute();
 const router = useRouter();
 const store = usePostsStore();
-const post = computed(() => store.posts.find((p) => p.id === route.params.id));
+const post = computed(() =>
+  pagePreloader.usePost(store.sorted, route.params.id)
+);
+function resolvedCover(url) {
+  return pagePreloader.getImageSrc(url);
+}
 const contentRef = ref(null);
 // 阅读信息与过时提示（使用已保存的数据，保持内外一致）
 const stats = computed(() => {
@@ -396,6 +403,8 @@ onMounted(async () => {
   window.addEventListener("scroll", onScrollPV, { passive: true });
   restoreScroll();
   bindImageLoadRestore();
+  pagePreloader.attach(router);
+  attachImageZoom(contentRef.value || ".post .content");
 });
 
 watch(
@@ -406,6 +415,7 @@ watch(
     observeContent();
     restoreScroll();
     bindImageLoadRestore();
+    attachImageZoom(contentRef.value || ".post .content");
   }
 );
 
@@ -431,7 +441,10 @@ function saveScroll() {
   }
   data[id] = { scrollY: window.scrollY, timestamp: Date.now() };
   sessionStorage.setItem("read_positions", JSON.stringify(data));
-  history.replaceState({ ...(history.state || {}), scroll: window.scrollY }, "");
+  history.replaceState(
+    { ...(history.state || {}), scroll: window.scrollY },
+    ""
+  );
 }
 
 onBeforeUnmount(() => {
@@ -444,12 +457,18 @@ onBeforeUnmount(() => {
 });
 
 function getSavedPos() {
-  const hs = history.state && typeof history.state.scroll === "number" ? history.state.scroll : null;
+  const hs =
+    history.state && typeof history.state.scroll === "number"
+      ? history.state.scroll
+      : null;
   if (typeof hs === "number") return hs;
   const id = route.params.id;
   try {
     const data = JSON.parse(sessionStorage.getItem("read_positions") || "{}");
-    const pos = data[id] && typeof data[id].scrollY === "number" ? data[id].scrollY : null;
+    const pos =
+      data[id] && typeof data[id].scrollY === "number"
+        ? data[id].scrollY
+        : null;
     return typeof pos === "number" ? pos : null;
   } catch {
     return null;
@@ -474,9 +493,9 @@ function restoreScroll() {
 }
 
 function bindImageLoadRestore() {
-  const imgs = Array.from(document.querySelectorAll('.post .content img'));
+  const imgs = Array.from(document.querySelectorAll(".post .content img"));
   imgs.forEach((img) => {
-    img.addEventListener('load', () => restoreScroll(), { once: true });
+    img.addEventListener("load", () => restoreScroll(), { once: true });
   });
 }
 </script>
@@ -893,7 +912,16 @@ function bindImageLoadRestore() {
   margin: 18px 0 0;
   border-radius: 12px;
   border: 1px solid var(--theme-color-border);
-  background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(16,185,129,0.12)), radial-gradient(600px 300px at 80% 20%, rgba(255,255,255,0.08), transparent 60%);
+  background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.18),
+      rgba(16, 185, 129, 0.12)
+    ),
+    radial-gradient(
+      600px 300px at 80% 20%,
+      rgba(255, 255, 255, 0.08),
+      transparent 60%
+    );
   position: relative;
   overflow: hidden;
 }
@@ -902,13 +930,26 @@ function bindImageLoadRestore() {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.06) 1px,
+    transparent 1px
+  );
   background-size: 12px 12px;
   opacity: 0.35;
 }
-.tb-inner { position: absolute; left: 24px; bottom: 24px; }
-.tb-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
-.tb-sub { color: var(--muted); }
+.tb-inner {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+}
+.tb-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.tb-sub {
+  color: var(--muted);
+}
 
 @media (max-width: 768px) {
   .title {

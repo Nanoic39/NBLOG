@@ -6,7 +6,15 @@
       class="post-item"
       :to="`/post/${p.id}`"
     >
-      <div class="thumb"><img :src="p.cover" :alt="p.title" /></div>
+      <div class="thumb">
+        <img
+          class="cover"
+          :src="resolvedCover(p.cover)"
+          :alt="p.title"
+          :class="{ loaded: loaded.has(p.id) }"
+          @load="onImgLoad(p.id)"
+        />
+      </div>
       <div class="content">
         <div class="meta">
           <span class="date">{{ formatDate(p.publishedAt) }}</span>
@@ -29,8 +37,18 @@
 </template>
 
 <script setup>
-import { defineProps } from "vue";
+import { defineProps, ref } from "vue";
+import { pagePreloader } from "@/utils/PagePreloader.js";
 const props = defineProps({ posts: { type: Array, default: () => [] } });
+const loaded = ref(new Set());
+function resolvedCover(url) {
+  return pagePreloader.getImageSrc(url);
+}
+function onImgLoad(id) {
+  const s = new Set(loaded.value);
+  s.add(id);
+  loaded.value = s;
+}
 function formatDate(iso) {
   const d = new Date(iso);
   const y = d.getFullYear();
@@ -112,14 +130,17 @@ function tagIcon(name) {
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--theme-color-border);
-  background: #1b1b21;
+  background: linear-gradient(180deg, #f4f4f4, #e9e9e9);
 }
 .thumb img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
+.thumb img.loaded { opacity: 1; }
 .content {
   display: flex;
   flex-direction: column;

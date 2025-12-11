@@ -3,37 +3,108 @@ import axios from "axios";
 import PostsList from "@/components/PostsList.vue";
 import { usePostsStore } from "@/stores/posts";
 import { storeToRefs } from "pinia";
-
-axios
-  .get("https://v1.hitokoto.cn")
-  .then(({ data }) => {
-    const hitokoto = document.querySelector("#hitokoto_text");
-    hitokoto.href = `https://hitokoto.cn/?c=d&c=h&c=i&c=k`;
-    hitokoto.innerText = data.hitokoto;
-  })
-  .catch(console.error);
+import { computed, ref, watch, onMounted } from "vue";
+import { useRoute, RouterLink, useRouter } from "vue-router";
+import { pagePreloader } from "@/utils/PagePreloader.js";
 
 const postsStore = usePostsStore();
 const { sorted } = storeToRefs(postsStore);
+
+const route = useRoute();
+const perPage = 8;
+const pageCount = computed(() => Math.max(1, Math.ceil(sorted.value.length / perPage)));
+const page = computed(() => Number(route.query.page || 1));
+const curPage = computed(() => Math.min(pageCount.value, Math.max(1, page.value)));
+const start = computed(() => (curPage.value - 1) * perPage);
+const paged = computed(() => pagePreloader.useHomePage(sorted.value, curPage.value, perPage));
+const pages = computed(() => Array.from({ length: pageCount.value }, (_, i) => i + 1));
+
+const hitokotoText = ref("");
+const hitokotoHref = ref("https://hitokoto.cn"); // 默认为首页
+let lastFetchAt = 0;
+let debounceTimer = null;
+
+function requestHitokoto() {
+  return axios
+    .get("https://v1.hitokoto.cn/?c=d&c=h&c=i&c=k") // 具体参数
+    .then(({ data }) => {
+      hitokotoHref.value = `https://hitokoto.cn/?c=d&c=h&c=i&c=k`; // 用于链接跳转
+      hitokotoText.value = data.hitokoto || "";
+      lastFetchAt = Date.now();
+    })
+    .catch(() => {});
+}
+
+function scheduleDebouncedRequest() {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    requestHitokoto();
+    debounceTimer = null;
+  }, 15000);
+}
+
+function ensureHitokoto() {
+  const now = Date.now();
+  if (!hitokotoText.value) {
+    requestHitokoto();
+    return;
+  }
+  if (now - lastFetchAt >= 15000) {
+    scheduleDebouncedRequest();
+  }
+}
+
+onMounted(() => {
+  if (curPage.value === 1) ensureHitokoto();
+  pagePreloader.attach(useRouter());
+});
+watch(curPage, (n) => {
+  if (n === 1) ensureHitokoto();
+  pagePreloader.useHomePage(sorted.value, n, perPage);
+});
 </script>
 
 <template>
   <div>
-    <div class="cover">
-      <!-- 一言 -->
-      <div id="hitokoto">
+    <Transition name="cover-fade" mode="out-in">
+    <div v-if="curPage === 1" class="cover">
+        <!-- 一言 -->
+        <div id="hitokoto">
         <a
           id="hitokoto_text"
-          href="https://hitokoto.cn"
+          :href="hitokotoHref"
           target="_blank"
           title="hitokoto · 一言"
         >
-          :D 获取中...
-      </a>
+          {{ hitokotoText || ":D 获取中..." }}
+        </a>
+        </div>
       </div>
-    </div>
-    <!-- 文章列表(发布顺序新到旧) -->
-    <PostsList :posts="sorted" />
+    </Transition>
+    <Transition name="fade-slide" mode="out-in">
+      <PostsList :posts="paged" :key="curPage" />
+    </Transition>
+    <nav class="pagination">
+      <RouterLink
+        class="pg-btn"
+        :to="curPage > 2 ? { path: '/', query: { page: curPage - 1 } } : { path: '/' }"
+        :aria-disabled="curPage === 1"
+      >上一页</RouterLink>
+      <div class="pg-pages">
+        <RouterLink
+          v-for="p in pages"
+          :key="p"
+          class="pg-page"
+          :to="p === 1 ? { path: '/' } : { path: '/', query: { page: p } }"
+          :aria-current="p === curPage ? 'page' : null"
+        >{{ p }}</RouterLink>
+      </div>
+      <RouterLink
+        class="pg-btn"
+        :to="curPage < pageCount ? { path: '/', query: { page: curPage + 1 } } : { path: '/', query: { page: pageCount } }"
+        :aria-disabled="curPage === pageCount"
+      >下一页</RouterLink>
+    </nav>
   </div>
 </template>
 
@@ -43,7 +114,7 @@ const { sorted } = storeToRefs(postsStore);
   position: relative;
   height: var(--cover-height);
   background: var(--theme-color-beige);
-  background-image: url("https://www.dmoe.cc/random.php");
+  background-image: none;
   background-position: center top;
   background-size: cover;
   border-radius: 12px;
@@ -77,6 +148,90 @@ const { sorted } = storeToRefs(postsStore);
       text-decoration: none;
     }
   }
+}
+
+.cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("https://www.dmoe.cc/random.php") center top / cover no-repeat;
+  border-radius: 12px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 18px 0;
+}
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  will-change: opacity, transform;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.cover-fade-enter-active,
+.cover-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  will-change: opacity, transform;
+}
+.cover-fade-enter-from,
+.cover-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-slide-enter-active,
+  .fade-slide-leave-active,
+  .cover-fade-enter-active,
+  .cover-fade-leave-active {
+    transition-duration: 0ms;
+    transition-property: opacity;
+    transform: none;
+  }
+}
+.pg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--theme-color-border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+}
+.pg-pages {
+  display: flex;
+  gap: 6px;
+}
+.pg-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--theme-color-border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+}
+.pg-page[aria-current="page"] {
+  background: var(--theme-color-active);
+  color: var(--theme-color-active-text);
 }
 
 .banner {

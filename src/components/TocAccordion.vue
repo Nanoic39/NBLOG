@@ -267,6 +267,7 @@ function scrollTo(id) {
   suppressActiveUntil = Date.now() + 300;
   activeId.value = id;
   expandPath(id);
+  scrollActiveIntoView();
   window.scrollTo({ top, behavior: "smooth" });
 }
 
@@ -289,9 +290,11 @@ function updateActiveByAnchor(forceExpandOnly = false) {
   }
   if (forceExpandOnly) {
     expandPath(chosenId);
+    scrollActiveIntoView();
   } else if (activeId.value !== chosenId) {
     activeId.value = chosenId;
     expandPath(chosenId);
+    scrollActiveIntoView();
   }
 }
 
@@ -350,6 +353,7 @@ function ensureObserve() {
       buildTree();
       collectHeads();
       updateActiveByAnchor();
+      scrollActiveIntoView();
       observeDom(el);
       if (scrollBound) {
         window.removeEventListener("scroll", onScroll);
@@ -395,9 +399,9 @@ function staggerRootItems() {
     const ul = document.querySelector('.toc-list');
     if (!ul) return;
     ul.classList.remove('ready');
-    // force reflow
-    void ul.offsetWidth;
-    ul.classList.add('ready');
+    requestAnimationFrame(() => {
+      ul.classList.add('ready');
+    });
   })
 }
 
@@ -409,6 +413,20 @@ function updateProgress() {
   if (p < 0) p = 0;
   if (p > 100) p = 100;
   progress.value = Math.round(p * 100) / 100;
+}
+
+function scrollActiveIntoView() {
+  requestAnimationFrame(() => {
+    const root = document.querySelector('.toc-list');
+    if (!root) return;
+    const target = document.querySelector('.toc-root .name.current, .toc-root .toc-toggle.leaf.current, .toc-root .toc-sub a.current');
+    if (!target) return;
+    const rRoot = root.getBoundingClientRect();
+    const rItem = target.getBoundingClientRect();
+    const offset = rItem.top - rRoot.top;
+    const desired = offset - (root.clientHeight / 2 - rItem.height / 2);
+    root.scrollTop += desired;
+  });
 }
 </script>
 
@@ -433,6 +451,10 @@ function updateProgress() {
   transition: width 0.12s linear;
 }
 .toc-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 .toc-title {
   font-weight: 700;
@@ -445,6 +467,11 @@ function updateProgress() {
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
+  overflow: auto;
+  max-height: none;
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 8px;
 }
 .toc-list .toc-item { opacity: 0; transform: translateY(8px); }
 .toc-list.ready .toc-item { opacity: 1; transform: translateY(0); transition: opacity 0.24s ease, transform 0.24s ease; }

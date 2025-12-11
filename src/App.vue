@@ -90,7 +90,7 @@ body {
   position: fixed;
   left: calc(50% - (var(--content-w, 1200px) / 2) - 95px);
   top: calc(60px + 24px);
-  z-index: 1001;
+  z-index: 20;
   height: 50px;
   padding: 0 20px;
   border-radius: 8px;
@@ -162,6 +162,10 @@ body {
   border: 1px solid var(--theme-color-border);
   border-radius: 12px;
   padding: 16px;
+  height: 470px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .toc-title {
   font-weight: 700;
