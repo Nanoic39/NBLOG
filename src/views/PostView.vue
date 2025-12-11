@@ -405,6 +405,7 @@ onMounted(async () => {
   bindImageLoadRestore();
   pagePreloader.attach(router);
   attachImageZoom(contentRef.value || ".post .content");
+  bindDetailsFoldAnimations();
 });
 
 watch(
@@ -416,6 +417,7 @@ watch(
     restoreScroll();
     bindImageLoadRestore();
     attachImageZoom(contentRef.value || ".post .content");
+    bindDetailsFoldAnimations();
   }
 );
 
@@ -496,6 +498,105 @@ function bindImageLoadRestore() {
   const imgs = Array.from(document.querySelectorAll(".post .content img"));
   imgs.forEach((img) => {
     img.addEventListener("load", () => restoreScroll(), { once: true });
+  });
+}
+
+function bindDetailsFoldAnimations() {
+  const panels = Array.from(
+    document.querySelectorAll(".post .content details.fold")
+  );
+  panels.forEach((d) => {
+    if (d.__foldBound) return;
+    d.__foldBound = true;
+    const body = d.querySelector(".fold-body");
+    const sum = d.querySelector("summary");
+    if (!body) return;
+    let lastListener = null;
+    let animState = null; // 'opening' | 'closing' | null
+    const ro = new ResizeObserver(() => {
+      // 保持打开时的内容自然高度，无需额外处理；动画阶段用内联 height 控制
+    });
+    ro.observe(body);
+
+    const animateOpen = () => {
+      if (lastListener) {
+        body.removeEventListener("transitionend", lastListener);
+        lastListener = null;
+      }
+      animState = "opening";
+      d.classList.remove("closing");
+      const target = body.scrollHeight;
+      body.style.height = "0px";
+      body.style.paddingTop = "12px";
+      body.style.paddingBottom = "12px";
+      d.open = true;
+      void body.offsetWidth;
+      body.style.height = target + "px";
+      const onEnd = (e) => {
+        if (e.target !== body || e.propertyName !== "height") return;
+        if (animState !== "opening") return;
+        body.style.height = "";
+        body.style.paddingTop = "";
+        body.style.paddingBottom = "";
+        body.removeEventListener("transitionend", onEnd);
+        lastListener = null;
+        animState = null;
+      };
+      body.addEventListener("transitionend", onEnd);
+      lastListener = onEnd;
+    };
+    const animateClose = () => {
+      if (lastListener) {
+        body.removeEventListener("transitionend", lastListener);
+        lastListener = null;
+      }
+      animState = "closing";
+      d.classList.add("closing");
+      if (!d.open) d.open = true; // 保持内容可见进行过渡
+      const current = body.offsetHeight;
+      body.style.height = current + "px";
+      body.style.paddingTop = "0px";
+      body.style.paddingBottom = "0px";
+      void body.offsetWidth;
+      body.style.height = "0px";
+      const onEnd = (e) => {
+        if (e.target !== body || e.propertyName !== "height") return;
+        if (animState !== "closing") return;
+        d.open = false; // 完成后再关闭
+        d.classList.remove("closing");
+        body.style.height = "";
+        body.style.paddingTop = "";
+        body.style.paddingBottom = "";
+        body.removeEventListener("transitionend", onEnd);
+        lastListener = null;
+        animState = null;
+      };
+      body.addEventListener("transitionend", onEnd);
+      lastListener = onEnd;
+    };
+    const onSumClick = (e) => {
+      e.preventDefault();
+      // 允许在动画中打断并反向
+      if (animState === "opening") {
+        animateClose();
+        return;
+      }
+      if (animState === "closing") {
+        animateOpen();
+        return;
+      }
+      if (d.open) animateClose();
+      else animateOpen();
+    };
+    if (sum) {
+      sum.addEventListener("click", onSumClick);
+      sum.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSumClick(e);
+        }
+      });
+    }
   });
 }
 </script>
