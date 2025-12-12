@@ -119,6 +119,14 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-css";
 import { attachImageZoom } from "@/script/imageZoom.js";
+import { getPostComments } from "@/api/post.js";
+import { enhanceMediaPlayers } from "@/script/mediaEnhancers.js";
+import { escapeHtml, highlightLine, getLangRules } from "@/script/htmlUtils.js";
+import {
+  restoreScroll as restoreScrollUtil,
+  bindImageLoadRestore as bindImageLoadRestoreUtil,
+} from "@/script/scrollUtils.js";
+import { bindDetailsFoldAnimations as bindDetailsFoldAnimationsUtil } from "@/script/detailsFold.js";
 const route = useRoute();
 const router = useRouter();
 const store = usePostsStore();
@@ -186,97 +194,6 @@ function submitComment() {
   cName.value = "";
   cEmail.value = "";
   cBody.value = "";
-}
-
-function escapeHtml(s) {
-  return (s || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function highlightLine(line, lang) {
-  let h = escapeHtml(line);
-  const rules = getLangRules(lang);
-  for (const r of rules) {
-    h = h.replace(r.regex, r.replace);
-  }
-  return h;
-}
-
-function getLangRules(lang) {
-  const common = [
-    { regex: /(\/\/.*)$/g, replace: '<span class="tok com">$1<\/span>' },
-    {
-      regex: /(\/\*[\s\S]*?\*\/)/g,
-      replace: '<span class="tok com">$1<\/span>',
-    },
-    { regex: /(["'`].*?["'`])/g, replace: '<span class="tok str">$1<\/span>' },
-    {
-      regex: /\b(\d+(?:\.\d+)?)\b/g,
-      replace: '<span class="tok num">$1<\/span>',
-    },
-  ];
-  if (lang === "ts" || lang === "js") {
-    return [
-      ...common,
-      {
-        regex:
-          /\b(import|from|const|let|var|function|class|extends|implements|return|if|else|for|while|new|try|catch|throw|export|default|type|interface|public|private|protected|readonly|async|await|switch|case|break|continue)\b/g,
-        replace: '<span class="tok kw">$1<\/span>',
-      },
-      {
-        regex: /([A-Za-z_][A-Za-z0-9_]*)\s*(?=\()/g,
-        replace: '<span class="tok fn">$1<\/span>',
-      },
-    ];
-  }
-  if (lang === "json") {
-    return [
-      {
-        regex: /(\{|\}|\[|\]|:|,)/g,
-        replace: '<span class="tok op">$1<\/span>',
-      },
-      { regex: /(".*?")\s*:/g, replace: '<span class="tok str">$1<\/span>:' },
-      { regex: /:\s*(".*?")/g, replace: ': <span class="tok str">$1<\/span>' },
-      {
-        regex: /:\s*(\d+(?:\.\d+)?)/g,
-        replace: ': <span class="tok num">$1<\/span>',
-      },
-      {
-        regex: /:\s*(true|false|null)/g,
-        replace: ': <span class="tok kw">$1<\/span>',
-      },
-    ];
-  }
-  if (lang === "css") {
-    return [
-      {
-        regex: /(\/\*[\s\S]*?\*\/)/g,
-        replace: '<span class="tok com">$1<\/span>',
-      },
-      {
-        regex: /([a-z-]+)\s*:\s*([^;]+);/gi,
-        replace:
-          '<span class="tok kw">$1<\/span>: <span class="tok str">$2<\/span>;',
-      },
-      { regex: /(\{|\}|;|:)/g, replace: '<span class="tok op">$1<\/span>' },
-    ];
-  }
-  if (lang === "html") {
-    return [
-      {
-        regex: /(&lt;\/?)([a-zA-Z0-9\-]+)([^&]*?)(&gt;)/g,
-        replace: '$1<span class="tok kw">$2<\/span>$3$4',
-      },
-      {
-        regex: /([a-zA-Z-]+)=(&quot;.*?&quot;)/g,
-        replace:
-          '<span class="tok type">$1<\/span>=<span class="tok str">$2<\/span>',
-      },
-    ];
-  }
-  return common;
 }
 
 function enhanceCodeBlocks() {
@@ -407,6 +324,10 @@ onMounted(async () => {
   attachImageZoom(contentRef.value || ".post .content");
   bindDetailsFoldAnimations();
   enhanceMediaPlayers();
+  try {
+    const list = await getPostComments(route.params.id);
+    if (Array.isArray(list)) comments.value = list;
+  } catch {}
 });
 
 watch(
@@ -460,238 +381,16 @@ onBeforeUnmount(() => {
   if (enhanceTimer) clearInterval(enhanceTimer);
 });
 
-function getSavedPos() {
-  const hs =
-    history.state && typeof history.state.scroll === "number"
-      ? history.state.scroll
-      : null;
-  if (typeof hs === "number") return hs;
-  const id = route.params.id;
-  try {
-    const data = JSON.parse(sessionStorage.getItem("read_positions") || "{}");
-    const pos =
-      data[id] && typeof data[id].scrollY === "number"
-        ? data[id].scrollY
-        : null;
-    return typeof pos === "number" ? pos : null;
-  } catch {
-    return null;
-  }
-}
-
 function restoreScroll() {
-  const pos = getSavedPos();
-  if (typeof pos !== "number") return;
-  let tries = 0;
-  const max = 120;
-  const tick = () => {
-    const h = document.documentElement.scrollHeight - window.innerHeight;
-    if (h >= pos || tries >= max) {
-      if (Math.abs(window.scrollY - pos) > 2) window.scrollTo({ top: pos });
-    } else {
-      tries++;
-      requestAnimationFrame(tick);
-    }
-  };
-  requestAnimationFrame(tick);
+  restoreScrollUtil(route.params.id);
 }
 
 function bindImageLoadRestore() {
-  const imgs = Array.from(document.querySelectorAll(".post .content img"));
-  imgs.forEach((img) => {
-    img.addEventListener("load", () => restoreScroll(), { once: true });
-  });
-}
-
-function enhanceMediaPlayers() {
-  const root = document.querySelector(".post .content");
-  if (!root) return;
-  const containers = Array.from(root.querySelectorAll(".audio-player"));
-  containers.forEach((card) => {
-    if (card.__apEnhanced) return;
-    const audio = card.querySelector("audio");
-    if (!audio) return;
-    const hasCover = !!card.querySelector(".ap-cover");
-    const hasInfo = !!card.querySelector(".ap-info");
-    if (hasCover && hasInfo) {
-      card.__apEnhanced = true;
-      return;
-    }
-    const coverBox = document.createElement("div");
-    coverBox.className = "ap-cover";
-    const infoBox = document.createElement("div");
-    infoBox.className = "ap-info";
-    const titleEl = document.createElement("div");
-    titleEl.className = "ap-title";
-    const subEl = document.createElement("div");
-    subEl.className = "ap-sub";
-    const pick = (el, names) => {
-      for (const n of names) {
-        const v = el.getAttribute(n);
-        if (v && v.trim()) return v.trim();
-      }
-      return "";
-    };
-    const title = pick(audio, ["data-title", "title"]) || pick(card, ["data-title"]) || "音频";
-    const desc = pick(audio, ["data-desc", "aria-label"]) || pick(card, ["data-desc"]) || "";
-    const cover = pick(audio, ["data-cover", "cover"]) || pick(card, ["data-cover"]) || "";
-    titleEl.textContent = title;
-    if (desc) subEl.textContent = desc;
-    if (cover) {
-      const img = document.createElement("img");
-      img.src = cover;
-      img.alt = title || "audio";
-      coverBox.appendChild(img);
-    } else {
-      const iconWrap = document.createElement("div");
-      iconWrap.className = "ap-icon";
-      iconWrap.innerHTML = '<svg class="ap-icon-svg" viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><path fill="currentColor" d="M10 4v9.8a3.2 3.2 0 1 1-2-2.98V7h8v6.8a3.2 3.2 0 1 1-2-2.98V4h-4z"/></svg>';
-      coverBox.appendChild(iconWrap);
-    }
-    infoBox.appendChild(titleEl);
-    if (subEl.textContent) infoBox.appendChild(subEl);
-    card.insertBefore(coverBox, audio);
-    card.insertBefore(infoBox, audio);
-    card.__apEnhanced = true;
-  });
-
-  const audios = Array.from(root.querySelectorAll("audio"));
-  audios.forEach((a) => {
-    const p = a.parentElement;
-    if (p && p.classList && p.classList.contains("audio-player")) return;
-    const card = document.createElement("div");
-    card.className = "audio-player";
-    const coverBox = document.createElement("div");
-    coverBox.className = "ap-cover";
-    const infoBox = document.createElement("div");
-    infoBox.className = "ap-info";
-    const titleEl = document.createElement("div");
-    titleEl.className = "ap-title";
-    const subEl = document.createElement("div");
-    subEl.className = "ap-sub";
-    const title = a.getAttribute("data-title") || a.getAttribute("title") || "音频";
-    const desc = a.getAttribute("data-desc") || a.getAttribute("aria-label") || "";
-    const cover = a.getAttribute("data-cover") || a.getAttribute("cover") || "";
-    titleEl.textContent = title;
-    if (desc && desc.trim()) subEl.textContent = desc.trim();
-    if (cover && cover.trim()) {
-      const img = document.createElement("img");
-      img.src = cover.trim();
-      img.alt = title || "audio";
-      coverBox.appendChild(img);
-    } else {
-      const iconWrap = document.createElement("div");
-      iconWrap.className = "ap-icon";
-      iconWrap.innerHTML = '<svg class="ap-icon-svg" viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><path fill="currentColor" d="M10 4v9.8a3.2 3.2 0 1 1-2-2.98V7h8v6.8a3.2 3.2 0 1 1-2-2.98V4h-4z"/></svg>';
-      coverBox.appendChild(iconWrap);
-    }
-    infoBox.appendChild(titleEl);
-    if (subEl.textContent) infoBox.appendChild(subEl);
-    card.appendChild(coverBox);
-    card.appendChild(infoBox);
-    const next = a.cloneNode(true);
-    card.appendChild(next);
-    a.replaceWith(card);
-  });
+  bindImageLoadRestoreUtil(".post .content", route.params.id);
 }
 
 function bindDetailsFoldAnimations() {
-  const panels = Array.from(
-    document.querySelectorAll(".post .content details.fold")
-  );
-  panels.forEach((d) => {
-    if (d.__foldBound) return;
-    d.__foldBound = true;
-    const body = d.querySelector(".fold-body");
-    const sum = d.querySelector("summary");
-    if (!body) return;
-    let lastListener = null;
-    let animState = null; // 'opening' | 'closing' | null
-    const ro = new ResizeObserver(() => {
-      // 保持打开时的内容自然高度，无需额外处理；动画阶段用内联 height 控制
-    });
-    ro.observe(body);
-
-    const animateOpen = () => {
-      if (lastListener) {
-        body.removeEventListener("transitionend", lastListener);
-        lastListener = null;
-      }
-      animState = "opening";
-      d.classList.remove("closing");
-      const target = body.scrollHeight;
-      body.style.height = "0px";
-      body.style.paddingTop = "12px";
-      body.style.paddingBottom = "12px";
-      d.open = true;
-      void body.offsetWidth;
-      body.style.height = target + "px";
-      const onEnd = (e) => {
-        if (e.target !== body || e.propertyName !== "height") return;
-        if (animState !== "opening") return;
-        body.style.height = "";
-        body.style.paddingTop = "";
-        body.style.paddingBottom = "";
-        body.removeEventListener("transitionend", onEnd);
-        lastListener = null;
-        animState = null;
-      };
-      body.addEventListener("transitionend", onEnd);
-      lastListener = onEnd;
-    };
-    const animateClose = () => {
-      if (lastListener) {
-        body.removeEventListener("transitionend", lastListener);
-        lastListener = null;
-      }
-      animState = "closing";
-      d.classList.add("closing");
-      if (!d.open) d.open = true; // 保持内容可见进行过渡
-      const current = body.offsetHeight;
-      body.style.height = current + "px";
-      body.style.paddingTop = "0px";
-      body.style.paddingBottom = "0px";
-      void body.offsetWidth;
-      body.style.height = "0px";
-      const onEnd = (e) => {
-        if (e.target !== body || e.propertyName !== "height") return;
-        if (animState !== "closing") return;
-        d.open = false; // 完成后再关闭
-        d.classList.remove("closing");
-        body.style.height = "";
-        body.style.paddingTop = "";
-        body.style.paddingBottom = "";
-        body.removeEventListener("transitionend", onEnd);
-        lastListener = null;
-        animState = null;
-      };
-      body.addEventListener("transitionend", onEnd);
-      lastListener = onEnd;
-    };
-    const onSumClick = (e) => {
-      e.preventDefault();
-      // 允许在动画中打断并反向
-      if (animState === "opening") {
-        animateClose();
-        return;
-      }
-      if (animState === "closing") {
-        animateOpen();
-        return;
-      }
-      if (d.open) animateClose();
-      else animateOpen();
-    };
-    if (sum) {
-      sum.addEventListener("click", onSumClick);
-      sum.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSumClick(e);
-        }
-      });
-    }
-  });
+  bindDetailsFoldAnimationsUtil(".post .content");
 }
 </script>
 

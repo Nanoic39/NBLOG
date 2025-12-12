@@ -1,5 +1,5 @@
 <script setup>
-import axios from "axios";
+import { getHitokotoThrottled } from "@/api/home.js";
 import PostsList from "@/components/PostsList.vue";
 import { usePostsStore } from "@/stores/posts";
 import { storeToRefs } from "pinia";
@@ -20,38 +20,18 @@ const paged = computed(() => pagePreloader.useHomePage(sorted.value, curPage.val
 const pages = computed(() => Array.from({ length: pageCount.value }, (_, i) => i + 1));
 
 const hitokotoText = ref("");
-const hitokotoHref = ref("https://hitokoto.cn"); // 默认为首页
-let lastFetchAt = 0;
-let debounceTimer = null;
+const hitokotoHref = ref("https://hitokoto.cn");
 
 function requestHitokoto() {
-  return axios
-    .get("https://v1.hitokoto.cn/?c=d&c=h&c=i&c=k") // 具体参数
-    .then(({ data }) => {
-      hitokotoHref.value = `https://hitokoto.cn/?c=d&c=h&c=i&c=k`; // 用于链接跳转
-      hitokotoText.value = data.hitokoto || "";
-      lastFetchAt = Date.now();
+  return getHitokotoThrottled()
+    .then(({ hitokoto, href }) => {
+      hitokotoHref.value = href || "https://hitokoto.cn";
+      hitokotoText.value = hitokoto || "";
     })
     .catch(() => {});
 }
-
-function scheduleDebouncedRequest() {
-  if (debounceTimer) clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    requestHitokoto();
-    debounceTimer = null;
-  }, 15000);
-}
-
 function ensureHitokoto() {
-  const now = Date.now();
-  if (!hitokotoText.value) {
-    requestHitokoto();
-    return;
-  }
-  if (now - lastFetchAt >= 15000) {
-    scheduleDebouncedRequest();
-  }
+  requestHitokoto();
 }
 
 onMounted(() => {

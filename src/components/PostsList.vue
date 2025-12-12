@@ -59,12 +59,12 @@ function formatDate(iso) {
 
 function tagIcon(name) {
   const map = {
-    "Vue": "🟢",
+    Vue: "🟢",
     "Composition API": "🧩",
-    "Pinia": "🌿",
-    "State": "🧠",
-    "Router": "🧭",
-    "SPA": "📄",
+    Pinia: "🌿",
+    State: "🧠",
+    Router: "🧭",
+    SPA: "📄",
   };
   return map[name] || "🏷️";
 }
@@ -140,7 +140,9 @@ function tagIcon(name) {
   opacity: 0;
   transition: opacity 0.25s ease;
 }
-.thumb img.loaded { opacity: 1; }
+.thumb img.loaded {
+  opacity: 1;
+}
 .content {
   display: flex;
   flex-direction: column;
