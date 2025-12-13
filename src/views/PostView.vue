@@ -58,10 +58,88 @@
       </div>
       <Comments :post-id="route.params.id" />
     </div>
-    <div class="transition-block" aria-hidden="true">
+    <div class="transition-block">
+      <div class="tb-shape s1"></div>
+      <div class="tb-shape s2"></div>
+      <div class="tb-lines"></div>
       <div class="tb-inner">
-        <div class="tb-title">精选内容</div>
-        <div class="tb-sub">更多精彩，敬请期待</div>
+        <div class="tb-container">
+          <div class="tb-header">
+            <div class="tb-title">精选 · 推荐</div>
+            <div class="tb-sub">根据你的阅读推荐</div>
+          </div>
+          <div class="tb-metrics">
+            <div class="metric">
+              <div class="n">{{ stats.chars }}</div>
+              <div class="l">字数</div>
+            </div>
+            <div class="metric">
+              <div class="n">{{ stats.mins }} 分钟</div>
+              <div class="l">预计阅读</div>
+            </div>
+            <div class="metric">
+              <div class="n">{{ post?.tags?.length || 0 }}</div>
+              <div class="l">标签</div>
+            </div>
+            <div class="metric">
+              <div class="n">{{ stats.outdatedDays }}</div>
+              <div class="l">距上次更新(天)</div>
+            </div>
+          </div>
+          <div class="tb-pills">
+            <span class="pill">前端</span>
+            <span class="pill">Vue 3</span>
+            <span class="pill">Pinia</span>
+            <span class="pill">性能优化</span>
+            <span class="pill">工程化</span>
+            <span class="pill">工具库</span>
+          </div>
+          <div class="tb-features" v-if="featuredPosts.length">
+            <div
+              class="feature"
+              v-for="fp in featuredPosts"
+              :key="fp.id"
+              role="button"
+              tabindex="0"
+              @click="router.push({ name: 'post', params: { id: fp.id } })"
+              @keydown.enter="router.push({ name: 'post', params: { id: fp.id } })"
+            >
+              <div class="feature-badge">推荐</div>
+              <div
+                class="feature-cover"
+                :style="fp.cover ? { backgroundImage: `url(${fp.cover})` } : {}"
+              ></div>
+              <div class="feature-info">
+                <div class="feature-title">{{ fp.title }}</div>
+                <div class="feature-meta">{{ formatDate(fp.updatedAt || fp.publishedAt) }}</div>
+                <div class="feature-tags">
+                  <span v-for="t in (fp.tags || []).slice(0,2)" :key="t" class="pill sm">{{ t }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tb-features" v-else-if="loadingFeatured">
+            <div class="feature skeleton" v-for="i in 3" :key="i">
+              <div class="skeleton-shine"></div>
+            </div>
+          </div>
+            <div class="tb-cta">
+              <div
+                class="btn ghost"
+                role="button"
+                tabindex="0"
+                @click="router.push({ name: 'home' })"
+                @keydown.enter="router.push({ name: 'home' })"
+              >浏览更多</div>
+              <div
+                class="btn outline"
+                role="button"
+                tabindex="0"
+                @click="router.push({ name: 'archive' })"
+                @keydown.enter="router.push({ name: 'archive' })"
+              >查看归档</div>
+            </div>
+        </div>
       </div>
     </div>
   </div>
@@ -87,6 +165,7 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-css";
 import { attachImageZoom } from "@/script/imageZoom.js";
 import Comments from "@/components/Comments.vue";
+import { getFeaturedPosts } from "@/api/post.js";
 import { enhanceMediaPlayers } from "@/script/mediaEnhancers.js";
 import { escapeHtml, highlightLine, getLangRules } from "@/script/htmlUtils.js";
 import {
@@ -119,6 +198,8 @@ const stats = computed(() => {
   }
   return { chars, mins, outdated, outdatedDays };
 });
+const featuredPosts = ref([]);
+const loadingFeatured = ref(true);
 
 function tagIcon(name) {
   const map = {
@@ -259,18 +340,26 @@ function ensureEnhance() {
   }, 50);
 }
 
-onMounted(async () => {
-  await nextTick();
-  ensureEnhance();
-  observeContent();
-  window.addEventListener("scroll", onScrollPV, { passive: true });
-  restoreScroll();
-  bindImageLoadRestore();
-  pagePreloader.attach(router);
-  attachImageZoom(contentRef.value || ".post .content");
-  bindDetailsFoldAnimations();
-  enhanceMediaPlayers();
-});
+  onMounted(async () => {
+    await nextTick();
+    ensureEnhance();
+    observeContent();
+    window.addEventListener("scroll", onScrollPV, { passive: true });
+    restoreScroll();
+    bindImageLoadRestore();
+    pagePreloader.attach(router);
+    attachImageZoom(contentRef.value || ".post .content");
+    bindDetailsFoldAnimations();
+    enhanceMediaPlayers();
+    try {
+      loadingFeatured.value = true;
+      const list = await getFeaturedPosts(route.params.id);
+      if (Array.isArray(list)) featuredPosts.value = list;
+    } catch {
+    } finally {
+      loadingFeatured.value = false;
+    }
+  });
 
 watch(
   () => post.value?.content,
@@ -692,47 +781,327 @@ function bindDetailsFoldAnimations() {
 }
 
 .transition-block {
-  height: 512px;
+  height: 520px;
   margin: 18px 0 0;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--theme-color-border);
-  background: linear-gradient(
-      135deg,
-      rgba(59, 130, 246, 0.18),
-      rgba(16, 185, 129, 0.12)
-    ),
-    radial-gradient(
-      600px 300px at 80% 20%,
-      rgba(255, 255, 255, 0.08),
-      transparent 60%
-    );
+  background:
+    radial-gradient(600px 300px at 80% 20%, rgba(255, 255, 255, 0.08), transparent 60%),
+    radial-gradient(420px 240px at 20% 75%, rgba(16, 185, 129, 0.10), transparent 65%),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(16, 185, 129, 0.16));
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   position: relative;
   overflow: hidden;
+  transform: translateZ(0);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.transition-block:hover {
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+}
+.transition-block::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, 0.14) 50%, rgba(255, 255, 255, 0) 65%);
+  mix-blend-mode: overlay;
+  opacity: 0.7;
+  transform: translateX(-40%);
+  animation: sheen 6s linear infinite;
 }
 .transition-block::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(
-    rgba(255, 255, 255, 0.06) 1px,
-    transparent 1px
-  );
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: 12px 12px;
   opacity: 0.35;
 }
 .tb-inner {
   position: absolute;
-  left: 24px;
-  bottom: 24px;
+  inset: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
 }
 .tb-title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   margin-bottom: 8px;
+  background-image: linear-gradient(90deg, var(--theme-color-active), #10b981);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
-.tb-sub {
-  color: var(--muted);
+ .tb-sub {
+   color: var(--muted);
+ }
+.tb-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 14px 0 10px;
+}
+ .metric {
+   border: 1px solid var(--theme-color-border);
+   border-radius: 10px;
+   padding: 8px 10px;
+   background: rgba(255, 255, 255, 0.08);
+   display: grid;
+   gap: 4px;
+ }
+ .metric .n {
+   font-weight: 800;
+   color: var(--text);
+ }
+ .metric .l {
+   font-size: 12px;
+   color: var(--muted);
+ }
+.tb-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(2px);
+}
+.tb-cta {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+.tb-cta .btn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.tb-cta .btn.ghost {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.tb-cta .btn.outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--theme-color-border);
+}
+.tb-cta .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  border-color: var(--theme-color-active);
+}
+.tb-left {
+  align-self: end;
+  border: 1px solid var(--theme-color-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px) saturate(1.2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  padding: 14px 16px;
+}
+.tb-container {
+  max-width: var(--content-w);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.tb-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.tb-title {
+  position: relative;
+}
+.tb-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 140px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--theme-color-active), #10b981);
+  opacity: 0.85;
+}
+.tb-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+.feature {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--theme-color-border);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  min-height: 180px;
+}
+.feature::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.05));
+}
+.feature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
+  border-color: var(--theme-color-active);
+}
+.feature-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.85);
+  color: #fff;
+  font-size: 12px;
+  z-index: 2;
+}
+.feature-cover {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.05);
+}
+.feature-info {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  color: #fff;
+}
+.feature.skeleton {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12));
+  overflow: hidden;
+}
+.skeleton-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 40%, rgba(255, 255, 255, 0) 80%);
+  transform: translateX(-100%);
+  animation: shine 1.6s ease-in-out infinite;
+}
+.pill:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.metric .n {
+  font-size: 18px;
+}
+@keyframes shine {
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (max-width: 768px) {
+  .tb-features {
+    grid-template-columns: 1fr;
+  }
+}
+.feature-title {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.feature-meta {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.feature-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+ .pill.sm {
+   height: 24px;
+   padding: 0 8px;
+   font-size: 11px;
+ }
+.tb-lines {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.06) 1px,
+      transparent 1px
+    );
+  background-size: 24px 24px;
+  opacity: 0.4;
+  filter: saturate(0.9);
+  mix-blend-mode: soft-light;
+}
+.tb-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(20px);
+  opacity: 0.6;
+}
+.tb-shape.s1 {
+  width: 240px;
+  height: 240px;
+  left: -60px;
+  top: -40px;
+  background: radial-gradient(circle at 60% 40%, rgba(59, 130, 246, 0.7), rgba(59, 130, 246, 0) 60%);
+  animation: float1 12s ease-in-out infinite;
+}
+.tb-shape.s2 {
+  width: 200px;
+  height: 200px;
+  right: -50px;
+  bottom: -30px;
+  background: radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.7), rgba(16, 185, 129, 0) 60%);
+  animation: float2 14s ease-in-out infinite;
+}
+@keyframes float1 {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(14px, 10px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes float2 {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(-12px, -12px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes sheen {
+  0% {
+    transform: translateX(-40%);
+  }
+  50% {
+    transform: translateX(40%);
+  }
+  100% {
+    transform: translateX(140%);
+  }
 }
 
 @media (max-width: 768px) {

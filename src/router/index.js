@@ -17,6 +17,11 @@ const routes = [
     name: "post",
     component: () => import("@/views/PostView.vue"),
   },
+  {
+    path: "/archive",
+    name: "archive",
+    component: () => import("@/views/ArchiveView.vue"),
+  },
 ];
 
 const router = createRouter({
