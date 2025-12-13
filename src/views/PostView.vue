@@ -56,37 +56,7 @@
         >
         <p>最后修改：{{ formatDate(post?.updatedAt || post?.publishedAt) }}</p>
       </div>
-      <div class="comments">
-        <div class="comments-title">评论</div>
-        <form
-          class="comment-form"
-          @submit.prevent="submitComment"
-          aria-label="发表评论"
-        >
-          <input
-            v-model="cName"
-            type="text"
-            placeholder="昵称"
-            aria-label="昵称"
-          />
-          <input
-            v-model="cEmail"
-            type="email"
-            placeholder="邮箱"
-            aria-label="邮箱"
-          />
-          <textarea
-            v-model="cBody"
-            rows="3"
-            placeholder="留言"
-            aria-label="留言"
-          ></textarea>
-          <button type="submit">提交</button>
-        </form>
-        <ul class="comment-list">
-          <CommentNode v-for="c in comments" :key="c.id" :node="c" />
-        </ul>
-      </div>
+      <Comments :post-id="route.params.id" />
     </div>
     <div class="transition-block" aria-hidden="true">
       <div class="tb-inner">
@@ -101,16 +71,7 @@
 import { useRoute, useRouter } from "vue-router";
 import { usePostsStore } from "@/stores/posts";
 import { pagePreloader } from "@/utils/PagePreloader.js";
-import {
-  computed,
-  ref,
-  onMounted,
-  nextTick,
-  watch,
-  onBeforeUnmount,
-  defineComponent,
-  h,
-} from "vue";
+import { computed, ref, onMounted, nextTick, watch, onBeforeUnmount } from "vue";
 import Prism from "prismjs";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-javascript";
@@ -118,7 +79,7 @@ import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-css";
 import { attachImageZoom } from "@/script/imageZoom.js";
-import { getPostComments } from "@/api/post.js";
+import Comments from "@/components/Comments.vue";
 import { enhanceMediaPlayers } from "@/script/mediaEnhancers.js";
 import { escapeHtml, highlightLine, getLangRules } from "@/script/htmlUtils.js";
 import {
@@ -151,14 +112,6 @@ const stats = computed(() => {
   }
   return { chars, mins, outdated, outdatedDays };
 });
-const cName = ref("");
-const cEmail = ref("");
-const cBody = ref("");
-const comments = ref([]);
-const replyInputs = ref({});
-const replyingTo = ref(new Set());
-const expandedReplies = ref(new Set());
-const tracked = ref({ commentId: null, replyId: null });
 
 function tagIcon(name) {
   const map = {
@@ -181,328 +134,6 @@ function formatDate(iso) {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${dd}`;
 }
-
-function submitComment() {
-  const name = cName.value.trim();
-  const body = cBody.value.trim();
-  if (!name || !body) return;
-  const email = cEmail.value.trim();
-  const item = {
-    name,
-    email,
-    body,
-    date: new Date().toLocaleString(),
-    id: Date.now(),
-    replies: [],
-  };
-  comments.value = [item, ...comments.value];
-  cName.value = "";
-  cEmail.value = "";
-  cBody.value = "";
-}
-
-function toggleReplyForm(id) {
-  if (!replyInputs.value[id]) {
-    replyInputs.value[id] = { name: "", email: "", body: "" };
-  }
-  const set = replyingTo.value;
-  if (set.has(id)) set.delete(id);
-  else set.add(id);
-  replyingTo.value = new Set(set);
-}
-
-function isReplying(id) {
-  return replyingTo.value.has(id);
-}
-
-function toggleRepliesExpand(id) {
-  const es = expandedReplies.value;
-  if (es.has(id)) es.delete(id);
-  else es.add(id);
-  expandedReplies.value = new Set(es);
-}
-
-function toggleTrack(commentId, replyId) {
-  const t = tracked.value;
-  if (t.commentId === commentId && t.replyId === replyId) {
-    tracked.value = { commentId: null, replyId: null };
-  } else {
-    tracked.value = { commentId, replyId };
-  }
-}
-
-function buildReplyChainSet(replies, seedId) {
-  const byId = new Map();
-  const childrenMap = new Map();
-  replies.forEach((r) => {
-    byId.set(r.id, r);
-    const pid = r.replyToId;
-    if (pid) {
-      const arr = childrenMap.get(pid) || [];
-      arr.push(r.id);
-      childrenMap.set(pid, arr);
-    }
-  });
-  const set = new Set();
-  const queue = [];
-  if (seedId) queue.push(seedId);
-  while (queue.length) {
-    const id = queue.shift();
-    if (set.has(id)) continue;
-    set.add(id);
-    const r = byId.get(id);
-    if (r && r.replyToId && !set.has(r.replyToId)) queue.push(r.replyToId);
-    const kids = childrenMap.get(id) || [];
-    kids.forEach((cid) => {
-      if (!set.has(cid)) queue.push(cid);
-    });
-  }
-  return set;
-}
-
-function findNodeById(list, id) {
-  for (let i = 0; i < list.length; i++) {
-    const n = list[i];
-    if (n && n.id === id) return n;
-    const rs = n && n.replies;
-    if (Array.isArray(rs) && rs.length) {
-      const hit = findNodeById(rs, id);
-      if (hit) return hit;
-    }
-  }
-  return null;
-}
-
-function submitReply(parentId, replyToId) {
-  const formId = replyToId || parentId;
-  const input = replyInputs.value[formId] || { name: "", email: "", body: "" };
-  const name = String(input.name || "").trim();
-  const body = String(input.body || "").trim();
-  if (!name || !body) return;
-  const email = String(input.email || "").trim();
-  let replyToName = "";
-  if (replyToId) {
-    const parent = comments.value.find((x) => x.id === parentId);
-    const target =
-      parent && Array.isArray(parent.replies)
-        ? parent.replies.find((r) => r.id === replyToId)
-        : null;
-    replyToName = target?.name || "";
-  }
-  const reply = {
-    name,
-    email,
-    body,
-    date: new Date().toLocaleString(),
-    id: Date.now(),
-    replyToId: replyToId || null,
-    replyToName: replyToName || "",
-  };
-  const parent = comments.value.find((x) => x.id === parentId);
-  if (parent) {
-    const prev = Array.isArray(parent.replies) ? parent.replies : [];
-    parent.replies = [...prev, reply];
-  }
-  replyInputs.value[formId] = { name: "", email: "", body: "" };
-  const set = replyingTo.value;
-  if (set.has(formId)) set.delete(formId);
-  replyingTo.value = new Set(set);
-}
-
-const CommentNode = defineComponent({
-  name: "CommentNode",
-  props: {
-    node: { type: Object, required: true },
-  },
-  setup(p) {
-    return () => {
-      const n = p.node;
-      const children = [];
-      children.push(h("div", { class: "meta" }, `${n.name} · ${n.date}`));
-      children.push(h("div", { class: "body" }, n.body));
-      children.push(
-        h("div", { class: "comment-actions" }, [
-          h(
-            "button",
-            { class: "reply-btn", onClick: () => toggleReplyForm(n.id) },
-            "回复"
-          ),
-        ])
-      );
-      if (isReplying(n.id)) {
-        if (!replyInputs.value[n.id]) {
-          replyInputs.value[n.id] = { name: "", email: "", body: "" };
-        }
-        children.push(
-          h("div", { class: "reply-form" }, [
-            h("input", {
-              value: replyInputs.value[n.id].name,
-              onInput: (e) => (replyInputs.value[n.id].name = e.target.value),
-              type: "text",
-              placeholder: "昵称",
-              "aria-label": "昵称",
-            }),
-            h("input", {
-              value: replyInputs.value[n.id].email,
-              onInput: (e) => (replyInputs.value[n.id].email = e.target.value),
-              type: "email",
-              placeholder: "邮箱",
-              "aria-label": "邮箱",
-            }),
-            h("textarea", {
-              value: replyInputs.value[n.id].body,
-              onInput: (e) => (replyInputs.value[n.id].body = e.target.value),
-              rows: "2",
-              placeholder: "回复内容",
-              "aria-label": "回复内容",
-            }),
-            h("div", { class: "reply-actions" }, [
-              h(
-                "button",
-                { class: "reply-submit", onClick: () => submitReply(n.id) },
-                "提交回复"
-              ),
-              h(
-                "button",
-                { class: "reply-cancel", onClick: () => toggleReplyForm(n.id) },
-                "取消"
-              ),
-            ]),
-          ])
-        );
-      }
-      if (n.replies && n.replies.length) {
-        const all = Array.isArray(n.replies) ? n.replies : [];
-        const trackedSet =
-          tracked.value.commentId === n.id && tracked.value.replyId
-            ? buildReplyChainSet(all, tracked.value.replyId)
-            : new Set();
-        const overMax = all.length > 5;
-        const expanded = expandedReplies.value.has(n.id);
-        const visible = expanded || !overMax ? all : all.slice(0, 5);
-        children.push(
-          h(
-            "ul",
-            { class: "reply-list" },
-            visible.map((r) => {
-              const classes = ["reply-item"];
-              if (trackedSet.has(r.id)) classes.push("tracked");
-              return h("li", { class: classes.join(" "), key: r.id }, [
-                h(
-                  "div",
-                  { class: "meta" },
-                  `${r.name} · ${r.date}` +
-                    (r.replyToName ? ` · 回复 @${r.replyToName}` : "")
-                ),
-                h("div", { class: "body" }, r.body),
-                h("div", { class: "comment-actions" }, [
-                  h(
-                    "button",
-                    {
-                      class: "reply-btn",
-                      onClick: () => toggleReplyForm(r.id),
-                    },
-                    "回复"
-                  ),
-                  h(
-                    "button",
-                    {
-                      class: "reply-btn",
-                      onClick: () => toggleTrack(n.id, r.id),
-                    },
-                    "追踪对话"
-                  ),
-                ]),
-                isReplying(r.id)
-                  ? h("div", { class: "reply-form" }, [
-                      h("input", {
-                        value: replyInputs.value[r.id]?.name || "",
-                        onInput: (e) => {
-                          if (!replyInputs.value[r.id])
-                            replyInputs.value[r.id] = {
-                              name: "",
-                              email: "",
-                              body: "",
-                            };
-                          replyInputs.value[r.id].name = e.target.value;
-                        },
-                        type: "text",
-                        placeholder: "昵称",
-                        "aria-label": "昵称",
-                      }),
-                      h("input", {
-                        value: replyInputs.value[r.id]?.email || "",
-                        onInput: (e) => {
-                          if (!replyInputs.value[r.id])
-                            replyInputs.value[r.id] = {
-                              name: "",
-                              email: "",
-                              body: "",
-                            };
-                          replyInputs.value[r.id].email = e.target.value;
-                        },
-                        type: "email",
-                        placeholder: "邮箱",
-                        "aria-label": "邮箱",
-                      }),
-                      h("textarea", {
-                        value: replyInputs.value[r.id]?.body || "",
-                        onInput: (e) => {
-                          if (!replyInputs.value[r.id])
-                            replyInputs.value[r.id] = {
-                              name: "",
-                              email: "",
-                              body: "",
-                            };
-                          replyInputs.value[r.id].body = e.target.value;
-                        },
-                        rows: "2",
-                        placeholder: "回复内容",
-                        "aria-label": "回复内容",
-                      }),
-                      h("div", { class: "reply-actions" }, [
-                        h(
-                          "button",
-                          {
-                            class: "reply-submit",
-                            onClick: () => submitReply(n.id, r.id),
-                          },
-                          "提交回复"
-                        ),
-                        h(
-                          "button",
-                          {
-                            class: "reply-cancel",
-                            onClick: () => toggleReplyForm(r.id),
-                          },
-                          "取消"
-                        ),
-                      ]),
-                    ])
-                  : null,
-              ]);
-            })
-          )
-        );
-        if (overMax) {
-          children.push(
-            h("div", { class: "comment-actions" }, [
-              h(
-                "button",
-                {
-                  class: "reply-btn",
-                  onClick: () => toggleRepliesExpand(n.id),
-                },
-                expanded ? "收起" : `显示全部 ${all.length} 条`
-              ),
-            ])
-          );
-        }
-      }
-      return h("li", { class: "comment-item" }, children);
-    };
-  },
-});
 
 function enhanceCodeBlocks() {
   const blocks = Array.from(
@@ -621,27 +252,18 @@ function ensureEnhance() {
   }, 50);
 }
 
-onMounted(async () => {
-  await nextTick();
-  ensureEnhance();
-  observeContent();
-  window.addEventListener("scroll", onScrollPV, { passive: true });
-  restoreScroll();
-  bindImageLoadRestore();
-  pagePreloader.attach(router);
-  attachImageZoom(contentRef.value || ".post .content");
-  bindDetailsFoldAnimations();
-  enhanceMediaPlayers();
-  try {
-    const list = await getPostComments(route.params.id);
-    if (Array.isArray(list))
-      comments.value = list.map((c, i) => ({
-        ...c,
-        id: Date.now() + i,
-        replies: [],
-      }));
-  } catch {}
-});
+  onMounted(async () => {
+    await nextTick();
+    ensureEnhance();
+    observeContent();
+    window.addEventListener("scroll", onScrollPV, { passive: true });
+    restoreScroll();
+    bindImageLoadRestore();
+    pagePreloader.attach(router);
+    attachImageZoom(contentRef.value || ".post .content");
+    bindDetailsFoldAnimations();
+    enhanceMediaPlayers();
+  });
 
 watch(
   () => post.value?.content,
@@ -1060,120 +682,6 @@ function bindDetailsFoldAnimations() {
 .reprint-card p {
   margin: 6px 0;
   color: var(--text);
-}
-.comments-title {
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-.comment-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 10px;
-  margin-bottom: 12px;
-}
-.comment-form input,
-.comment-form textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--theme-color-border);
-  background: var(--panel);
-  color: var(--text);
-}
-.comment-form textarea {
-  grid-column: 1 / 3;
-}
-.comment-form button {
-  grid-column: 1 / 3;
-  height: 40px;
-  border-radius: 8px;
-  border: 0;
-  background: var(--theme-color-active);
-  color: var(--theme-color-active-text);
-  cursor: pointer;
-}
-.comment-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 10px;
-}
-:deep(.comment-item) {
-  padding: 10px 12px;
-  border: 1px solid var(--theme-color-border);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.03);
-}
-:deep(.comment-item .meta) {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-:deep(.comment-item .body) {
-  color: var(--text);
-}
-:deep(.comment-actions) {
-  margin-top: 8px;
-  display: flex;
-  gap: 8px;
-}
-:deep(.reply-btn),
-:deep(.reply-submit),
-:deep(.reply-cancel) {
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid var(--theme-color-border);
-  background: var(--panel);
-  color: var(--text);
-  cursor: pointer;
-  padding: 0 10px;
-}
-:deep(.reply-submit) {
-  background: var(--theme-color-active);
-  color: var(--theme-color-active-text);
-  border: 0;
-}
-:deep(.reply-form) {
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 10px;
-}
-:deep(.reply-form input),
-:deep(.reply-form textarea) {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--theme-color-border);
-  background: var(--panel);
-  color: var(--text);
-}
-:deep(.reply-form textarea) {
-  grid-column: 1 / 3;
-}
-:deep(.reply-actions) {
-  grid-column: 1 / 3;
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-:deep(.reply-list) {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 0;
-  display: grid;
-  gap: 8px;
-}
-:deep(.reply-item) {
-  padding: 8px 10px;
-  border: 1px dashed var(--theme-color-border);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.02);
-}
-:deep(.reply-item.tracked) {
-  border-color: var(--theme-color-active);
-  background: rgba(59, 130, 246, 0.08);
 }
 
 .transition-block {
