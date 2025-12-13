@@ -71,7 +71,14 @@
 import { useRoute, useRouter } from "vue-router";
 import { usePostsStore } from "@/stores/posts";
 import { pagePreloader } from "@/utils/PagePreloader.js";
-import { computed, ref, onMounted, nextTick, watch, onBeforeUnmount } from "vue";
+import {
+  computed,
+  ref,
+  onMounted,
+  nextTick,
+  watch,
+  onBeforeUnmount,
+} from "vue";
 import Prism from "prismjs";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-javascript";
@@ -252,18 +259,18 @@ function ensureEnhance() {
   }, 50);
 }
 
-  onMounted(async () => {
-    await nextTick();
-    ensureEnhance();
-    observeContent();
-    window.addEventListener("scroll", onScrollPV, { passive: true });
-    restoreScroll();
-    bindImageLoadRestore();
-    pagePreloader.attach(router);
-    attachImageZoom(contentRef.value || ".post .content");
-    bindDetailsFoldAnimations();
-    enhanceMediaPlayers();
-  });
+onMounted(async () => {
+  await nextTick();
+  ensureEnhance();
+  observeContent();
+  window.addEventListener("scroll", onScrollPV, { passive: true });
+  restoreScroll();
+  bindImageLoadRestore();
+  pagePreloader.attach(router);
+  attachImageZoom(contentRef.value || ".post .content");
+  bindDetailsFoldAnimations();
+  enhanceMediaPlayers();
+});
 
 watch(
   () => post.value?.content,
