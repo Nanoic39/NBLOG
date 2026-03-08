@@ -13,5 +13,14 @@
     "nuxt": "^4.3.1",
     "vue": "^3.5.28",
     "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@bg-dev/nuxt-naiveui": "^2.0.0",
+    "@tailwindcss/postcss": "^4.2.1",
+    "autoprefixer": "^10.4.27",
+    "naive-ui": "^2.43.2",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "vfonts": "^0.0.3"
   }
 }

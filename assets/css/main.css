@@ -1,0 +1,88 @@
+body {
+  background-color: #f9fafb;
+  color: #2a2e33;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-ink {
+  font-family: "汉仪墨韵行书", cursive, serif;
+}
+
+/* 渐变波浪下划线 */
+.hover-underline-animation {
+  position: relative;
+  text-decoration: none;
+  background-image: linear-gradient(to right, #BFE9FF, #E9E0FF, #FFE9F3);
+  background-size: 0% 2px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size 0.3s ease;
+}
+
+.hover-underline-animation:hover {
+  background-size: 100% 2px;
+  text-decoration: none; /* 确保没有默认下划线 */
+}
+
+/* 渐变波浪线效果 - 替换原有的 hover-underline-animation */
+.gradient-wave-link {
+  position: relative;
+  text-decoration: none;
+  background: linear-gradient(to right, #BFE9FF, #E9E0FF, #FFE9F3);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: #2A2E33; /* 默认颜色 */
+  transition: color 0.3s;
+}
+
+.gradient-wave-link:hover {
+  color: transparent; /* 悬停时文字变为渐变 */
+  background-size: 200% auto;
+  animation: gradientMove 3s linear infinite;
+}
+
+.gradient-wave-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 4px;
+  background: radial-gradient(circle at 2px 50%, #BFE9FF 1px, transparent 1px),
+              radial-gradient(circle at 2px 50%, #E9E0FF 1px, transparent 1px);
+  background-size: 8px 4px;
+  background-position: 0 0, 4px 0;
+  background-repeat: repeat-x;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease-out;
+}
+
+.gradient-wave-link:hover::after {
+  transform: scaleX(1);
+  animation: waveMove 1s linear infinite;
+}
+
+@keyframes waveMove {
+  from { background-position: 0 0, 4px 0; }
+  to { background-position: 8px 0, 12px 0; }
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 光标闪烁动画 */
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
