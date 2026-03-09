@@ -44,7 +44,7 @@ const menuItems = [
         <!-- Logo -->
         <NuxtLink
           to="/"
-          class="text-2xl font-bold font-ink text-[#2A2E33] hover:text-[#BFE9FF] transition-colors"
+          class="text-2xl font-bold font-ink text-[#2A2E33] hover:text-[#0284C7] transition-colors"
         >
           NANOIC
         </NuxtLink>
@@ -112,9 +112,9 @@ const menuItems = [
     <footer class="bg-white border-t border-gray-100 py-12 mt-auto">
       <div class="container mx-auto px-6 max-w-6xl text-center">
         <div class="mb-4 flex justify-center gap-6 text-[#9CA3AF]">
-          <a href="#" class="hover:text-[#BFE9FF] transition-colors">Github</a>
-          <a href="#" class="hover:text-[#BFE9FF] transition-colors">Twitter</a>
-          <a href="#" class="hover:text-[#BFE9FF] transition-colors">RSS</a>
+          <a href="#" class="hover:text-[#0284C7] transition-colors">Github</a>
+          <a href="#" class="hover:text-[#0284C7] transition-colors">Twitter</a>
+          <a href="#" class="hover:text-[#0284C7] transition-colors">RSS</a>
         </div>
         <p class="text-[#9CA3AF] text-sm">
           &copy; {{ new Date().getFullYear() }} NANOIC. All rights reserved.

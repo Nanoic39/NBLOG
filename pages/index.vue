@@ -6,7 +6,7 @@
     >
       <!-- Background Elements -->
       <div
-        class="absolute inset-0 z-0 bg-gradient-to-b from-[#E9E0FF]/30 to-[#F9FAFB]"
+        class="absolute inset-0 z-0 bg-linear-to-b from-[#E9E0FF]/30 to-[#F9FAFB]"
       ></div>
       <div
         class="absolute top-1/4 left-1/4 w-64 h-64 bg-[#BFE9FF]/20 rounded-full blur-3xl animate-pulse"
@@ -36,15 +36,16 @@
       >
         <div class="mb-4">
           <span
-            class="inline-block px-3 py-1 text-xs font-medium tracking-wider text-[#BFE9FF] uppercase bg-[#2A2E33] rounded-full"
+            class="inline-block px-3 py-1 text-xs font-medium tracking-wider text-[#BFE9FF] bg-[#2A2E33] rounded-full"
           >
             A Java Developer
           </span>
         </div>
         <h1
-          class="text-5xl md:text-7xl font-ink text-[#2A2E33] mb-6 tracking-wide drop-shadow-sm"
+          class="text-4xl md:text-6xl font-mono text-[#2A2E33] mb-6 tracking-wide drop-shadow-sm flex items-center flex-wrap gap-2"
         >
-          NANOIC
+          <span class="text-[#0284C7] font-bold animate-pulse">Yuna@</span>
+          <span class="font-bold">NANO1C</span>
         </h1>
         <div class="space-y-6 text-[#6B7280]">
           <div class="h-8 flex items-center justify-center md:justify-start">
@@ -228,9 +229,10 @@ const typeText = async () => {
 
   const type = () => {
     const currentPhrase = phrases[phraseIndex];
+    if (!currentPhrase) return;
 
     if (isDeleting) {
-      const currentContent = element.textContent;
+      const currentContent = element.textContent || '';
       if (currentContent.length > 0) {
         element.textContent = currentContent.slice(0, -1);
         setTimeout(type, deletingSpeed);
@@ -261,6 +263,7 @@ const typeText = async () => {
     }
 
     const segment = currentPhrase[segmentIndex];
+    if (!segment) return;
 
     if (segment.type === "en") {
       if (charIndex < segment.text.length) {
@@ -274,10 +277,11 @@ const typeText = async () => {
         type(); // 立即处理下一个片段
       }
     } else if (segment.type === "zh") {
-      if (charIndex < segment.pinyin.length) {
+      const pinyin = segment.pinyin || '';
+      if (charIndex < pinyin.length) {
         // 显示：已确认文本 + 当前拼音部分
         element.textContent =
-          displayedText + segment.pinyin.slice(0, charIndex + 1);
+          displayedText + pinyin.slice(0, charIndex + 1);
         charIndex++;
         setTimeout(type, typingSpeed);
       } else {
