@@ -44,7 +44,8 @@
         <h1
           class="text-5xl md:text-7xl font-ink text-[#2A2E33] dark:text-[#e0e0e0] mb-6 tracking-wide drop-shadow-sm transition-colors duration-300"
         >
-          NANOIC
+          <span class="text-[#0284C7] font-bold animate-pulse">Yuna@</span>
+          <span class="font-bold">NANO1C</span>
         </h1>
         <div class="space-y-6 text-[#6B7280] dark:text-[#9ca3af]">
           <div class="h-8 flex items-center justify-center md:justify-start">
@@ -55,7 +56,7 @@
           </div>
 
           <p
-            class="text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed text-justify md:text-left"
+            class="text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed text-center md:text-left"
           >
             <span class="text-[#2A2E33] dark:text-[#e0e0e0] font-bold transition-colors duration-300">谦卑心态，务实前行。</span><br/>
             热衷于探索前沿技术，追求极致的美化。<br />
@@ -229,9 +230,10 @@ const typeText = async () => {
 
   const type = () => {
     const currentPhrase = phrases[phraseIndex];
+    if (!currentPhrase) return;
 
     if (isDeleting) {
-      const currentContent = element.textContent;
+      const currentContent = element.textContent || '';
       if (currentContent.length > 0) {
         element.textContent = currentContent.slice(0, -1);
         setTimeout(type, deletingSpeed);
@@ -257,6 +259,7 @@ const typeText = async () => {
     }
 
     const segment = currentPhrase[segmentIndex];
+    if (!segment) return;
 
     if (segment.type === "en") {
       if (charIndex < segment.text.length) {
@@ -270,9 +273,11 @@ const typeText = async () => {
         type();
       }
     } else if (segment.type === "zh") {
-      if (charIndex < segment.pinyin.length) {
+      const pinyin = segment.pinyin || '';
+      if (charIndex < pinyin.length) {
+        // 显示：已确认文本 + 当前拼音部分
         element.textContent =
-          displayedText + segment.pinyin.slice(0, charIndex + 1);
+          displayedText + pinyin.slice(0, charIndex + 1);
         charIndex++;
         setTimeout(type, typingSpeed);
       } else {

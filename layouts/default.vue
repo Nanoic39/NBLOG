@@ -116,9 +116,9 @@ const menuItems = [
     <footer class="bg-white dark:bg-[#1f1f1f] border-t border-gray-100 dark:border-gray-700 py-12 mt-auto transition-colors duration-300">
       <div class="container mx-auto px-6 max-w-6xl text-center">
         <div class="mb-4 flex justify-center gap-6 text-[#9CA3AF]">
-          <a href="#" class="hover:text-[#BFE9FF] transition-colors">Github</a>
-          <a href="#" class="hover:text-[#BFE9FF] transition-colors">Twitter</a>
-          <a href="#" class="hover:text-[#BFE9FF] transition-colors">RSS</a>
+          <a href="#" class="hover:text-[#0284C7] transition-colors">Github</a>
+          <a href="#" class="hover:text-[#0284C7] transition-colors">Twitter</a>
+          <a href="#" class="hover:text-[#0284C7] transition-colors">RSS</a>
         </div>
         <p class="text-[#9CA3AF] text-sm">
           &copy; {{ new Date().getFullYear() }} NANOIC. All rights reserved.
