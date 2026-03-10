@@ -5,6 +5,7 @@ body {
     "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .font-ink {
@@ -24,22 +25,22 @@ body {
 
 .hover-underline-animation:hover {
   background-size: 100% 2px;
-  text-decoration: none; /* 确保没有默认下划线 */
+  text-decoration: none;
 }
 
-/* 渐变波浪线效果 - 替换原有的 hover-underline-animation */
+/* 渐变波浪线效果 */
 .gradient-wave-link {
   position: relative;
   text-decoration: none;
   background: linear-gradient(to right, #BFE9FF, #E9E0FF, #FFE9F3);
   background-clip: text;
   -webkit-background-clip: text;
-  color: #2A2E33; /* 默认颜色 */
+  color: #2A2E33;
   transition: color 0.3s;
 }
 
 .gradient-wave-link:hover {
-  color: transparent; /* 悬停时文字变为渐变 */
+  color: transparent;
   background-size: 200% auto;
   animation: gradientMove 3s linear infinite;
 }
@@ -85,4 +86,22 @@ body {
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* ===== 夜间模式 深灰色系 ===== */
+.dark body {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+/* 卡片/文章容器 */
+.dark article,
+.dark .card {
+  background-color: #242424;
+  border-color: #333;
+}
+
+/* 夜间模式下渐变链接颜色适配 */
+.dark .gradient-wave-link {
+  color: #c9d1d9;
 }

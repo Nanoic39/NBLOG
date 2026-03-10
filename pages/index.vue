@@ -6,13 +6,13 @@
     >
       <!-- Background Elements -->
       <div
-        class="absolute inset-0 z-0 bg-linear-to-b from-[#E9E0FF]/30 to-[#F9FAFB]"
+        class="absolute inset-0 z-0 bg-gradient-to-b from-[#E9E0FF]/30 to-[#F9FAFB] dark:from-[#1a1a2e]/40 dark:to-[#1a1a1a] transition-colors duration-300"
       ></div>
       <div
-        class="absolute top-1/4 left-1/4 w-64 h-64 bg-[#BFE9FF]/20 rounded-full blur-3xl animate-pulse"
+        class="absolute top-1/4 left-1/4 w-64 h-64 bg-[#BFE9FF]/20 dark:bg-[#BFE9FF]/10 rounded-full blur-3xl animate-pulse"
       ></div>
       <div
-        class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#FFE9F3]/30 rounded-full blur-3xl animate-pulse delay-1000"
+        class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#FFE9F3]/30 dark:bg-[#FFE9F3]/10 rounded-full blur-3xl animate-pulse delay-1000"
       ></div>
 
       <!-- Left Content: Image -->
@@ -20,7 +20,7 @@
         class="relative z-10 w-full md:w-1/2 flex justify-center md:justify-end md:pr-12 mb-12 md:mb-0"
       >
         <div
-          class="w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border-4 border-white/50 overflow-hidden hover:scale-105 transition-transform duration-500 group cursor-grab"
+          class="w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-4 border-white/50 dark:border-white/10 overflow-hidden hover:scale-105 transition-transform duration-500 group cursor-grab"
         >
           <img
             :src="headImage"
@@ -36,29 +36,29 @@
       >
         <div class="mb-4">
           <span
-            class="inline-block px-3 py-1 text-xs font-medium tracking-wider text-[#BFE9FF] bg-[#2A2E33] rounded-full"
+            class="inline-block px-3 py-1 text-xs font-medium tracking-wider text-[#BFE9FF] uppercase bg-[#2A2E33] dark:bg-[#374151] rounded-full"
           >
             A Java Developer
           </span>
         </div>
         <h1
-          class="text-4xl md:text-6xl font-mono text-[#2A2E33] mb-6 tracking-wide drop-shadow-sm flex items-center justify-center md:justify-start flex-wrap gap-2"
+          class="text-5xl md:text-7xl font-ink text-[#2A2E33] dark:text-[#e0e0e0] mb-6 tracking-wide drop-shadow-sm transition-colors duration-300"
         >
           <span class="text-[#0284C7] font-bold animate-pulse">Yuna@</span>
           <span class="font-bold">NANO1C</span>
         </h1>
-        <div class="space-y-6 text-[#6B7280]">
+        <div class="space-y-6 text-[#6B7280] dark:text-[#9ca3af]">
           <div class="h-8 flex items-center justify-center md:justify-start">
             <span
               class="text-xl md:text-2xl font-light font-mono typing-effect"
             ></span>
-            <span class="w-0.5 h-6 bg-[#2A2E33] animate-blink ml-1"></span>
+            <span class="w-0.5 h-6 bg-[#2A2E33] dark:bg-[#e0e0e0] animate-blink ml-1 transition-colors duration-300"></span>
           </div>
 
           <p
             class="text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed text-center md:text-left"
           >
-            <span class="text-[#2A2E33] font-bold">谦卑心态，务实前行。</span><br/>
+            <span class="text-[#2A2E33] dark:text-[#e0e0e0] font-bold transition-colors duration-300">谦卑心态，务实前行。</span><br/>
             热衷于探索前沿技术，追求极致的美化。<br />
             本站用于 记录 / 创作 / 分享 <br />
           </p>
@@ -68,7 +68,7 @@
             <span
               v-for="tech in techStack"
               :key="tech"
-              class="px-3 py-1 text-sm bg-white/60 border border-white/60 rounded-lg text-[#6B7280] shadow-sm hover:text-[#BFE9FF] hover:border-[#BFE9FF] transition-colors cursor-default select-none"
+              class="px-3 py-1 text-sm bg-white/60 dark:bg-white/10 border border-white/60 dark:border-white/20 rounded-lg text-[#6B7280] dark:text-[#9ca3af] shadow-sm hover:text-[#BFE9FF] hover:border-[#BFE9FF] transition-colors cursor-default select-none"
             >
               #{{ tech }}
             </span>
@@ -82,7 +82,7 @@
             :key="social.name"
             :href="social.url"
             target="_blank"
-            class="p-2.5 rounded-full bg-white/60 hover:bg-white text-[#9CA3AF] hover:text-[#BFE9FF] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(191,233,255,0.4)] transition-all duration-300 hover:-translate-y-1"
+            class="p-2.5 rounded-full bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-[#9CA3AF] hover:text-[#BFE9FF] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(191,233,255,0.4)] transition-all duration-300 hover:-translate-y-1"
             :title="social.name"
           >
             <svg
@@ -102,13 +102,14 @@
           </a>
         </div>
       </div>
+
       <!-- 引导指示器 -->
       <div
         class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer z-20 opacity-60 hover:opacity-100 transition-opacity"
         @click="scrollToContent"
       >
         <svg
-          class="w-6 h-6 text-[#9CA3AF]"
+          class="w-6 h-6 text-[#9CA3AF] dark:text-[#6b7280]"
           viewBox="0 0 24 24"
           fill="currentColor"
           xmlns="http://www.w3.org/2000/svg"
@@ -225,7 +226,7 @@ const typeText = async () => {
   let segmentIndex = 0;
   let charIndex = 0;
   let isDeleting = false;
-  let displayedText = ""; // 已确认显示的文本
+  let displayedText = "";
 
   const type = () => {
     const currentPhrase = phrases[phraseIndex];
@@ -238,14 +239,11 @@ const typeText = async () => {
         setTimeout(type, deletingSpeed);
       } else {
         isDeleting = false;
-        
-        // 随机选择下一个短语，避免重复
         let nextIndex;
         do {
           nextIndex = Math.floor(Math.random() * phrases.length);
         } while (nextIndex === phraseIndex && phrases.length > 1);
         phraseIndex = nextIndex;
-        
         segmentIndex = 0;
         charIndex = 0;
         displayedText = "";
@@ -254,9 +252,7 @@ const typeText = async () => {
       return;
     }
 
-    // 输入阶段
     if (segmentIndex >= currentPhrase.length) {
-      // 当前短语输入完成
       isDeleting = true;
       setTimeout(type, pauseTime);
       return;
@@ -274,7 +270,7 @@ const typeText = async () => {
       } else {
         segmentIndex++;
         charIndex = 0;
-        type(); // 立即处理下一个片段
+        type();
       }
     } else if (segment.type === "zh") {
       const pinyin = segment.pinyin || '';
@@ -285,7 +281,6 @@ const typeText = async () => {
         charIndex++;
         setTimeout(type, typingSpeed);
       } else {
-        // 拼音输入完成，等待转换
         setTimeout(() => {
           displayedText += segment.text;
           element.textContent = displayedText;
@@ -300,7 +295,6 @@ const typeText = async () => {
   type();
 };
 
-// 构建完成后开始执行打字动画
 onMounted(() => {
   typeText();
 });
