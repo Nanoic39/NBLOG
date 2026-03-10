@@ -42,7 +42,7 @@
           </span>
         </div>
         <h1
-          class="text-4xl md:text-6xl font-mono text-[#2A2E33] mb-6 tracking-wide drop-shadow-sm flex items-center flex-wrap gap-2"
+          class="text-4xl md:text-6xl font-mono text-[#2A2E33] mb-6 tracking-wide drop-shadow-sm flex items-center justify-center md:justify-start flex-wrap gap-2"
         >
           <span class="text-[#0284C7] font-bold animate-pulse">Yuna@</span>
           <span class="font-bold">NANO1C</span>
@@ -56,7 +56,7 @@
           </div>
 
           <p
-            class="text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed text-justify md:text-left"
+            class="text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed text-center md:text-left"
           >
             <span class="text-[#2A2E33] font-bold">谦卑心态，务实前行。</span><br/>
             热衷于探索前沿技术，追求极致的美化。<br />
