@@ -32,7 +32,7 @@
 
       <!-- Right Content: Intro -->
       <div
-        class="relative z-10 w-full md:w-1/2 text-center md:text-left md:pl-12"
+        class="relative z-10 w-full md:w-1/2 text-center md:text-left md:pl-12 flex flex-col items-center md:items-start"
       >
         <div class="mb-4">
           <span
@@ -42,22 +42,28 @@
           </span>
         </div>
         <h1
-          class="text-5xl md:text-7xl font-ink text-[#2A2E33] dark:text-[#e0e0e0] mb-6 tracking-wide drop-shadow-sm transition-colors duration-300"
+          class="text-5xl md:text-7xl font-ink text-[#2A2E33] dark:text-[#e0e0e0] mb-6 tracking-wide drop-shadow-sm transition-colors duration-300 flex items-center flex-wrap gap-2"
         >
-          NANOIC
+          <span class="text-[#0284C7] font-bold animate-pulse">Yuna@</span>
+          <span class="font-bold">NANO1C</span>
         </h1>
         <div class="space-y-6 text-[#6B7280] dark:text-[#9ca3af]">
           <div class="h-8 flex items-center justify-center md:justify-start">
             <span
               class="text-xl md:text-2xl font-light font-mono typing-effect"
             ></span>
-            <span class="w-0.5 h-6 bg-[#2A2E33] dark:bg-[#e0e0e0] animate-blink ml-1 transition-colors duration-300"></span>
+            <span
+              class="w-0.5 h-6 bg-[#2A2E33] dark:bg-[#e0e0e0] animate-blink ml-1 transition-colors duration-300"
+            ></span>
           </div>
 
           <p
-            class="text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed text-justify md:text-left"
+            class="text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed text-center md:text-left !text-center md:!text-left"
           >
-            <span class="text-[#2A2E33] dark:text-[#e0e0e0] font-bold transition-colors duration-300">谦卑心态，务实前行。</span><br/>
+            <span
+              class="text-[#2A2E33] dark:text-[#e0e0e0] font-bold transition-colors duration-300"
+              >谦卑心态，务实前行。</span
+            ><br />
             热衷于探索前沿技术，追求极致的美化。<br />
             本站用于 记录 / 创作 / 分享 <br />
           </p>
