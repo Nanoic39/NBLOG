@@ -82,29 +82,63 @@
 
         <!-- 社交链接 -->
         <div class="mt-8 flex justify-center md:justify-start gap-4">
-          <a
-            v-for="social in socialLinks"
-            :key="social.name"
-            :href="social.url"
-            target="_blank"
-            class="p-2.5 rounded-full bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-[#9CA3AF] hover:text-[#BFE9FF] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(191,233,255,0.4)] transition-all duration-300 hover:-translate-y-1"
-            :title="social.name"
-          >
-            <svg
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              :fill="social.stroke ? 'none' : 'currentColor'"
-              :stroke="social.stroke ? 'currentColor' : 'none'"
-              :stroke-width="social.stroke ? 2 : 0"
-              xmlns="http://www.w3.org/2000/svg"
+          <template v-for="social in socialLinks" :key="social.name">
+            <!-- QQ 特殊处理：Hover 显示号码 -->
+            <div
+              v-if="social.name === 'QQ'"
+              class="relative group cursor-default"
             >
-              <path
-                :d="social.icon"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </a>
+              <div
+                class="p-2.5 rounded-full bg-white/60 dark:bg-white/10 group-hover:bg-white dark:group-hover:bg-white/20 text-[#9CA3AF] group-hover:text-[#0284C7] dark:group-hover:text-[#38bdf8] shadow-[0_2px_8px_rgba(0,0,0,0.04)] group-hover:shadow-[0_4px_12px_rgba(2,132,199,0.3)] transition-all duration-300 group-hover:-translate-y-1"
+              >
+                <svg
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  :fill="social.stroke ? 'none' : 'currentColor'"
+                  :stroke="social.stroke ? 'currentColor' : 'none'"
+                  :stroke-width="social.stroke ? 2 : 0"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    :d="social.icon"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <!-- Tooltip -->
+              <div
+                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
+              >
+                {{ social.url }}
+                <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
+
+            <!-- 其他链接正常渲染 -->
+            <a
+              v-else
+              :href="social.url"
+              target="_blank"
+              class="p-2.5 rounded-full bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-[#9CA3AF] hover:text-[#0284C7] dark:hover:text-[#38bdf8] shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(2,132,199,0.3)] transition-all duration-300 hover:-translate-y-1"
+              :title="social.name"
+            >
+              <svg
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                :fill="social.stroke ? 'none' : 'currentColor'"
+                :stroke="social.stroke ? 'currentColor' : 'none'"
+                :stroke-width="social.stroke ? 2 : 0"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  :d="social.icon"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </a>
+          </template>
         </div>
       </div>
 
@@ -134,31 +168,31 @@ import headImage from "~/assets/image/HEADIMAGE.jpg";
 const socialLinks = [
   {
     name: "QQ",
-    url: "#",
+    url: "2026256242",
     icon: "M20.555 14.975c.183.678-.17 1.487-.757 1.765-.46.218-.938.165-1.373-.027-.853 2.502-3.177 4.28-5.91 4.28-2.735 0-5.06-1.78-5.912-4.282-.435.193-.913.246-1.372.028-.587-.278-.94-.887-.757-1.765.11-.53.465-.958.943-1.157a3.992 3.992 0 0 1-.295-1.51c0-2.42 1.737-4.43 4.02-4.886C9.648 4.67 10.74 2.56 12.003 2.56c1.262 0 2.353 2.11 2.857 4.863 2.283.456 4.02 2.466 4.02 4.886 0 .53-.105 1.036-.296 1.51.48.2.834.628.944 1.157h.027z",
     stroke: false,
   },
   {
     name: "X",
-    url: "https://twitter.com",
+    url: "https://x.com/NaNo1c_39",
     icon: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z",
     stroke: false,
   },
   {
     name: "Email",
-    url: "mailto:contact@nanoic.me",
+    url: "mailto:nanoic39@gmail.com",
     icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
     stroke: true,
   },
   {
     name: "Telegram",
-    url: "https://t.me",
+    url: "http://t.me/nanoic39",
     icon: "M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 11.944 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z",
     stroke: false,
   },
   {
     name: "BiliBili",
-    url: "https://bilibili.com",
+    url: "https://space.bilibili.com/376328688",
     icon: "M18.8 8.4h-1.6c.6.2 1.1.5 1.5.9.6.7 1 1.5 1.2 2.5.2 1 .3 2.1.3 3.4s-.1 2.4-.3 3.4c-.2.9-.6 1.8-1.2 2.5-.6.7-1.3 1.2-2.1 1.5-.9.4-1.9.6-3.2.6H8.7c-1.3-.1-2.3-.3-3.2-.6-.9-.4-1.6-.8-2.1-1.5-.6-.7-1-1.5-1.2-2.5-.2-1-.3-2.1-.3-3.4s.1-2.4.3-3.4c.2-.9.6-1.8 1.2-2.5.6-.7 1.3-1.2 2.1-1.5.9-.4 1.9-.6 3.2-.6h.7L7.1 5.3c.1-.2.4-.4.7-.4.3 0 .5.1.7.4l2.1 3.4h2.8l2.1-3.4c.1-.2.4-.4.7-.4.3 0 .5.1.7.4l-2.1 3.1zM17.1 19.3c.8 0 1.2-.5 1.2-1.5v-2.7c0-1-.4-1.5-1.2-1.5-.8 0-1.2.5-1.2 1.5v2.7c0 1.1.4 1.5 1.2 1.5zM10.6 19.3c.8 0 1.2-.5 1.2-1.5v-2.7c0-1-.4-1.5-1.2-1.5-.8 0-1.2.5-1.2 1.5v2.7c0 1.1.4 1.5 1.2 1.5z",
     stroke: false,
   },

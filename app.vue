@@ -9,6 +9,9 @@
 <script setup lang="ts">
 import type { GlobalThemeOverrides } from "naive-ui";
 
+const { user } = useAuth()
+// fetchUser is called automatically by useFetch in useAuth
+
 const themeOverrides: GlobalThemeOverrides = {
   common: {
     primaryColor: "#BFE9FF",

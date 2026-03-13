@@ -24,6 +24,19 @@ const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
+const { user, login, logout, isAdmin } = useAuth();
+const config = useRuntimeConfig();
+
+const getAvatarUrl = (picture: string) => {
+  if (!picture) return '';
+  // 如果是 http 开头，直接返回（通常是第三方公开头像）
+  if (picture.startsWith('http')) return picture;
+  
+  // 如果是相对路径，使用我们后端的代理接口
+  // 代理接口会自动带上 Token 去请求源站
+  return '/api/auth/avatar';
+};
+
 const menuItems = [
   { name: "首页", path: "/" },
   { name: "归档", path: "/archive" },
@@ -48,7 +61,7 @@ const menuItems = [
         <!-- Logo -->
         <NuxtLink
           to="/"
-          class="text-2xl font-bold font-ink text-[#2A2E33] dark:text-[#e0e0e0] hover:text-[#BFE9FF] transition-colors"
+          class="text-2xl font-bold font-ink text-[#2A2E33] dark:text-[#e0e0e0] hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors"
         >
           NANOIC
         </NuxtLink>
@@ -64,9 +77,58 @@ const menuItems = [
           >
             {{ item.name }}
             <span
-              class="absolute bottom-0 left-0 w-0 h-0.5 bg-[#BFE9FF] transition-all duration-300 group-hover:w-full"
+              class="absolute bottom-0 left-0 w-0 h-0.5 bg-[#0284C7] dark:bg-[#38bdf8] transition-all duration-300 group-hover:w-full"
             ></span>
           </NuxtLink>
+
+          <!-- Auth Section -->
+          <div v-if="!user" class="flex items-center">
+            <button
+              @click="login"
+              class="text-[#6B7280] dark:text-[#9ca3af] hover:text-[#2A2E33] dark:hover:text-[#e0e0e0] transition-colors font-medium py-1"
+            >
+              登录
+            </button>
+          </div>
+          <div v-else class="relative group">
+            <button class="flex items-center gap-2 text-[#2A2E33] dark:text-[#e0e0e0] font-medium py-1 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors">
+              <img 
+                v-if="user.picture" 
+                :src="getAvatarUrl(user.picture)" 
+                class="w-6 h-6 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                alt="Avatar"
+              />
+              <div v-else class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400">
+                {{ (user.name || user.preferred_username || 'U')[0].toUpperCase() }}
+              </div>
+              <span>{{ user.name || user.preferred_username || 'User' }}</span>
+            </button>
+            
+            <!-- Dropdown Menu Container with padding for hover bridge -->
+            <div class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block z-50">
+              <div class="bg-white dark:bg-[#242424] rounded-lg shadow-xl py-2 border border-gray-100 dark:border-gray-700">
+                <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 mb-1">
+                  <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ user.name }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
+                </div>
+                
+                <NuxtLink
+                  v-if="isAdmin"
+                  to="/admin/posts/new"
+                  class="block w-full text-left px-4 py-2 text-sm text-[#2A2E33] dark:text-[#e0e0e0] hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  发布文章
+                </NuxtLink>
+
+                <button
+                  @click="logout"
+                  class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  退出登录
+                </button>
+              </div>
+            </div>
+          </div>
         </nav>
 
         <!-- Mobile Menu Button -->
@@ -104,6 +166,48 @@ const menuItems = [
         >
           {{ item.name }}
         </NuxtLink>
+
+        <!-- Auth Section -->
+        <button
+          v-if="!user"
+          @click="login"
+          class="text-left text-[#6B7280] dark:text-[#9ca3af] hover:text-[#2A2E33] dark:hover:text-[#e0e0e0] transition-colors"
+        >
+          登录
+        </button>
+        <div v-else class="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-4">
+          <div class="flex items-center gap-3">
+            <img 
+              v-if="user.picture" 
+              :src="getAvatarUrl(user.picture)" 
+              class="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+              alt="Avatar"
+            />
+            <div v-else class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-base font-bold text-gray-500 dark:text-gray-400">
+              {{ (user.name || user.preferred_username || 'U')[0].toUpperCase() }}
+            </div>
+            <div class="flex flex-col">
+              <span class="text-base font-semibold text-[#2A2E33] dark:text-[#e0e0e0]">{{ user.name || user.preferred_username }}</span>
+              <span class="text-xs text-gray-500">{{ user.email }}</span>
+            </div>
+          </div>
+          
+          <NuxtLink
+            v-if="isAdmin"
+            to="/admin/posts/new"
+            class="block py-2 text-[#2A2E33] dark:text-[#e0e0e0] hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors text-base"
+            @click="isMobileMenuOpen = false"
+          >
+            发布文章
+          </NuxtLink>
+
+          <button
+            @click="logout"
+            class="text-left text-red-500 hover:text-red-600 transition-colors text-base mt-2"
+          >
+            退出登录
+          </button>
+        </div>
       </nav>
     </div>
 

@@ -1,5 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  devServer: {
+    port: 3030,
+    host: '0.0.0.0'
+  },
   app: {
     head: {
       script: [
@@ -27,6 +31,20 @@ export default defineNuxtConfig({
     }
   },
   compatibilityDate: '2025-07-15',
+  runtimeConfig: {
+    // Private keys are only available on the server
+    oauthClientSecret: process.env.NUXT_OAUTH_CLIENT_SECRET,
+    sessionSecret: process.env.NUXT_SESSION_SECRET,
+    adminEmail: process.env.NUXT_ADMIN_EMAIL,
+    
+    // Public keys that are exposed to the client
+    public: {
+      oauthClientId: process.env.NUXT_OAUTH_CLIENT_ID,
+      oauthRedirectUri: process.env.NUXT_OAUTH_REDIRECT_URI,
+      oauthAuthBaseUrl: process.env.NUXT_OAUTH_AUTH_BASE_URL,
+      oauthApiBaseUrl: process.env.NUXT_OAUTH_API_BASE_URL,
+    }
+  },
   devtools: { enabled: true },
   modules: [
     '@bg-dev/nuxt-naiveui'
