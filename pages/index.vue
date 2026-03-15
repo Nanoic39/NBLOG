@@ -32,7 +32,7 @@
 
       <!-- Right Content: Intro -->
       <div
-        class="relative z-10 w-full md:w-1/2 text-center md:text-left md:pl-12"
+        class="relative z-10 w-full md:w-1/2 text-center md:text-left md:pl-12 flex flex-col items-center md:items-start"
       >
         <div class="mb-4">
           <span
