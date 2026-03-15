@@ -13,8 +13,8 @@
       
       <div class="text-sm text-[#4B5563] dark:text-[#d1d5db] leading-relaxed space-y-2">
         <p>🎉 欢迎来到 NanoicBLOG！</p>
-        <p>这里记录着我的技术探索与生活点滴。</p>
-        <p>如有任何问题或建议，欢迎在评论区留言或通过邮件联系我。</p>
+        <p>这里是公告！当前网站还在建设中...</p>
+        <p>如有任何问题或建议，欢迎在 <a href="https://github.com/Nanoic39/NBLOG" target="_blank" class="text-[#0284C7] dark:text-[#38bdf8]">项目仓库</a> 提交 issue。</p>
       </div>
       
       <div class="mt-4 flex items-center gap-2 text-xs text-[#6B7280] dark:text-[#9ca3af]">
