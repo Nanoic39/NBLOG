@@ -1,10 +1,73 @@
 body {
   background-color: #f9fafb;
   color: #2a2e33;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s, color 0.3s;
+  cursor: url("/cursor/Normal.png") 8 2, auto;
+}
+
+/* Custom Cursors */
+a,
+button,
+[role="button"],
+.cursor-pointer {
+  cursor: url("/cursor/Link.png") 8 2, pointer;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+textarea,
+.cursor-text {
+  cursor: url("/cursor/Text.png") 16 16, text;
+}
+
+.cursor-move,
+[draggable="true"] {
+  cursor: url("/cursor/Move.png") 16 16, move;
+}
+
+.cursor-help {
+  cursor: url("/cursor/Help.png") 8 8, help;
+}
+
+.cursor-wait {
+  cursor: url("/cursor/Busy.ani"), wait;
+}
+
+.cursor-progress {
+  cursor: url("/cursor/Working.ani"), progress;
+}
+
+.cursor-not-allowed,
+:disabled {
+  cursor: url("/cursor/Unavailable.png") 16 16, not-allowed;
+}
+
+.cursor-crosshair {
+  cursor: url("/cursor/Precision.png") 16 16, crosshair;
+}
+
+.cursor-ew-resize,
+.resize-x {
+  cursor: url("/cursor/Horizontal Resize.png") 16 16, ew-resize;
+}
+
+.cursor-ns-resize,
+.resize-y {
+  cursor: url("/cursor/Vertical Resize.png") 16 16, ns-resize;
+}
+
+.cursor-nwse-resize {
+  cursor: url("/cursor/Diagonal Resize 1.png") 16 16, nwse-resize;
+}
+
+.cursor-nesw-resize {
+  cursor: url("/cursor/Diagonal Resize 2.png") 16 16, nesw-resize;
 }
 
 .font-ink {
@@ -15,7 +78,7 @@ body {
 .hover-underline-animation {
   position: relative;
   text-decoration: none;
-  background-image: linear-gradient(to right, #BFE9FF, #E9E0FF, #FFE9F3);
+  background-image: linear-gradient(to right, #bfe9ff, #e9e0ff, #ffe9f3);
   background-size: 0% 2px;
   background-repeat: no-repeat;
   background-position: 0 100%;
@@ -31,10 +94,10 @@ body {
 .gradient-wave-link {
   position: relative;
   text-decoration: none;
-  background: linear-gradient(to right, #BFE9FF, #E9E0FF, #FFE9F3);
+  background: linear-gradient(to right, #bfe9ff, #e9e0ff, #ffe9f3);
   background-clip: text;
   -webkit-background-clip: text;
-  color: #2A2E33;
+  color: #2a2e33;
   transition: color 0.3s;
 }
 
@@ -51,8 +114,8 @@ body {
   bottom: -2px;
   width: 100%;
   height: 4px;
-  background: radial-gradient(circle at 2px 50%, #BFE9FF 1px, transparent 1px),
-              radial-gradient(circle at 2px 50%, #E9E0FF 1px, transparent 1px);
+  background: radial-gradient(circle at 2px 50%, #bfe9ff 1px, transparent 1px),
+    radial-gradient(circle at 2px 50%, #e9e0ff 1px, transparent 1px);
   background-size: 8px 4px;
   background-position: 0 0, 4px 0;
   background-repeat: repeat-x;
@@ -67,14 +130,24 @@ body {
 }
 
 @keyframes waveMove {
-  from { background-position: 0 0, 4px 0; }
-  to { background-position: 8px 0, 12px 0; }
+  from {
+    background-position: 0 0, 4px 0;
+  }
+  to {
+    background-position: 8px 0, 12px 0;
+  }
 }
 
 @keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* 光标闪烁动画 */
@@ -83,8 +156,13 @@ body {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* ===== 夜间模式 深灰色系 ===== */
