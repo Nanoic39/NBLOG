@@ -28,13 +28,13 @@ const { user, login, logout, isAdmin } = useAuth();
 const config = useRuntimeConfig();
 
 const getAvatarUrl = (picture: string) => {
-  if (!picture) return '';
+  if (!picture) return "";
   // 如果是 http 开头，直接返回（通常是第三方公开头像）
-  if (picture.startsWith('http')) return picture;
-  
+  if (picture.startsWith("http")) return picture;
+
   // 如果是相对路径，使用我们后端的代理接口
   // 代理接口会自动带上 Token 去请求源站
-  return '/api/auth/avatar';
+  return "/api/auth/avatar";
 };
 
 const menuItems = [
@@ -45,13 +45,15 @@ const menuItems = [
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F9FAFB] dark:bg-[#1a1a1a] flex flex-col font-sans text-[#2A2E33] dark:text-[#e0e0e0] transition-colors duration-300">
+  <div
+    class="min-h-screen bg-[#F9FAFB] dark:bg-[#1a1a1a] flex flex-col font-sans text-[#2A2E33] dark:text-[#e0e0e0] transition-colors duration-300"
+  >
     <!-- 导航栏 -->
     <header
       class="fixed z-50 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] left-1/2 -translate-x-1/2"
       :class="[
         isScrolled
-          ? 'top-4 w-[95%] max-w-[1200px] rounded-2xl py-2 bg-white/90 dark:bg-[#1f1f1f]/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40 dark:border-white/10'
+          ? 'top-4 w-[95%] max-w-[1200px] rounded-xl py-2 bg-white/90 dark:bg-[#1f1f1f]/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40 dark:border-white/10'
           : 'top-0 w-full max-w-full rounded-none py-4 bg-transparent border-transparent shadow-none',
       ]"
     >
@@ -91,27 +93,46 @@ const menuItems = [
             </button>
           </div>
           <div v-else class="relative group">
-            <button class="flex items-center gap-2 text-[#2A2E33] dark:text-[#e0e0e0] font-medium py-1 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors">
-              <img 
-                v-if="user.picture" 
-                :src="getAvatarUrl(user.picture)" 
+            <button
+              class="flex items-center gap-2 text-[#2A2E33] dark:text-[#e0e0e0] font-medium py-1 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors"
+            >
+              <img
+                v-if="user.picture"
+                :src="getAvatarUrl(user.picture)"
                 class="w-6 h-6 rounded-full object-cover border border-gray-200 dark:border-gray-700"
                 alt="Avatar"
               />
-              <div v-else class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400">
-                {{ (user.name || user.preferred_username || 'U')[0].toUpperCase() }}
+              <div
+                v-else
+                class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400"
+              >
+                {{
+                  (user.name || user.preferred_username || "U")[0].toUpperCase()
+                }}
               </div>
-              <span>{{ user.name || user.preferred_username || 'User' }}</span>
+              <span>{{ user.name || user.preferred_username || "User" }}</span>
             </button>
-            
+
             <!-- Dropdown Menu Container with padding for hover bridge -->
-            <div class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block z-50">
-              <div class="bg-white dark:bg-[#242424] rounded-lg shadow-xl py-2 border border-gray-100 dark:border-gray-700">
-                <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 mb-1">
-                  <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ user.name }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
+            <div
+              class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block z-50"
+            >
+              <div
+                class="bg-white dark:bg-[#242424] rounded-lg shadow-xl py-2 border border-gray-100 dark:border-gray-700"
+              >
+                <div
+                  class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 mb-1"
+                >
+                  <p
+                    class="text-sm font-semibold text-gray-900 dark:text-white truncate"
+                  >
+                    {{ user.name }}
+                  </p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {{ user.email }}
+                  </p>
                 </div>
-                
+
                 <NuxtLink
                   v-if="isAdmin"
                   to="/admin/posts/new"
@@ -132,7 +153,10 @@ const menuItems = [
         </nav>
 
         <!-- Mobile Menu Button -->
-        <button class="md:hidden p-2 text-[#2A2E33] dark:text-[#e0e0e0]" @click="toggleMobileMenu">
+        <button
+          class="md:hidden p-2 text-[#2A2E33] dark:text-[#e0e0e0]"
+          @click="toggleMobileMenu"
+        >
           <div class="w-6 h-5 flex flex-col justify-between">
             <span
               class="w-full h-0.5 bg-current transition-transform origin-left"
@@ -175,23 +199,34 @@ const menuItems = [
         >
           登录
         </button>
-        <div v-else class="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-4">
+        <div
+          v-else
+          class="flex flex-col gap-2 border-t border-gray-100 dark:border-gray-800 pt-4"
+        >
           <div class="flex items-center gap-3">
-            <img 
-              v-if="user.picture" 
-              :src="getAvatarUrl(user.picture)" 
+            <img
+              v-if="user.picture"
+              :src="getAvatarUrl(user.picture)"
               class="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
               alt="Avatar"
             />
-            <div v-else class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-base font-bold text-gray-500 dark:text-gray-400">
-              {{ (user.name || user.preferred_username || 'U')[0].toUpperCase() }}
+            <div
+              v-else
+              class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-base font-bold text-gray-500 dark:text-gray-400"
+            >
+              {{
+                (user.name || user.preferred_username || "U")[0].toUpperCase()
+              }}
             </div>
             <div class="flex flex-col">
-              <span class="text-base font-semibold text-[#2A2E33] dark:text-[#e0e0e0]">{{ user.name || user.preferred_username }}</span>
+              <span
+                class="text-base font-semibold text-[#2A2E33] dark:text-[#e0e0e0]"
+                >{{ user.name || user.preferred_username }}</span
+              >
               <span class="text-xs text-gray-500">{{ user.email }}</span>
             </div>
           </div>
-          
+
           <NuxtLink
             v-if="isAdmin"
             to="/admin/posts/new"
@@ -217,12 +252,17 @@ const menuItems = [
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white dark:bg-[#1f1f1f] border-t border-gray-100 dark:border-gray-700 py-12 mt-auto transition-colors duration-300">
+    <footer
+      class="bg-white dark:bg-[#1f1f1f] border-t border-gray-100 dark:border-gray-700 py-12 mt-auto transition-colors duration-300"
+    >
       <div class="container mx-auto px-6 max-w-6xl text-center">
         <div class="mb-4 flex justify-center gap-6 text-[#9CA3AF]">
-          <a href="#" class="hover:text-[#0284C7] transition-colors">Github</a>
-          <a href="#" class="hover:text-[#0284C7] transition-colors">Twitter</a>
-          <a href="#" class="hover:text-[#0284C7] transition-colors">RSS</a>
+          <a
+            href="https://github.com/Nanoic39/NBLOG"
+            target="blank"
+            class="hover:text-[#0284C7] transition-colors"
+            >Github</a
+          >
         </div>
         <p class="text-[#9CA3AF] text-sm">
           &copy; {{ new Date().getFullYear() }} NANOIC. All rights reserved.

@@ -20,12 +20,12 @@
         class="relative z-10 w-full md:w-1/2 flex justify-center md:justify-end md:pr-12 mb-12 md:mb-0"
       >
         <div
-          class="w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-4 border-white/50 dark:border-white/10 overflow-hidden hover:scale-105 transition-transform duration-500 group cursor-grab"
+          class="w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border-4 border-white/50 dark:border-white/10 overflow-hidden hover:scale-105 transition-transform duration-500 group cursor-grab active:cursor-grabbing"
         >
           <img
             :src="headImage"
             alt="NANOIC Profile"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover select-none pointer-events-none"
           />
         </div>
       </div>
@@ -111,7 +111,9 @@
                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
               >
                 {{ social.url }}
-                <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                <div
+                  class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"
+                ></div>
               </div>
             </div>
 
@@ -156,13 +158,355 @@
           <path d="M12 18L5 8H19L12 18Z" />
         </svg>
       </div>
+
+      <!-- 底部波浪过渡 -->
+      <div
+        class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10"
+      >
+        <svg
+          class="relative block w-[calc(100%+1.3px)] h-[60px] md:h-[100px]"
+          data-name="Layer 1"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1200 120"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z"
+            class="fill-[#F9FAFB] dark:fill-[#1a1a1a] transition-colors duration-300"
+          ></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div
+      id="content"
+      class="relative z-10 container mx-auto px-6 max-w-screen-2xl py-24 min-h-screen bg-[#F9FAFB] dark:bg-[#1a1a1a] flex flex-col lg:flex-row gap-8 lg:gap-12 transition-colors duration-300"
+    >
+      <!-- Main Articles Area -->
+      <div class="flex-1 w-full max-w-6xl mx-auto">
+        <!-- Pinned Posts -->
+        <section v-if="pinnedPosts && pinnedPosts.length > 0" class="mb-24">
+          <h2
+            class="text-3xl font-bold mb-10 flex items-center gap-3 text-[#2A2E33] dark:text-[#e0e0e0]"
+          >
+            <span class="text-[#0284C7] dark:text-[#38bdf8]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-8 h-8"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="12" y1="17" x2="12" y2="22"></line>
+                <path
+                  d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"
+                ></path>
+              </svg>
+            </span>
+            置顶文章
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <NuxtLink
+              v-for="post in pinnedPosts"
+              :key="post.id"
+              :to="`/posts/${post.slug}`"
+              class="group bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#0284C7]/20 hover:-translate-y-2 transition-all duration-500 border border-gray-100/50 dark:border-gray-700/50 flex flex-col h-full"
+            >
+              <div class="p-3 h-64 overflow-hidden shrink-0">
+                <div class="relative w-full h-full rounded-lg overflow-hidden">
+                  <img
+                    :src="
+                      post.coverImage ||
+                      `https://www.loliapi.com/acg/?id=${post.id}`
+                    "
+                    :alt="post.title"
+                    class="w-full h-full object-cover transition-transform duration-700"
+                  />
+                  <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500"
+                  ></div>
+                  <div
+                    class="absolute top-4 right-4 bg-white/90 dark:bg-black/80 backdrop-blur text-[#0284C7] dark:text-[#38bdf8] text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border border-[#0284C7]/20"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-3.5 h-3.5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      stroke="none"
+                    >
+                      <path
+                        d="M19.07 4.93L17.07 2.93C16.68 2.54 16.05 2.54 15.66 2.93L13.13 5.46L11 3.33L9.6 4.73L11.73 6.86L4.54 14.05L3 21L9.95 19.46L17.14 12.27L19.27 14.4L20.67 13L18.54 10.87L21.07 8.34C21.46 7.95 21.46 7.32 21.07 6.93L19.07 4.93ZM15.66 10.87L13.13 8.34L15.66 5.81L18.19 8.34L15.66 10.87Z"
+                      />
+                    </svg>
+                    PINNED
+                  </div>
+                </div>
+              </div>
+              <div class="p-6 md:p-8 flex flex-col flex-grow relative">
+                <div class="flex flex-wrap gap-2 mb-4">
+                  <span
+                    v-for="tag in post.tags"
+                    :key="tag"
+                    class="text-xs font-semibold px-3 py-1 rounded-full bg-[#0284C7]/5 text-[#0284C7] dark:bg-[#38bdf8]/10 dark:text-[#38bdf8] border border-[#0284C7]/10 dark:border-[#38bdf8]/20 hover:bg-[#0284C7] hover:text-white dark:hover:bg-[#38bdf8] dark:hover:text-black transition-colors duration-300"
+                  >
+                    #{{ tag }}
+                  </span>
+                </div>
+                <h3
+                  class="text-2xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-4 group-hover:text-[#0284C7] dark:group-hover:text-[#38bdf8] transition-colors duration-300 line-clamp-2 leading-snug"
+                >
+                  {{ post.title }}
+                </h3>
+                <p
+                  class="text-[#6B7280] dark:text-[#9ca3af] mb-6 line-clamp-3 flex-grow leading-relaxed"
+                >
+                  {{ post.description }}
+                </p>
+                <div
+                  class="flex items-center justify-between text-sm text-[#9CA3AF] pt-6 border-t border-gray-100 dark:border-gray-800"
+                >
+                  <div class="flex items-center gap-4 text-xs font-mono">
+                    <span
+                      class="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 px-2 py-1 rounded-md"
+                    >
+                      <svg
+                        class="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      {{ formatDate(post.pubDate) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs font-mono">
+                    <span class="flex items-center gap-1.5">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-3.5 h-3.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                        ></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      {{ post.views || 0 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </NuxtLink>
+          </div>
+        </section>
+
+        <!-- Latest Posts -->
+        <section>
+          <h2
+            class="text-3xl font-bold mb-10 flex items-center gap-3 text-[#2A2E33] dark:text-[#e0e0e0]"
+          >
+            <span class="text-[#0284C7] dark:text-[#38bdf8]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-8 h-8"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+                />
+              </svg>
+            </span>
+            最新发布
+          </h2>
+          <div class="flex-1 min-w-0 space-y-8">
+            <NuxtLink
+              v-for="post in latestPosts"
+              :key="post.id"
+              :to="`/posts/${post.slug}`"
+              class="group bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#0284C7]/20 hover:-translate-y-1 transition-all duration-500 border border-gray-100/50 dark:border-gray-700/50 flex flex-col md:flex-row h-auto md:h-72"
+            >
+              <!-- 左侧图片 -->
+              <div class="w-full md:w-2/5 p-3 shrink-0 h-56 md:h-auto">
+                <div class="relative w-full h-full rounded-lg overflow-hidden">
+                  <img
+                    :src="
+                      post.coverImage ||
+                      `https://www.loliapi.com/acg/?id=${post.id}`
+                    "
+                    :alt="post.title"
+                    class="w-full h-full object-cover transition-transform duration-700"
+                  />
+                  <div
+                    class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- 右侧信息 -->
+              <div class="p-6 md:p-8 flex flex-col flex-grow justify-between">
+                <div class="flex flex-col">
+                  <div class="flex flex-wrap gap-2 mb-4">
+                    <span
+                      v-for="tag in post.tags.slice(0, 3)"
+                      :key="tag"
+                      class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#0284C7]/5 text-[#0284C7] dark:bg-[#38bdf8]/10 dark:text-[#38bdf8] border border-[#0284C7]/10 dark:border-[#38bdf8]/20 hover:bg-[#0284C7] hover:text-white dark:hover:bg-[#38bdf8] dark:hover:text-black transition-colors duration-300"
+                    >
+                      #{{ tag }}
+                    </span>
+                  </div>
+                  <h3
+                    class="text-xl md:text-2xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-3 group-hover:text-[#0284C7] dark:group-hover:text-[#38bdf8] transition-colors duration-300 line-clamp-1"
+                  >
+                    {{ post.title }}
+                  </h3>
+                  <p
+                    class="text-sm md:text-base text-[#6B7280] dark:text-[#9ca3af] mb-4 line-clamp-2 md:line-clamp-3 leading-relaxed"
+                  >
+                    {{ post.description }}
+                  </p>
+                </div>
+
+                <div
+                  class="flex items-center justify-between text-xs md:text-sm text-[#9CA3AF] pt-4 border-t border-gray-100 dark:border-gray-800"
+                >
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs opacity-75 font-mono">{{
+                      formatDate(post.pubDate)
+                    }}</span>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-1.5 font-mono text-xs">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-3.5 h-3.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                        ></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      {{ post.views || 0 }}
+                    </span>
+                    <span
+                      class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-50 dark:bg-white/5 font-mono text-xs"
+                    >
+                      <svg
+                        class="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
+                      </svg>
+                      {{ post.wordCount }} 字
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </NuxtLink>
+          </div>
+        </section>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="w-full lg:w-80 shrink-0 space-y-8 sticky top-24 h-fit">
+        <ProfileCard
+          :post-count="(latestPosts?.length || 0) + (pinnedPosts?.length || 0)"
+          :tag-count="allTags.length"
+          :category-count="3"
+        />
+        <NoticeCard />
+        <TagsCloud :tags="allTags" />
+      </aside>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import headImage from "~/assets/image/HEADIMAGE.jpg";
+import ProfileCard from "~/components/Sidebar/ProfileCard.vue";
+import TagsCloud from "~/components/Sidebar/TagsCloud.vue";
+import NoticeCard from "~/components/Sidebar/NoticeCard.vue";
+
+definePageMeta({
+  keepalive: true,
+});
+
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  pubDate: string;
+  author: string;
+  tags: string[];
+  coverImage: string;
+  wordCount: number;
+  views: number;
+}
+
+// 获取文章数据
+const { data: latestPosts } = await useFetch<Post[]>("/api/posts/latest");
+const { data: pinnedPosts } = await useFetch<Post[]>("/api/posts/pinned");
+
+// 计算所有标签并统计
+const allTags = computed(() => {
+  const tagsMap = new Map<string, number>();
+  const posts = [...(latestPosts.value || []), ...(pinnedPosts.value || [])];
+
+  posts.forEach((post) => {
+    post.tags.forEach((tag) => {
+      tagsMap.set(tag, (tagsMap.get(tag) || 0) + 1);
+    });
+  });
+
+  return Array.from(tagsMap.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+});
+
+// 日期格式化
+const formatDate = (timestamp: string) => {
+  const date = new Date(parseInt(timestamp) * 1000);
+  return date.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 
 // 社交链接
 const socialLinks = [
@@ -208,10 +552,15 @@ const socialLinks = [
 const techStack = ["Java", "Vue 3", "Nuxt 3", "Tailwind CSS", "Node.js"];
 
 const scrollToContent = () => {
-  window.scrollTo({
-    top: window.innerHeight,
-    behavior: "smooth",
-  });
+  const content = document.getElementById("content");
+  if (content) {
+    content.scrollIntoView({ behavior: "smooth" });
+  } else {
+    window.scrollTo({
+      top: window.innerHeight,
+      behavior: "smooth",
+    });
+  }
 };
 
 // 打字机动画

@@ -75,10 +75,6 @@ export default defineEventHandler(async (event) => {
     targetUrl += '?inline=true'
   }
 
-  // 调试日志：打印完整的请求URL和Token
-  console.log('Fetching avatar from:', targetUrl)
-  console.log('Using token:', user.access_token ? user.access_token.substring(0, 10) + '...' : 'none')
-
   try {
     // Proxy request with Authorization header
     const response = await $fetch.raw(targetUrl, {
