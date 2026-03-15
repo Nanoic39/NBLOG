@@ -19,7 +19,7 @@
       
       <div class="mt-4 flex items-center gap-2 text-xs text-[#6B7280] dark:text-[#9ca3af]">
         <span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
-        <span>运行正常</span>
+        <span>运行正常中...</span>
         <span class="mx-1">|</span>
         <span>v1.0.0</span>
       </div>

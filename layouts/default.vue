@@ -53,12 +53,12 @@ const menuItems = [
       class="fixed z-50 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] left-1/2 -translate-x-1/2"
       :class="[
         isScrolled
-          ? 'top-4 w-[95%] max-w-[1200px] rounded-xl py-2 bg-white/90 dark:bg-[#1f1f1f]/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40 dark:border-white/10'
+          ? 'top-4 w-[95%] max-w-[1440px] rounded-xl py-2 bg-white/90 dark:bg-[#1f1f1f]/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40 dark:border-white/10'
           : 'top-0 w-full max-w-full rounded-none py-4 bg-transparent border-transparent shadow-none',
       ]"
     >
       <div
-        class="container mx-auto px-6 max-w-6xl flex items-center justify-between"
+        class="container mx-auto px-6 max-w-[1440px] flex items-center justify-between"
       >
         <!-- Logo -->
         <NuxtLink
@@ -113,7 +113,7 @@ const menuItems = [
               <span>{{ user.name || user.preferred_username || "User" }}</span>
             </button>
 
-            <!-- Dropdown Menu Container with padding for hover bridge -->
+            <!-- Dropdown Menu -->
             <div
               class="absolute right-0 top-full pt-2 w-48 hidden group-hover:block z-50"
             >
@@ -134,11 +134,10 @@ const menuItems = [
                 </div>
 
                 <NuxtLink
-                  v-if="isAdmin"
-                  to="/admin/posts/new"
-                  class="block w-full text-left px-4 py-2 text-sm text-[#2A2E33] dark:text-[#e0e0e0] hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  to="/admin/dashboard"
+                  class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#0284C7] dark:hover:text-[#38bdf8]"
                 >
-                  发布文章
+                  控制台
                 </NuxtLink>
 
                 <button
@@ -149,6 +148,11 @@ const menuItems = [
                 </button>
               </div>
             </div>
+          </div>
+
+          <!-- Dark Mode Toggle -->
+          <div class="border-l border-gray-200 dark:border-gray-700 pl-6 ml-2">
+            <DarkModeToggle />
           </div>
         </nav>
 
@@ -228,12 +232,11 @@ const menuItems = [
           </div>
 
           <NuxtLink
-            v-if="isAdmin"
-            to="/admin/posts/new"
+            to="/admin/dashboard"
             class="block py-2 text-[#2A2E33] dark:text-[#e0e0e0] hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors text-base"
             @click="isMobileMenuOpen = false"
           >
-            发布文章
+            控制台
           </NuxtLink>
 
           <button
@@ -242,6 +245,16 @@ const menuItems = [
           >
             退出登录
           </button>
+        </div>
+
+        <!-- Mobile Dark Mode Toggle -->
+        <div
+          class="pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between"
+        >
+          <span class="text-base font-medium text-[#2A2E33] dark:text-[#e0e0e0]"
+            >夜间模式</span
+          >
+          <DarkModeToggle />
         </div>
       </nav>
     </div>
@@ -269,9 +282,6 @@ const menuItems = [
         </p>
       </div>
     </footer>
-
-    <!-- Night Mode Toggle -->
-    <DarkModeToggle />
   </div>
 </template>
 
