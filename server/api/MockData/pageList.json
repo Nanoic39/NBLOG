@@ -104,5 +104,20 @@
         "coverImage": "",
         "wordCount": 2200,
         "views": 2222
+    },
+    {
+        "id": "10",
+        "title": "2026年前端技术趋势",
+        "slug": "frontend-trends-2026",
+        "description": "探讨AI对前端开发的影响以及WebAssembly的最新应用",
+        "pubDate": "1773471970",
+        "author": "nanoic39",
+        "tags": [
+            "前端",
+            "趋势"
+        ],
+        "coverImage": "",
+        "wordCount": 2200,
+        "views": 2222
     }
 ]
