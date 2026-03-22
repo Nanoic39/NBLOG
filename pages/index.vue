@@ -485,7 +485,6 @@ import { ref, onMounted, onUnmounted, computed } from "vue";
 import headImage from "~/assets/image/HEADIMAGE.jpg";
 import ProfileCard from "~/components/Sidebar/ProfileCard.vue";
 import TagsCloud from "~/components/Sidebar/TagsCloud.vue";
-import NoticeCard from "~/components/Sidebar/NoticeCard.vue";
 import HotList from "~/components/Sidebar/HotList.vue";
 
 definePageMeta({

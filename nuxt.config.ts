@@ -24,21 +24,7 @@ export default defineNuxtConfig({
           type: "text/javascript",
         },
       ],
-      link: [
-        {
-          rel: "preconnect",
-          href: "https://fonts.googleapis.com",
-        },
-        {
-          rel: "preconnect",
-          href: "https://fonts.gstatic.com",
-          crossorigin: "anonymous",
-        },
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap",
-        },
-      ],
+      link: [],
     },
   },
   compatibilityDate: "2025-07-15",
@@ -88,7 +74,7 @@ export default defineNuxtConfig({
           cardColor: "#FFFFFF",
           borderColor: "#E5E7EB",
           fontFamily:
-            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            'var(--font-sans)',
         },
       },
       // 夜间模式主题（深灰色系）

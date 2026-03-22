@@ -1,0 +1,39 @@
+[
+  {
+    "id": "1",
+    "articleId": "1",
+    "author": "Nanoic",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Nanoic",
+    "content": "欢迎大家在下方留言交流哦！",
+    "createdAt": 1711090000000,
+    "isAdmin": true,
+    "replies": [
+      {
+        "id": "1-1",
+        "author": "前端小萌新",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=前端小萌新",
+        "content": "博主你好，文章写得非常通俗易懂！请问后续会有关于 Nuxt 3 部署的教程吗？",
+        "createdAt": 1711100000000,
+        "replyTo": "Nanoic"
+      },
+      {
+        "id": "1-2",
+        "author": "Nanoic",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Nanoic",
+        "content": "会的！下一篇就会讲到如何把 Nuxt 3 项目部署到 Vercel 或者自己的服务器上，敬请期待~",
+        "createdAt": 1711105000000,
+        "isAdmin": true,
+        "replyTo": "前端小萌新"
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "articleId": "1",
+    "author": "热心网友",
+    "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=热心网友",
+    "content": "支持一下！网站的UI设计得很棒，特别是毛玻璃效果很喜欢。",
+    "createdAt": 1711150000000,
+    "replies": []
+  }
+]

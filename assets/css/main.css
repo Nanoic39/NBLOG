@@ -1,12 +1,17 @@
 body {
   background-color: #f9fafb;
   color: #2a2e33;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.3s, color 0.3s;
-  cursor: url("/cursor/Normal.png") 8 2, auto;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+  cursor:
+    url("/cursor/Normal.png") 8 2,
+    auto;
 }
 
 /* Custom Cursors */
@@ -14,7 +19,9 @@ a,
 button,
 [role="button"],
 .cursor-pointer {
-  cursor: url("/cursor/Link.png") 8 2, pointer;
+  cursor:
+    url("/cursor/Link.png") 8 2,
+    pointer;
 }
 
 input[type="text"],
@@ -23,16 +30,22 @@ input[type="email"],
 input[type="number"],
 textarea,
 .cursor-text {
-  cursor: url("/cursor/Text.png") 16 16, text;
+  cursor:
+    url("/cursor/Text.png") 16 16,
+    text;
 }
 
 .cursor-move,
 [draggable="true"] {
-  cursor: url("/cursor/Move.png") 16 16, move;
+  cursor:
+    url("/cursor/Move.png") 16 16,
+    move;
 }
 
 .cursor-help {
-  cursor: url("/cursor/Help.png") 8 8, help;
+  cursor:
+    url("/cursor/Help.png") 8 8,
+    help;
 }
 
 .cursor-wait {
@@ -45,29 +58,41 @@ textarea,
 
 .cursor-not-allowed,
 :disabled {
-  cursor: url("/cursor/Unavailable.png") 16 16, not-allowed;
+  cursor:
+    url("/cursor/Unavailable.png") 16 16,
+    not-allowed;
 }
 
 .cursor-crosshair {
-  cursor: url("/cursor/Precision.png") 16 16, crosshair;
+  cursor:
+    url("/cursor/Precision.png") 16 16,
+    crosshair;
 }
 
 .cursor-ew-resize,
 .resize-x {
-  cursor: url("/cursor/Horizontal Resize.png") 16 16, ew-resize;
+  cursor:
+    url("/cursor/Horizontal Resize.png") 16 16,
+    ew-resize;
 }
 
 .cursor-ns-resize,
 .resize-y {
-  cursor: url("/cursor/Vertical Resize.png") 16 16, ns-resize;
+  cursor:
+    url("/cursor/Vertical Resize.png") 16 16,
+    ns-resize;
 }
 
 .cursor-nwse-resize {
-  cursor: url("/cursor/Diagonal Resize 1.png") 16 16, nwse-resize;
+  cursor:
+    url("/cursor/Diagonal Resize 1.png") 16 16,
+    nwse-resize;
 }
 
 .cursor-nesw-resize {
-  cursor: url("/cursor/Diagonal Resize 2.png") 16 16, nesw-resize;
+  cursor:
+    url("/cursor/Diagonal Resize 2.png") 16 16,
+    nesw-resize;
 }
 
 .font-ink {
@@ -114,10 +139,13 @@ textarea,
   bottom: -2px;
   width: 100%;
   height: 4px;
-  background: radial-gradient(circle at 2px 50%, #bfe9ff 1px, transparent 1px),
+  background:
+    radial-gradient(circle at 2px 50%, #bfe9ff 1px, transparent 1px),
     radial-gradient(circle at 2px 50%, #e9e0ff 1px, transparent 1px);
   background-size: 8px 4px;
-  background-position: 0 0, 4px 0;
+  background-position:
+    0 0,
+    4px 0;
   background-repeat: repeat-x;
   transform: scaleX(0);
   transform-origin: left;
@@ -131,10 +159,14 @@ textarea,
 
 @keyframes waveMove {
   from {
-    background-position: 0 0, 4px 0;
+    background-position:
+      0 0,
+      4px 0;
   }
   to {
-    background-position: 8px 0, 12px 0;
+    background-position:
+      8px 0,
+      12px 0;
   }
 }
 
@@ -181,4 +213,61 @@ textarea,
 /* 夜间模式下渐变链接颜色适配 */
 .dark .gradient-wave-link {
   color: #c9d1d9;
+}
+
+/* 隐藏滚动条但保留滚动功能 */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* 通知面板彩虹主题边框 */
+.notice-rainbow {
+  position: relative;
+}
+
+.notice-rainbow::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    124deg,
+    #ff2400,
+    #e81d1d,
+    #e8b71d,
+    #e3e81d,
+    #1de840,
+    #1ddde8,
+    #2b1de8,
+    #dd00f3,
+    #dd00f3
+  );
+  background-size: 1800% 1800%;
+  animation: rainbow 18s ease infinite;
+  z-index: -1;
+  border-radius: 10px; /* 匹配 rounded-lg 加上边距 */
+}
+
+@keyframes rainbow {
+  0% {
+    background-position: 0% 82%;
+  }
+  50% {
+    background-position: 100% 19%;
+  }
+  100% {
+    background-position: 0% 82%;
+  }
+}
+
+@keyframes rainbow-text-animation {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
