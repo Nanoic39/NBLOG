@@ -298,7 +298,7 @@
 
       <!-- 右侧：摘要/目录 (跟随页面滚动，宽屏可见) -->
       <aside
-        class="hidden lg:block w-56 xl:w-64 shrink-0 relative lg:sticky lg:top-24 lg:self-start flex flex-col gap-4"
+        class="hidden lg:flex w-56 xl:w-64 shrink-0 relative lg:sticky lg:top-24 lg:self-start flex-col gap-6"
       >
         <!-- 摘要面板 -->
         <div
