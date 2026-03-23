@@ -780,22 +780,297 @@ html.dark .custom-prose code {
   font-size: 0.9em;
 }
 
-/* 引用块样式 */
+/* Blockquote 简约现代优雅样式 - 面板可见性增强 */
 .custom-prose blockquote {
-  border-left: 4px solid #0284C7;
-  background-color: rgba(239, 246, 255, 0.5); /* bg-blue-50/50 */
-  color: #374151; /* text-gray-700 */
-  padding: 0.5rem 1rem; /* py-2 px-4 */
-  margin: 1.5rem 0; /* my-6 */
-  border-top-right-radius: 0.5rem; /* rounded-r-lg */
-  border-bottom-right-radius: 0.5rem;
-  font-weight: 400; /* font-normal */
-  font-style: italic;
+  position: relative;
+  font-weight: normal;
+  font-style: normal;
+  color: #4b5563; /* text-gray-600 */
+  border: 1px solid #e5e7eb; /* 浅色边框勾勒面板轮廓 */
+  background: #f8fafc; /* 极浅的石板色背景 */
+  padding: 1.5rem 1.5rem 1.5rem 3.5rem;
+  margin: 2.5rem 0;
+  border-radius: 0.75rem; /* 圆角增加现代感 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* 微微的阴影浮起 */
+}
+
+.custom-prose blockquote::before {
+  content: "“";
+  position: absolute;
+  top: 0.5rem;
+  left: 1rem;
+  font-size: 4rem;
+  color: #cbd5e1; /* slate-300 */
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 html.dark .custom-prose blockquote {
-  background-color: rgba(30, 58, 138, 0.2); /* bg-blue-900/20 */
-  color: #bfdbfe; /* text-blue-200 */
+  color: #d1d5db; /* dark:text-gray-300 */
+  background: #1e293b; /* slate-800 增强暗色模式可见性 */
+  border-color: #334155; /* slate-700 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+html.dark .custom-prose blockquote::before {
+  color: #475569; /* slate-600 */
+}
+
+.custom-prose blockquote p:first-of-type::before,
+.custom-prose blockquote p:last-of-type::after {
+  content: none;
+}
+
+.custom-prose blockquote p {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  line-height: 1.8;
+  font-size: 1.05rem;
+  position: relative;
+  z-index: 1;
+}
+
+.custom-prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* 嵌套引用样式 - 视觉美观优化与外层匹配 */
+.custom-prose blockquote blockquote {
+  margin: 1.25rem 0 0 0;
+  padding: 1rem 1.25rem;
+  border: 1px dashed #cbd5e1; /* 虚线边框，轻量化且与外层实线呼应 */
+  background: transparent; /* 移除背景色，保持整体的留白感 */
+  border-radius: 0.5rem; /* 与外层一致的圆角风格 */
+  box-shadow: none;
+  position: relative;
+}
+
+.custom-prose blockquote blockquote::before {
+  content: none; /* 嵌套引用不显示引号 */
+}
+
+/* 嵌套引用段落的特殊处理，使其略微缩小，增加层级感 */
+.custom-prose blockquote blockquote p {
+  font-size: 0.95rem;
+  color: #64748b; /* 颜色比外层稍浅 */
+}
+
+html.dark .custom-prose blockquote blockquote {
+  border-color: #475569; /* slate-600 */
+  background: transparent;
+}
+
+html.dark .custom-prose blockquote blockquote p {
+  color: #94a3b8; /* slate-400 */
+}
+
+/* 引用来源标签样式 - 靠右下并缩小 */
+.custom-prose .cite-source {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: -0.5rem; /* 靠右下调整 */
+  font-size: 0.75rem; /* 缩小字号 */
+  line-height: 1; /* 占据约1/2普通高度 */
+  color: #64748b; /* slate-500 */
+  font-weight: 400;
+  font-style: normal;
+  position: relative;
+  z-index: 1;
+}
+
+.custom-prose .cite-source::before {
+  content: "";
+  display: block;
+  width: 1.5rem;
+  height: 1px; /* 线条变细 */
+  background-color: #94a3b8; /* slate-400 颜色更低调 */
+  border-radius: 1px;
+}
+
+html.dark .custom-prose .cite-source {
+  color: #94a3b8; /* slate-400 */
+}
+
+html.dark .custom-prose .cite-source::before {
+  background-color: #64748b;
+}
+
+/* 列表基础样式与交互动效 */
+.custom-prose ul,
+.custom-prose ol {
+  padding-left: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.custom-prose li {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+  padding-left: 0.5rem;
+  border-radius: 0.375rem;
+}
+
+/* 列表项 Hover 动效 - 轻微右移和背景色变化 */
+.custom-prose li:hover {
+  transform: translateX(4px);
+  background-color: #f8fafc; /* slate-50 */
+}
+
+html.dark .custom-prose li:hover {
+  background-color: rgba(30, 41, 59, 0.5); /* slate-800/50 */
+}
+
+/* 无序列表自定义标记 */
+.custom-prose ul {
+  list-style-type: none;
+}
+
+.custom-prose ul > li::before {
+  content: "•";
+  position: absolute;
+  left: -1rem;
+  top: 0;
+  color: #3b82f6; /* blue-500 */
+  font-weight: bold;
+  font-size: 1.2em;
+  line-height: 1.5;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.custom-prose ul > li:hover::before {
+  color: #2563eb; /* blue-600 */
+  transform: scale(1.2);
+}
+
+html.dark .custom-prose ul > li::before {
+  color: #60a5fa; /* blue-400 */
+}
+
+html.dark .custom-prose ul > li:hover::before {
+  color: #93c5fd; /* blue-300 */
+}
+
+/* 嵌套无序列表标记变化 */
+.custom-prose ul ul > li::before {
+  content: "◦";
+  color: #64748b; /* slate-500 */
+}
+
+.custom-prose ul ul ul > li::before {
+  content: "▪";
+  color: #94a3b8; /* slate-400 */
+}
+
+/* 有序列表自定义标记 */
+.custom-prose ol {
+  list-style-type: none;
+  counter-reset: custom-counter;
+}
+
+.custom-prose ol > li {
+  counter-increment: custom-counter;
+}
+
+.custom-prose ol > li::before {
+  content: counter(custom-counter) ".";
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+  color: #0284C7; /* 主题蓝 */
+  font-weight: 600;
+  font-size: 0.9em;
+  min-width: 1.2rem;
+  text-align: right;
+  transition: color 0.3s ease;
+}
+
+html.dark .custom-prose ol > li::before {
+  color: #38bdf8;
+}
+
+/* 待办列表样式美化 */
+.custom-prose .todo-list {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+html.dark .custom-prose .todo-list {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.custom-prose .todo-list > div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s ease;
+}
+
+.custom-prose .todo-list > div:hover {
+  background-color: #f1f5f9; /* slate-100 */
+}
+
+html.dark .custom-prose .todo-list > div:hover {
+  background-color: rgba(51, 65, 85, 0.5); /* slate-700/50 */
+}
+
+.custom-prose .todo-list input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #cbd5e1; /* slate-300 */
+  border-radius: 0.25rem;
+  background-color: #ffffff;
+  cursor: not-allowed;
+  position: relative;
+  transition: all 0.2s ease;
+  margin: 0; /* 覆盖默认 margin */
+}
+
+html.dark .custom-prose .todo-list input[type="checkbox"] {
+  border-color: #64748b;
+  background-color: #0f172a;
+}
+
+.custom-prose .todo-list input[type="checkbox"]:checked {
+  background-color: #10b981; /* emerald-500 */
+  border-color: #10b981;
+}
+
+.custom-prose .todo-list input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 0.125rem;
+  left: 0.375rem;
+  width: 0.375rem;
+  height: 0.625rem;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-prose .todo-list div:has(input[type="checkbox"]:checked) {
+  color: #94a3b8; /* slate-400 */
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+
+html.dark .custom-prose .todo-list div:has(input[type="checkbox"]:checked) {
+  color: #64748b;
 }
 
 /* 图片样式 */
