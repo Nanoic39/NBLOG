@@ -300,6 +300,7 @@
 
           <!-- 文章内容 -->
           <div
+            ref="proseEl"
             class="prose custom-prose dark:prose-invert max-w-none prose-img:rounded-xl prose-a:text-[#0284C7] hover:prose-a:text-[#0369a1]"
             v-html="renderedContent"
             @click="handleProseClick"
@@ -481,7 +482,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import {
+  ref,
+  computed,
+  watch,
+  nextTick,
+  h,
+  render,
+  onBeforeUnmount,
+  onMounted,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 // ... (保留其它 import)
 
@@ -498,6 +508,131 @@ import { marked } from "marked";
 import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/atom-one-dark.css"; // 引入主题样式
+import AudioEmbed from "~/components/AudioEmbed.vue";
+import VideoEmbed from "~/components/VideoEmbed.vue";
+
+const proseEl = ref<HTMLElement | null>(null);
+const mountedAudioRoots = new Set<HTMLElement>();
+const mountedVideoRoots = new Set<HTMLElement>();
+
+const escapeHtmlAttr = (value: string) => {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+};
+
+const getAudioMetaFromSrc = (src: string) => {
+  let host = "";
+  let title = "音频";
+
+  try {
+    const url = new URL(src);
+    host = url.host || "";
+    const rawName = decodeURIComponent(
+      url.pathname.split("/").filter(Boolean).pop() || "",
+    );
+    if (rawName) {
+      title = rawName.replace(/\.[a-z0-9]+$/i, "") || title;
+    }
+  } catch {
+    const rawName = decodeURIComponent(src.split("/").pop() || "");
+    if (rawName) {
+      title = rawName.replace(/\.[a-z0-9]+$/i, "") || title;
+    }
+  }
+
+  return { title, host: host || "未知来源" };
+};
+
+const replaceAudioTagsWithPlaceholders = (html: string) => {
+  return html.replace(/<audio\b[\s\S]*?<\/audio>/gi, (audioHtml) => {
+    const sourceMatch =
+      audioHtml.match(
+        /<source\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i,
+      ) ||
+      audioHtml.match(/<audio\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i);
+
+    if (!sourceMatch?.[1]) return audioHtml;
+
+    const src = sourceMatch[1];
+    const { title, host } = getAudioMetaFromSrc(src);
+
+    return `<div class="nb-audio-placeholder my-6" data-audio-src="${escapeHtmlAttr(src)}" data-audio-title="${escapeHtmlAttr(title)}" data-audio-host="${escapeHtmlAttr(host)}"></div>`;
+  });
+};
+
+const replaceVideoTagsWithPlaceholders = (html: string) => {
+  return html.replace(/<video\b[\s\S]*?<\/video>/gi, (videoHtml) => {
+    const sourceMatch =
+      videoHtml.match(
+        /<source\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i,
+      ) ||
+      videoHtml.match(/<video\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i);
+
+    if (!sourceMatch?.[1]) return videoHtml;
+
+    const src = sourceMatch[1];
+    const { title, host } = getAudioMetaFromSrc(src);
+
+    return `<div class="nb-video-placeholder my-6" data-video-src="${escapeHtmlAttr(src)}" data-video-title="${escapeHtmlAttr(title)}" data-video-host="${escapeHtmlAttr(host)}"></div>`;
+  });
+};
+
+const unmountAllAudioEmbeds = () => {
+  for (const el of mountedAudioRoots) {
+    render(null, el);
+    el.innerHTML = "";
+  }
+  mountedAudioRoots.clear();
+};
+
+const unmountAllVideoEmbeds = () => {
+  for (const el of mountedVideoRoots) {
+    render(null, el);
+    el.innerHTML = "";
+  }
+  mountedVideoRoots.clear();
+};
+
+const mountAudioEmbeds = () => {
+  if (!proseEl.value) return;
+
+  unmountAllAudioEmbeds();
+
+  const placeholders = proseEl.value.querySelectorAll<HTMLElement>(
+    ".nb-audio-placeholder",
+  );
+
+  placeholders.forEach((el) => {
+    const src = el.dataset.audioSrc;
+    if (!src) return;
+    const title = el.dataset.audioTitle || "音频";
+    const host = el.dataset.audioHost || "";
+    render(h(AudioEmbed, { src, title, host }), el);
+    mountedAudioRoots.add(el);
+  });
+};
+
+const mountVideoEmbeds = () => {
+  if (!proseEl.value) return;
+
+  unmountAllVideoEmbeds();
+
+  const placeholders = proseEl.value.querySelectorAll<HTMLElement>(
+    ".nb-video-placeholder",
+  );
+
+  placeholders.forEach((el) => {
+    const src = el.dataset.videoSrc;
+    if (!src) return;
+    const title = el.dataset.videoTitle || "视频";
+    const host = el.dataset.videoHost || "";
+    render(h(VideoEmbed, { src, title, host }), el);
+    mountedVideoRoots.add(el);
+  });
+};
 
 // 配置 marked 的渲染器
 marked.use({
@@ -777,6 +912,9 @@ const renderedContent = computed(() => {
     )
     .replace(/<\/table>/g, "</table></div></div>");
 
+  htmlWithIds = replaceAudioTagsWithPlaceholders(htmlWithIds);
+  htmlWithIds = replaceVideoTagsWithPlaceholders(htmlWithIds);
+
   tocList.value = headings;
 
   // Clean HTML if we are on client side
@@ -786,8 +924,15 @@ const renderedContent = computed(() => {
         "id",
         "class",
         "style",
+        "aria-hidden",
         "data-code",
         "data-zoomable",
+        "data-audio-src",
+        "data-audio-title",
+        "data-audio-host",
+        "data-video-src",
+        "data-video-title",
+        "data-video-host",
         "stroke-linecap",
         "stroke-linejoin",
         "stroke-width",
@@ -801,6 +946,32 @@ const renderedContent = computed(() => {
   }
 
   return htmlWithIds;
+});
+
+onMounted(() => {
+  if (!import.meta.client) return;
+  nextTick(() => {
+    mountAudioEmbeds();
+    mountVideoEmbeds();
+  });
+});
+
+watch(
+  renderedContent,
+  () => {
+    if (!import.meta.client) return;
+    nextTick(() => {
+      mountAudioEmbeds();
+      mountVideoEmbeds();
+    });
+  },
+  { flush: "post" },
+);
+
+onBeforeUnmount(() => {
+  if (!import.meta.client) return;
+  unmountAllAudioEmbeds();
+  unmountAllVideoEmbeds();
 });
 
 // 处理文章内容点击事件，例如代码复制和图片放大
@@ -1379,6 +1550,39 @@ html.dark .custom-prose .todo-list input[type="checkbox"] {
 
 html.dark .custom-prose .todo-list div:has(input[type="checkbox"]:checked) {
   color: #64748b;
+}
+
+.custom-prose audio[controls] {
+  width: 100%;
+  margin: 2rem 0;
+  display: block;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  box-shadow:
+    0 12px 24px -18px rgba(15, 23, 42, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.85) inset;
+  padding: 0.35rem;
+}
+
+.custom-prose audio[controls]::-webkit-media-controls-enclosure {
+  border-radius: 0.7rem;
+}
+
+.custom-prose audio[controls]::-webkit-media-controls-panel {
+  background: rgba(248, 250, 252, 0.95);
+}
+
+html.dark .custom-prose audio[controls] {
+  border-color: rgba(51, 65, 85, 0.85);
+  background: linear-gradient(to bottom, #0f172a, #111827);
+  box-shadow:
+    0 12px 24px -18px rgba(2, 6, 23, 0.8),
+    0 1px 0 rgba(148, 163, 184, 0.1) inset;
+}
+
+html.dark .custom-prose audio[controls]::-webkit-media-controls-panel {
+  background: rgba(30, 41, 59, 0.96);
 }
 
 /* 图片样式 */
