@@ -1000,7 +1000,7 @@ html.dark .custom-prose ol > li::before {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
-  padding: 1rem;
+  padding: 0.5rem; /* 减小外层内边距，使整体更紧凑 */
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
@@ -1013,8 +1013,9 @@ html.dark .custom-prose .todo-list {
 .custom-prose .todo-list > div {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
+  gap: 0.5rem; /* 减小复选框与文本的间距 */
+  padding: 0.25rem 0.5rem; /* 减小每一项的上下内边距 */
+  margin: 0.125rem 0; /* 增加微小的项间距代替大 padding */
   border-radius: 0.375rem;
   transition: background-color 0.2s ease;
 }
