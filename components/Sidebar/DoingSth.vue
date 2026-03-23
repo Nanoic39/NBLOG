@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-xl p-4 shadow-lg border border-gray-100/50 dark:border-gray-700/50"
+    class="bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-xl p-4 shadow-sm border border-gray-100/50 dark:border-gray-700/50 relative"
   >
     <h3
       class="text-sm font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-3 flex items-center gap-1.5"

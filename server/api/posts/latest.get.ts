@@ -12,7 +12,7 @@ export default defineEventHandler((event) => {
   if (isNaN(limit) || limit < 1) limit = 7;
 
   // Combine pinned and regular posts with flags
-  const pinnedWithFlag = pinPageList.map((p) => ({ ...p, isPinned: true }));
+  const pinnedWithFlag = pinPageList.map((p) => Object.assign({}, p, { isPinned: true }));
   const regularWithFlag = pageList.map((p) => ({ ...p, isPinned: false }));
 
   const allPosts = [...pinnedWithFlag, ...regularWithFlag];

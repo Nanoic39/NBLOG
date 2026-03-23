@@ -1,28 +1,28 @@
 <template>
-  <div class="relative min-h-screen">
+  <div class="relative min-h-screen transition-colors duration-300">
     <!-- 浅色模糊背景点缀 -->
     <div
-      class="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#F8FAFC] dark:bg-[#121212]"
+      class="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#F8FAFC] dark:bg-[#121212] transition-colors duration-300"
     >
       <!-- 白色为主色的点缀 -->
       <div
-        class="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-white dark:bg-white/5 rounded-full blur-[150px] opacity-90"
+        class="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-white dark:bg-white/5 rounded-full blur-[150px] opacity-90 transition-colors duration-300"
       ></div>
       <div
-        class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-50/80 dark:bg-blue-900/20 rounded-full blur-[120px] opacity-80"
+        class="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-50/80 dark:bg-blue-900/20 rounded-full blur-[120px] opacity-80 transition-colors duration-300"
       ></div>
       <div
-        class="absolute top-[30%] left-[50%] w-[50%] h-[50%] bg-indigo-50/60 dark:bg-indigo-900/10 rounded-full blur-[120px] opacity-70"
+        class="absolute top-[30%] left-[50%] w-[50%] h-[50%] bg-indigo-50/60 dark:bg-indigo-900/10 rounded-full blur-[120px] opacity-70 transition-colors duration-300"
       ></div>
       <!-- 整体玻璃遮罩层，让背景更柔和 -->
       <div
-        class="absolute inset-0 bg-white/40 dark:bg-black/40 backdrop-blur-[2px]"
+        class="absolute inset-0 bg-white/40 dark:bg-black/40 backdrop-blur-[2px] transition-colors duration-300"
       ></div>
     </div>
 
     <!-- 主体内容区 max-w-[1600px] 以容纳 1200px 文章及两侧功能 -->
     <div
-      class="max-w-[1600px] w-full mx-auto px-4 py-8 mt-16 md:mt-24 relative z-10 flex flex-col lg:flex-row justify-center items-start gap-6 xl:gap-8"
+      class="max-w-[1600px] w-full mx-auto px-4 py-8 mt-16 md:mt-24 relative z-10 flex flex-col lg:flex-row justify-center items-start gap-6 xl:gap-8 transition-colors duration-300"
     >
       <!-- 左侧：返回按钮 (跟随页面滚动，宽屏可见) -->
       <aside
@@ -52,7 +52,7 @@
       </aside>
 
       <!-- 中间：文章主体 (最大宽度1200px) -->
-      <main class="flex-1 min-w-0 w-full max-w-[1200px]">
+      <main class="flex-1 min-w-0 w-full max-w-[1200px] transition-colors duration-300">
         <div v-if="pending" class="flex justify-center py-20">
           <span class="animate-pulse text-[#6B7280] dark:text-[#9ca3af]"
             >加载中...</span
@@ -71,7 +71,7 @@
 
         <article
           v-else-if="article"
-          class="bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-2xl p-6 md:p-10 lg:p-12 shadow-lg border border-gray-100/50 dark:border-gray-700/50"
+          class="bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-2xl p-6 md:p-10 lg:p-12 shadow-lg border border-transparent dark:border-[#333333] transition-colors duration-300"
         >
           <!-- 封面图 -->
           <div
@@ -103,7 +103,7 @@
                 class="flex-1 min-w-[120px] bg-gray-50/80 dark:bg-gray-800/40 rounded-xl p-3.5 border border-gray-100/80 dark:border-gray-700/50 flex flex-col items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60"
               >
                 <span
-                  class="text-xs text-gray-400 dark:text-gray-500 mb-1.5 flex items-center gap-1"
+                  class="text-xs text-gray-400 dark:text-blue-300 mb-1.5 flex items-center gap-1"
                 >
                   <svg
                     class="w-3.5 h-3.5"
@@ -130,7 +130,7 @@
                 class="flex-1 min-w-[120px] bg-gray-50/80 dark:bg-gray-800/40 rounded-xl p-3.5 border border-gray-100/80 dark:border-gray-700/50 flex flex-col items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60"
               >
                 <span
-                  class="text-xs text-gray-400 dark:text-gray-500 mb-1.5 flex items-center gap-1"
+                  class="text-xs text-gray-400 dark:text-blue-300 mb-1.5 flex items-center gap-1"
                 >
                   <svg
                     class="w-3.5 h-3.5"
@@ -159,7 +159,7 @@
                 :title="updateWarning.text"
               >
                 <span
-                  class="text-xs text-gray-400 dark:text-gray-500 mb-1.5 flex items-center gap-1"
+                  class="text-xs text-gray-400 dark:text-blue-300 mb-1.5 flex items-center gap-1"
                 >
                   <svg
                     class="w-3.5 h-3.5"
@@ -187,7 +187,7 @@
                 class="flex-1 min-w-[120px] bg-gray-50/80 dark:bg-gray-800/40 rounded-xl p-3.5 border border-gray-100/80 dark:border-gray-700/50 flex flex-col items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60"
               >
                 <span
-                  class="text-xs text-gray-400 dark:text-gray-500 mb-1.5 flex items-center gap-1"
+                  class="text-xs text-gray-400 dark:text-blue-300 mb-1.5 flex items-center gap-1"
                 >
                   <svg
                     class="w-3.5 h-3.5"
@@ -214,7 +214,7 @@
                 class="flex-1 min-w-[120px] bg-gray-50/80 dark:bg-gray-800/40 rounded-xl p-3.5 border border-gray-100/80 dark:border-gray-700/50 flex flex-col items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60"
               >
                 <span
-                  class="text-xs text-gray-400 dark:text-gray-500 mb-1.5 flex items-center gap-1"
+                  class="text-xs text-gray-400 dark:text-blue-300 mb-1.5 flex items-center gap-1"
                 >
                   <svg
                     class="w-3.5 h-3.5"
@@ -241,7 +241,7 @@
                 class="flex-1 min-w-[120px] bg-gray-50/80 dark:bg-gray-800/40 rounded-xl p-3.5 border border-gray-100/80 dark:border-gray-700/50 flex flex-col items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60"
               >
                 <span
-                  class="text-xs text-gray-400 dark:text-gray-500 mb-1.5 flex items-center gap-1"
+                  class="text-xs text-gray-400 dark:text-blue-300 mb-1.5 flex items-center gap-1"
                 >
                   <svg
                     class="w-3.5 h-3.5"
@@ -293,7 +293,7 @@
         </article>
 
         <!-- 评论区 (位于文章卡片外部) -->
-        <CommentSection :articleId="article.id" />
+        <CommentSection v-if="article" :articleId="article.id" />
       </main>
 
       <!-- 右侧：摘要/目录 (跟随页面滚动，宽屏可见) -->
@@ -303,13 +303,13 @@
         <!-- 摘要面板 -->
         <div
           v-if="article?.description"
-          class="z-20 bg-white/80 dark:bg-[#242424]/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100/80 dark:border-gray-700/80 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
+          class="z-20 bg-white/80 dark:bg-[#242424]/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-transparent dark:border-[#333333] transition-colors duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
         >
           <h3
-            class="font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2"
+            class="font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2 transition-colors duration-300"
           >
             <svg
-              class="w-4 h-4 text-[#0284C7]"
+              class="w-4 h-4 text-[#0284C7] transition-colors duration-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -323,20 +323,20 @@
             </svg>
             文章摘要
           </h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed transition-colors duration-300">
             {{ article.description }}
           </p>
         </div>
 
         <!-- 目录面板 -->
         <div
-          class="z-20 bg-white/80 dark:bg-[#242424]/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100/80 dark:border-gray-700/80 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
+          class="z-20 bg-white/80 dark:bg-[#242424]/80 backdrop-blur-md rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-transparent dark:border-[#333333] flex flex-col max-h-[calc(100vh-20rem)] transition-colors duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
         >
           <h3
-            class="font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2"
+            class="font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2 transition-colors duration-300"
           >
             <svg
-              class="w-4 h-4 text-[#0284C7]"
+              class="w-4 h-4 text-[#0284C7] transition-colors duration-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -424,7 +424,7 @@
                         :class="
                           activeTocId === child.id
                             ? 'text-[#0284C7] dark:text-[#38bdf8] bg-blue-50/30 dark:bg-blue-900/10 translate-x-1 font-medium'
-                            : 'text-gray-500 dark:text-gray-500 hover:text-[#0284C7] dark:hover:text-[#38bdf8] hover:bg-gray-50 dark:hover:bg-gray-800/30'
+                            : 'text-gray-500 dark:text-blue-300 hover:text-[#0284C7] dark:hover:text-[#38bdf8] hover:bg-gray-50 dark:hover:bg-gray-800/30'
                         "
                         :title="child.text"
                       >
@@ -670,10 +670,24 @@ const renderedContent = computed(() => {
 
 /* Markdown 容器基础样式覆盖 */
 .custom-prose {
-  @apply text-[#4B5563] dark:text-[#d1d5db];
+  color: #4B5563;
   font-size: 1.125rem; /* 基础字号调大到18px */
   line-height: 1.85; /* 增加行高，提升阅读舒适度 */
   letter-spacing: 0.5px;
+}
+
+html.dark .custom-prose {
+  color: #dbeafe; /* text-blue-100 */
+}
+
+/* 覆盖 Tailwind Typography 的默认颜色 */
+html.dark .custom-prose p,
+html.dark .custom-prose ul,
+html.dark .custom-prose ol,
+html.dark .custom-prose li,
+html.dark .custom-prose span,
+html.dark .custom-prose div {
+  color: #dbeafe; /* text-blue-100 */
 }
 
 @media (min-width: 768px) {
@@ -693,52 +707,167 @@ const renderedContent = computed(() => {
 .custom-prose h2,
 .custom-prose h3,
 .custom-prose h4 {
-  @apply text-[#2A2E33] dark:text-[#e0e0e0] mt-10 mb-5;
+  color: #2A2E33;
+  margin-top: 2.5rem; /* mt-10 */
+  margin-bottom: 1.25rem; /* mb-5 */
   font-weight: 600; /* 使用600代替bold(700)，防止圆体过粗发糊 */
   letter-spacing: 0.5px;
 }
 
+html.dark .custom-prose h1,
+html.dark .custom-prose h2,
+html.dark .custom-prose h3,
+html.dark .custom-prose h4 {
+  color: #eff6ff; /* text-blue-50 */
+}
+
 .custom-prose strong, .custom-prose b {
-  @apply text-[#111827] dark:text-[#f3f4f6];
+  color: #111827;
   font-weight: 600;
   padding: 0 2px;
 }
 
+html.dark .custom-prose strong,
+html.dark .custom-prose b {
+  color: #bfdbfe; /* text-blue-200 */
+}
+
 .custom-prose h2 {
-  @apply pb-2 border-b border-gray-200 dark:border-gray-700;
+  padding-bottom: 0.5rem; /* pb-2 */
+  border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+}
+
+html.dark .custom-prose h2 {
+  border-bottom-color: #374151; /* border-gray-700 */
 }
 
 /* 代码块样式 */
 .custom-prose pre {
-  @apply bg-[#1e1e1e] text-[#d4d4d4] rounded-xl p-4 my-6 overflow-x-auto shadow-sm border border-gray-800;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  border-radius: 0.75rem; /* rounded-xl */
+  padding: 1rem; /* p-4 */
+  margin: 1.5rem 0; /* my-6 */
+  overflow-x: auto;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  border: 1px solid #1f2937; /* border-gray-800 */
 }
 
 .custom-prose code {
-  @apply bg-gray-100 dark:bg-gray-800 text-[#0284C7] dark:text-[#38bdf8] px-1.5 py-0.5 rounded-md font-mono text-sm before:content-none after:content-none;
+  background-color: #f3f4f6; /* bg-gray-100 */
+  color: #0284C7;
+  padding: 0.125rem 0.375rem; /* px-1.5 py-0.5 */
+  border-radius: 0.375rem; /* rounded-md */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem; /* text-sm */
+}
+
+html.dark .custom-prose code {
+  background-color: #1f2937; /* bg-gray-800 */
+  color: #38bdf8;
+}
+
+.custom-prose code::before,
+.custom-prose code::after {
+  content: none;
 }
 
 .custom-prose pre code {
-  @apply bg-transparent text-inherit p-0 border-0 text-[0.9em];
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+  border: 0;
+  font-size: 0.9em;
 }
 
 /* 引用块样式 */
 .custom-prose blockquote {
-  @apply border-l-4 border-[#0284C7] bg-blue-50/50 dark:bg-blue-900/20 text-gray-700 dark:text-gray-300 py-2 px-4 my-6 rounded-r-lg font-normal italic;
+  border-left: 4px solid #0284C7;
+  background-color: rgba(239, 246, 255, 0.5); /* bg-blue-50/50 */
+  color: #374151; /* text-gray-700 */
+  padding: 0.5rem 1rem; /* py-2 px-4 */
+  margin: 1.5rem 0; /* my-6 */
+  border-top-right-radius: 0.5rem; /* rounded-r-lg */
+  border-bottom-right-radius: 0.5rem;
+  font-weight: 400; /* font-normal */
+  font-style: italic;
+}
+
+html.dark .custom-prose blockquote {
+  background-color: rgba(30, 58, 138, 0.2); /* bg-blue-900/20 */
+  color: #bfdbfe; /* text-blue-200 */
 }
 
 /* 图片样式 */
 .custom-prose img {
-  @apply rounded-xl shadow-md mx-auto my-8 border border-gray-100 dark:border-gray-800;
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+  margin: 2rem auto; /* my-8 mx-auto */
+  border: 1px solid #f3f4f6; /* border-gray-100 */
+}
+
+html.dark .custom-prose img {
+  border-color: #1f2937; /* border-gray-800 */
 }
 
 /* 自定义 Feature Card 样式 */
 .custom-prose .feature-card {
-  @apply bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-xl border border-blue-100 dark:border-gray-700 my-8 shadow-sm;
+  background-image: linear-gradient(to bottom right, #eff6ff, #eef2ff); /* from-blue-50 to-indigo-50 */
+  padding: 1.5rem; /* p-6 */
+  border-radius: 0.75rem; /* rounded-xl */
+  border: 1px solid #dbeafe; /* border-blue-100 */
+  margin: 2rem 0; /* my-8 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
 }
+
+/* 黑幕样式 (Heimu) */
+.custom-prose .heimu {
+  background-color: #252525;
+  color: transparent;
+  text-shadow: none;
+  transition: color 0.3s ease;
+  padding: 0 0.25rem;
+  border-radius: 0.125rem;
+}
+
+html.dark .custom-prose .heimu {
+  background-color: #e5e7eb;
+}
+
+.custom-prose .heimu:hover,
+.custom-prose .heimu:active {
+  color: #ffffff;
+}
+
+html.dark .custom-prose .heimu:hover,
+html.dark .custom-prose .heimu:active {
+  color: #111827;
+}
+
+html.dark .custom-prose .feature-card {
+  background-image: linear-gradient(to bottom right, #1f2937, #111827); /* from-gray-800 to-gray-900 */
+  border-color: #374151; /* border-gray-700 */
+}
+
 .custom-prose .feature-card ul {
-  @apply m-0 p-0 list-none space-y-3;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
 }
+
+.custom-prose .feature-card ul > * + * {
+  margin-top: 0.75rem; /* space-y-3 */
+}
+
 .custom-prose .feature-card li {
-  @apply flex items-center gap-2 m-0 p-0 before:content-none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* gap-2 */
+  margin: 0;
+  padding: 0;
+}
+
+.custom-prose .feature-card li::before {
+  content: none;
 }
 </style>

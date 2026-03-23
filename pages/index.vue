@@ -340,7 +340,7 @@
             :tag-count="allTags.length"
             :category-count="3"
           />
-          <NoticeCard />
+          <DoingSth />
           <HotList />
           <TagsCloud :tags="allTags" />
         </div>
@@ -484,6 +484,7 @@
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import headImage from "~/assets/image/HEADIMAGE.jpg";
 import ProfileCard from "~/components/Sidebar/ProfileCard.vue";
+import DoingSth from "~/components/Sidebar/DoingSth.vue";
 import TagsCloud from "~/components/Sidebar/TagsCloud.vue";
 import HotList from "~/components/Sidebar/HotList.vue";
 
