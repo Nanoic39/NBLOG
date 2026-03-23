@@ -1,7 +1,7 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
     <NuxtLayout>
-      <NuxtPage />
+      <NuxtPage :keepalive="{ max: 10 }" />
     </NuxtLayout>
   </n-config-provider>
 </template>

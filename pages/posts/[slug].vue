@@ -82,8 +82,6 @@
               :src="displayCoverImage"
               :alt="article?.title || cachedPost?.title"
               class="w-full h-full object-cover"
-              decoding="sync"
-              fetchpriority="high"
             />
           </div>
 
@@ -304,6 +302,7 @@
           <div
             class="prose custom-prose dark:prose-invert max-w-none prose-img:rounded-xl prose-a:text-[#0284C7] hover:prose-a:text-[#0369a1]"
             v-html="renderedContent"
+            @click="handleProseClick"
           ></div>
         </article>
 
@@ -492,6 +491,72 @@ const getTransitionStyle = (prefix: string, id: string | number) => {
 };
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import hljs from "highlight.js";
+import "highlight.js/styles/atom-one-dark.css"; // 引入主题样式
+
+// 配置 marked 的渲染器
+marked.use({
+  renderer: {
+    // 自定义代码块渲染
+    code({ text, lang }) {
+      const validLang = lang || "plaintext";
+      const language = hljs.getLanguage(validLang) ? validLang : "plaintext";
+      const highlighted = hljs.highlight(text, { language }).value;
+
+      const lines = highlighted.split("\n");
+      // 移除最后可能多余的空行
+      if (lines[lines.length - 1] === "") {
+        lines.pop();
+      }
+
+      const lineNumbersHtml = lines
+        .map(
+          (_, index) =>
+            `<div class="line-number text-right px-3 text-gray-400 dark:text-gray-500 text-sm select-none font-mono leading-relaxed">${index + 1}</div>`,
+        )
+        .join("");
+
+      const codeHtml = lines
+        .map(
+          (line) =>
+            `<div class="line font-mono text-sm leading-relaxed">${line || " "}</div>`,
+        )
+        .join("");
+
+      const safeCode = encodeURIComponent(text);
+
+      return `
+        <div class="code-block-wrapper relative group my-6 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:shadow-md">
+          <div class="code-block-header flex justify-between items-center px-4 py-2 bg-gray-100 dark:bg-[#2d2d2d] border-b border-gray-200 dark:border-gray-800">
+            <span class="text-xs text-gray-500 dark:text-gray-400 font-mono uppercase tracking-wider">${language}</span>
+            <button class="copy-btn flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" data-code="${safeCode}" title="复制代码">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+              <span class="copy-text">复制</span>
+            </button>
+          </div>
+          <div class="code-block-content flex bg-gray-50 dark:bg-[#1e1e1e] overflow-x-auto">
+            <div class="line-numbers shrink-0 py-4 border-r border-gray-200 dark:border-gray-700/50 bg-gray-100/50 dark:bg-[#1e1e1e]">
+              ${lineNumbersHtml}
+            </div>
+            <pre class="!bg-transparent !m-0 !p-4 !rounded-none w-full !border-0"><code class="hljs language-${language}">${codeHtml}</code></pre>
+          </div>
+        </div>
+      `;
+    },
+    // 自定义图片渲染
+    image({ href, title, text }) {
+      const altText = text ? `alt="${text}"` : '';
+      const titleAttr = title ? `title="${title}"` : '';
+      // 使用 data-zoomable 标记图片支持放大，配合全局事件委托
+      return `
+        <figure class="image-wrapper my-8 mx-auto flex flex-col items-center justify-center">
+          <img src="${href}" ${altText} ${titleAttr} class="cursor-zoom-in rounded-xl shadow-md border border-gray-100 dark:border-gray-800 max-w-full h-auto transition-transform duration-300 hover:scale-[1.02]" data-zoomable="true" loading="lazy" />
+          ${text ? `<figcaption class="mt-3 text-sm text-gray-500 dark:text-gray-400 text-center">${text}</figcaption>` : ''}
+        </figure>
+      `;
+    }
+  },
+});
 
 const route = useRoute();
 const router = useRouter();
@@ -689,7 +754,7 @@ const renderedContent = computed(() => {
   const headings: { level: number; text: string; id: string }[] = [];
   let headingIndex = 0;
 
-  const htmlWithIds = rawHtml.replace(
+  let htmlWithIds = rawHtml.replace(
     /<h([2-3])>([\s\S]*?)<\/h\1>/g,
     (match, level, innerHtml) => {
       const pureText = innerHtml.replace(/<[^>]*>?/gm, "").trim();
@@ -699,15 +764,142 @@ const renderedContent = computed(() => {
     },
   );
 
+  // 为表格添加包裹容器，以支持横向滚动，并用一个外部容器包裹住整个表格区域
+  htmlWithIds = htmlWithIds
+    .replace(
+      /<table>/g,
+      '<div class="table-container"><div class="table-wrapper"><table>',
+    )
+    .replace(/<\/table>/g, "</table></div></div>");
+
   tocList.value = headings;
 
   // Clean HTML if we are on client side
   if (import.meta.client) {
-    return DOMPurify.sanitize(htmlWithIds, { ADD_ATTR: ["id", "class"] });
+    return DOMPurify.sanitize(htmlWithIds, {
+      ADD_ATTR: [
+        "id",
+        "class",
+        "data-code",
+        "data-zoomable",
+        "stroke-linecap",
+        "stroke-linejoin",
+        "stroke-width",
+        "viewBox",
+        "fill",
+        "stroke",
+        "d",
+      ],
+      ADD_TAGS: ["svg", "path"],
+    });
   }
 
   return htmlWithIds;
 });
+
+// 处理文章内容点击事件，例如代码复制和图片放大
+const handleProseClick = async (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+  
+  // 处理图片放大
+  if (target.tagName.toLowerCase() === 'img') {
+    const imgSrc = target.getAttribute('src');
+    if (imgSrc) {
+      // 创建全屏遮罩层
+      const overlay = document.createElement('div');
+      overlay.className = 'fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center cursor-zoom-out opacity-0 transition-opacity duration-300 backdrop-blur-sm';
+      
+      // 创建放大后的图片
+      const zoomedImg = document.createElement('img');
+      zoomedImg.src = imgSrc;
+      // 增加 w-full h-full 配合 object-contain 使图片尽可能充满视口，实现真正的“放大”效果
+      zoomedImg.className = 'w-full h-full max-w-[90vw] max-h-[90vh] object-contain scale-95 transition-transform duration-300 rounded-lg shadow-2xl';
+      
+      // 组装并添加到页面
+      overlay.appendChild(zoomedImg);
+      document.body.appendChild(overlay);
+      
+      // 禁用页面滚动
+      document.body.style.overflow = 'hidden';
+      
+      // 触发动画
+      requestAnimationFrame(() => {
+        overlay.classList.remove('opacity-0');
+        zoomedImg.classList.remove('scale-95');
+        zoomedImg.classList.add('scale-100');
+      });
+      
+      // 点击关闭处理函数
+      const closeZoom = () => {
+        overlay.classList.add('opacity-0');
+        zoomedImg.classList.remove('scale-100');
+        zoomedImg.classList.add('scale-95');
+        
+        // 恢复页面滚动
+        document.body.style.overflow = '';
+        
+        setTimeout(() => {
+          overlay.remove();
+        }, 300);
+      };
+      
+      overlay.addEventListener('click', closeZoom);
+      
+      // 添加 ESC 键关闭支持
+      const escHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          closeZoom();
+          document.removeEventListener('keydown', escHandler);
+        }
+      };
+      document.addEventListener('keydown', escHandler);
+      return;
+    }
+  }
+
+  // 处理代码复制
+  const copyBtn = target.closest(".copy-btn");
+  if (copyBtn) {
+    const codeEncoded = copyBtn.getAttribute("data-code");
+    if (codeEncoded) {
+      try {
+        const code = decodeURIComponent(codeEncoded);
+
+        // 兼容处理：在非安全上下文(HTTP)中，navigator.clipboard 可能未定义
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(code);
+        } else {
+          const textArea = document.createElement("textarea");
+          textArea.value = code;
+          // 确保文本域不可见
+          textArea.style.position = "absolute";
+          textArea.style.left = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand("copy");
+          } catch (err) {
+            console.error("Fallback copy failed", err);
+          }
+          textArea.remove();
+        }
+
+        const copyText = copyBtn.querySelector(".copy-text");
+        if (copyText) {
+          const originalText = copyText.textContent;
+          copyText.textContent = "已复制";
+          copyText.classList.add("text-green-500", "dark:text-green-400");
+          setTimeout(() => {
+            copyText.textContent = originalText;
+            copyText.classList.remove("text-green-500", "dark:text-green-400");
+          }, 2000);
+        }
+      } catch (err) {
+        console.error("Failed to copy text: ", err);
+      }
+    }
+  }
+};
 </script>
 
 <style>
@@ -787,45 +979,59 @@ html.dark .custom-prose h2 {
   border-bottom-color: #374151; /* border-gray-700 */
 }
 
-/* 代码块样式 */
+/* 代码块包装器及覆盖默认 pre 样式 */
 .custom-prose pre {
-  background-color: #1e1e1e;
-  color: #d4d4d4;
-  border-radius: 0.75rem; /* rounded-xl */
-  padding: 1rem; /* p-4 */
-  margin: 1.5rem 0; /* my-6 */
-  overflow-x: auto;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
-  border: 1px solid #1f2937; /* border-gray-800 */
+  background-color: transparent !important;
+  color: inherit !important;
+  border-radius: 0 !important;
+  padding: 1rem !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
-.custom-prose code {
-  background-color: #f3f4f6; /* bg-gray-100 */
-  color: #0284c7;
-  padding: 0.125rem 0.375rem; /* px-1.5 py-0.5 */
+/* 行内代码样式 (排除代码块内的 code) */
+.custom-prose code:not(pre code) {
+  background-color: rgba(2, 132, 199, 0.1); /* 浅蓝色背景，与主题蓝呼应 */
+  color: #0284c7; /* text-sky-600 */
+  padding: 0.2em 0.4em; /* 微调内边距，使其更像标签 */
+  margin: 0 0.1em; /* 防止与前后文字粘连 */
   border-radius: 0.375rem; /* rounded-md */
   font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
-  font-size: 0.875rem; /* text-sm */
+    "Fira Code", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace; /* 优先使用更好看的编程字体 */
+  font-size: 0.85em; /* 相对于正文字号稍微缩小 */
+  border: 1px solid rgba(2, 132, 199, 0.2); /* 添加极淡的边框，增加精致感 */
+  word-break: break-word; /* 防止长代码撑破容器 */
 }
 
-html.dark .custom-prose code {
-  background-color: #1f2937; /* bg-gray-800 */
-  color: #38bdf8;
+html.dark .custom-prose code:not(pre code) {
+  background-color: rgba(56, 189, 248, 0.15); /* 暗色模式下的浅蓝色背景 */
+  color: #7dd3fc; /* text-sky-300 */
+  border-color: rgba(56, 189, 248, 0.25);
 }
 
-.custom-prose code::before,
-.custom-prose code::after {
+.custom-prose code:not(pre code)::before,
+.custom-prose code:not(pre code)::after {
   content: none;
 }
 
+/* 代码块内部代码样式 */
 .custom-prose pre code {
-  background-color: transparent;
+  background-color: transparent !important;
   color: inherit;
   padding: 0;
   border: 0;
   font-size: 0.9em;
+  font-family:
+    "Fira Code", "Cascadia Code", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* 语法高亮覆盖，确保在亮色和暗色模式下的可读性 */
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
 }
 
 /* Blockquote 简约现代优雅样式 - 面板可见性增强 */
@@ -1130,8 +1336,16 @@ html.dark .custom-prose .todo-list div:has(input[type="checkbox"]:checked) {
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
-  margin: 2rem auto; /* my-8 mx-auto */
+  cursor: zoom-in; /* 默认显示可放大鼠标样式 */
   border: 1px solid #f3f4f6; /* border-gray-100 */
+}
+
+/* 单图居中显示，使用更具体的选择器以避免破坏 flex 布局中的多图 */
+.custom-prose p > img,
+.custom-prose > img,
+.custom-prose figure > img {
+  margin: 2rem auto;
+  display: block;
 }
 
 html.dark .custom-prose img {
@@ -1205,5 +1419,203 @@ html.dark .custom-prose .feature-card {
 
 .custom-prose .feature-card li::before {
   content: none;
+}
+
+.custom-prose .table-container {
+  margin: 2.5rem 0 1rem 0; /* 减小底部外边距，拉近与下方元素的距离 */
+}
+
+.custom-prose .table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0; /* 内部滚动容器不需要额外的上下边距 */
+  position: relative;
+  z-index: 1;
+  padding: 1px 1px 15px 1px; /* 适当减小底部 padding，只要够放阴影即可 */
+  clear: both;
+}
+
+/* 添加一个微妙的渐变遮罩提示可滚动（当内容超出时） */
+.custom-prose .table-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2rem;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.9));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-top-right-radius: 0.875rem;
+  border-bottom-right-radius: 0.875rem;
+}
+/* 添加一个微妙的渐变遮罩提示可滚动（当内容超出时） */
+.custom-prose .table-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2rem;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.9));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-top-right-radius: 0.875rem;
+  border-bottom-right-radius: 0.875rem;
+}
+.custom-prose .table-wrapper:hover::after {
+  opacity: 1; /* 鼠标悬停时提示右侧可滚动区域 */
+}
+
+html.dark .custom-prose .table-wrapper::after {
+  background: linear-gradient(to right, transparent, rgba(30, 41, 59, 0.9));
+}
+
+/* 阴影需要加在 table 上，否则 margin 会被 wrapper 的阴影包围 */
+.custom-prose table {
+  width: 100%;
+  border-collapse: separate; /* 改为 separate 以支持单元格间距和更精细的圆角控制 */
+  border-spacing: 0;
+  margin: 0;
+  font-size: 0.95em;
+  line-height: 1.6; /* 增加行高，提升文字呼吸感 */
+  min-width: 600px;
+  border: 1px solid rgba(226, 232, 240, 0.8); /* 添加外部边框 */
+  border-radius: 0.875rem; /* 与 wrapper 保持一致的圆角 */
+  background-color: #ffffff; /* 移到这里 */
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.05),
+    /* 更明显的底部阴影 */ 0 8px 10px -6px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset; /* 多层阴影+内发光，增加立体感 */
+}
+
+/* 强制让 table 后面的相邻元素向下偏移，避免紧贴导致负 margin 的重叠，但保持合适的距离 */
+.custom-prose .table-wrapper + * {
+  margin-top: 0; /* 移除之前的额外 margin，靠 container 控制 */
+}
+
+html.dark .custom-prose table {
+  border-color: rgba(51, 65, 85, 0.6); /* 暗色模式外部边框 */
+  background-color: #1e293b; /* 移到这里 */
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.4),
+    /* 暗色模式更明显的底部阴影 */ 0 8px 10px -6px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.custom-prose thead {
+  position: relative;
+}
+
+/* 表头背景改为非常淡的渐变，增加细节质感 */
+.custom-prose thead th {
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+  border-bottom: 2px solid #cbd5e1; /* 加深表头底边框，区分内容区 */
+  border-right: 1px solid rgba(226, 232, 240, 0.6); /* 柔和的列分割线 */
+  padding: 1.125rem 1.25rem; /* 增加内边距 */
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.025em; /* 轻微字间距 */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px); /* 玻璃态效果 */
+  /* 移除 text-align，允许 markdown 解析结果生效 */
+}
+
+html.dark .custom-prose thead th {
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 23, 42, 0.8),
+    rgba(15, 23, 42, 0.95)
+  );
+  border-bottom-color: #475569;
+  border-right-color: rgba(51, 65, 85, 0.5);
+  color: #e2e8f0;
+}
+
+/* 单元格基础样式，强制尊重 markdown 解析出的 align 属性，覆盖 tailwind prose 的默认 start 对齐 */
+.custom-prose th[align="center"],
+.custom-prose td[align="center"] {
+  text-align: center !important;
+}
+.custom-prose th[align="right"],
+.custom-prose td[align="right"] {
+  text-align: right !important;
+}
+.custom-prose th[align="left"],
+.custom-prose td[align="left"] {
+  text-align: left !important;
+}
+
+.custom-prose tbody td {
+  padding: 1rem 1.25rem; /* 宽裕的内边距 */
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  border-right: 1px solid rgba(226, 232, 240, 0.4); /* 更淡的列分割线，不喧宾夺主 */
+  color: #475569;
+  transition: all 0.2s ease;
+}
+
+html.dark .custom-prose tbody td {
+  border-bottom-color: rgba(51, 65, 85, 0.6);
+  border-right-color: rgba(51, 65, 85, 0.3);
+  color: #94a3b8;
+}
+
+/* 去除最右侧列的右边框 */
+.custom-prose th:last-child,
+.custom-prose td:last-child {
+  border-right: none;
+}
+
+/* 斑马线与交互层次感 */
+.custom-prose tbody tr {
+  background-color: transparent;
+  transition:
+    background-color 0.25s ease,
+    transform 0.2s ease;
+}
+
+/* 偶数行极淡背景色 */
+.custom-prose tbody tr:nth-child(even) {
+  background-color: rgba(248, 250, 252, 0.5); /* #f8fafc with opacity */
+}
+html.dark .custom-prose tbody tr:nth-child(even) {
+  background-color: rgba(15, 23, 42, 0.2);
+}
+
+/* Hover 状态的高级层次感：轻微背景色+当前行文字提亮 */
+.custom-prose tbody tr:hover {
+  background-color: #f1f5f9; /* #slate-100 */
+}
+.custom-prose tbody tr:hover td {
+  color: #0f172a; /* hover时文字变深，聚焦视线 */
+}
+
+html.dark .custom-prose tbody tr:hover {
+  background-color: rgba(30, 41, 59, 0.8); /* slate-800 */
+}
+html.dark .custom-prose tbody tr:hover td {
+  color: #f8fafc; /* 暗色模式hover文字变亮 */
+}
+
+/* 解决 border-collapse: separate 导致的圆角溢出问题 */
+.custom-prose thead tr:first-child th:first-child {
+  border-top-left-radius: calc(0.875rem - 1px);
+}
+.custom-prose thead tr:first-child th:last-child {
+  border-top-right-radius: calc(0.875rem - 1px);
+}
+.custom-prose tbody tr:last-child td {
+  border-bottom: none; /* 去除最后一行底部边框 */
+}
+.custom-prose tbody tr:last-child td:first-child {
+  border-bottom-left-radius: calc(0.875rem - 1px);
+}
+.custom-prose tbody tr:last-child td:last-child {
+  border-bottom-right-radius: calc(0.875rem - 1px);
 }
 </style>
