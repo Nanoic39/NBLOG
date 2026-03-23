@@ -52,16 +52,14 @@
       </aside>
 
       <!-- 中间：文章主体 (最大宽度1200px) -->
-      <main class="flex-1 min-w-0 w-full max-w-[1200px] transition-colors duration-300">
-        <div v-if="pending" class="flex justify-center py-20">
-          <span class="animate-pulse text-[#6B7280] dark:text-[#9ca3af]"
-            >加载中...</span
-          >
-        </div>
-
-        <div v-else-if="error" class="text-center py-20">
+      <main
+        class="flex-1 min-w-0 w-full max-w-[1200px] transition-colors duration-300"
+      >
+        <div v-if="error" class="text-center py-20">
           <h2 class="text-2xl font-bold text-red-500 mb-4">文章加载失败</h2>
-          <p class="text-[#6B7280] dark:text-[#9ca3af]">{{ error.message }}</p>
+          <p class="text-[#6B7280] dark:text-[#9ca3af]">
+            {{ error?.message || "未知错误" }}
+          </p>
           <NuxtLink
             to="/"
             class="mt-6 inline-block text-[#0284C7] hover:underline"
@@ -70,18 +68,22 @@
         </div>
 
         <article
-          v-else-if="article"
+          v-else-if="article || cachedPost"
           class="bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-2xl p-6 md:p-10 lg:p-12 shadow-lg border border-transparent dark:border-[#333333] transition-colors duration-300"
         >
           <!-- 封面图 -->
           <div
-            v-if="article.coverImage"
             class="w-full h-64 md:h-96 mb-8 rounded-xl overflow-hidden relative"
+            :style="
+              getTransitionStyle('article-cover', article?.id || cachedPost?.id)
+            "
           >
             <img
-              :src="article.coverImage"
-              :alt="article.title"
+              :src="displayCoverImage"
+              :alt="article?.title || cachedPost?.title"
               class="w-full h-full object-cover"
+              decoding="sync"
+              fetchpriority="high"
             />
           </div>
 
@@ -91,12 +93,25 @@
           >
             <h1
               class="text-3xl md:text-4xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-8 leading-tight"
+              :style="
+                getTransitionStyle(
+                  'article-title',
+                  article?.id || cachedPost?.id,
+                )
+              "
             >
-              {{ article.title }}
+              {{ article?.title || cachedPost?.title }}
             </h1>
+
+            <div v-if="pending" class="flex justify-center py-10">
+              <span class="animate-pulse text-[#6B7280] dark:text-[#9ca3af]"
+                >加载内容中...</span
+              >
+            </div>
 
             <!-- 重新美化的文章元数据说明 (卡片式网格布局) -->
             <div
+              v-else-if="article"
               class="grid grid-cols-2 md:flex md:flex-wrap md:justify-between gap-3 mb-6"
             >
               <div
@@ -323,7 +338,9 @@
             </svg>
             文章摘要
           </h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed transition-colors duration-300">
+          <p
+            class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed transition-colors duration-300"
+          >
             {{ article.description }}
           </p>
         </div>
@@ -467,12 +484,38 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+// ... (保留其它 import)
+
+// 为卡片添加统一的动态 View Transition 名称
+const getTransitionStyle = (prefix: string, id: string | number) => {
+  return import.meta.client ? { viewTransitionName: `${prefix}-${id}` } : {};
+};
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 
 const route = useRoute();
 const router = useRouter();
 const articleSlug = route.params.slug as string;
+
+// 从缓存中获取文章基础信息（用于加载时的占位和动画过渡）
+const postCache = useState<Record<string, any>>("postCache", () => ({}));
+const cachedPost = computed(() => postCache.value[articleSlug]);
+
+const localCachedCover = ref<string | null>(null);
+onMounted(() => {
+  if (import.meta.client) {
+    localCachedCover.value = localStorage.getItem(`post_cover_${articleSlug}`);
+  }
+});
+
+const displayCoverImage = computed(() => {
+  return (
+    localCachedCover.value ||
+    cachedPost.value?.coverImage ||
+    article.value?.coverImage ||
+    (article.value ? `https://www.loliapi.com/acg/?id=${article.value.id}` : "")
+  );
+});
 
 // Fetch article data
 const {
@@ -531,37 +574,39 @@ const activeTocId = ref<string>("");
 
 // Scroll spy logic
 const handleScroll = () => {
-    const headings = Array.from(document.querySelectorAll('.prose h2, .prose h3'));
-    if (headings.length === 0) return;
+  const headings = Array.from(
+    document.querySelectorAll(".prose h2, .prose h3"),
+  );
+  if (headings.length === 0) return;
 
-    const scrollPosition = window.scrollY + 150; // offset for sticky header
-    const windowHeight = window.innerHeight;
-    const documentHeight = document.documentElement.scrollHeight;
-    
-    let currentId = '';
-    
-    // Check if scrolled to the absolute bottom of the page
-    if (window.scrollY + windowHeight >= documentHeight - 50) {
-      // If at bottom, always highlight the last heading
-      const lastHeading = headings[headings.length - 1];
-      if (lastHeading) {
-        currentId = lastHeading.id;
-      }
-    } else {
-      // Normal scroll tracking
-      for (let i = 0; i < headings.length; i++) {
-        const heading = headings[i] as HTMLElement;
-        const top = heading.getBoundingClientRect().top + window.scrollY;
-        if (top <= scrollPosition) {
-          currentId = heading.id;
-        } else {
-          break;
-        }
+  const scrollPosition = window.scrollY + 150; // offset for sticky header
+  const windowHeight = window.innerHeight;
+  const documentHeight = document.documentElement.scrollHeight;
+
+  let currentId = "";
+
+  // Check if scrolled to the absolute bottom of the page
+  if (window.scrollY + windowHeight >= documentHeight - 50) {
+    // If at bottom, always highlight the last heading
+    const lastHeading = headings[headings.length - 1];
+    if (lastHeading) {
+      currentId = lastHeading.id;
+    }
+  } else {
+    // Normal scroll tracking
+    for (let i = 0; i < headings.length; i++) {
+      const heading = headings[i] as HTMLElement;
+      const top = heading.getBoundingClientRect().top + window.scrollY;
+      if (top <= scrollPosition) {
+        currentId = heading.id;
+      } else {
+        break;
       }
     }
+  }
 
-    if (!currentId && headings.length > 0) {
-      const firstHeading = headings[0];
+  if (!currentId && headings.length > 0) {
+    const firstHeading = headings[0];
     if (firstHeading) {
       currentId = firstHeading.id;
     }
@@ -670,7 +715,7 @@ const renderedContent = computed(() => {
 
 /* Markdown 容器基础样式覆盖 */
 .custom-prose {
-  color: #4B5563;
+  color: #4b5563;
   font-size: 1.125rem; /* 基础字号调大到18px */
   line-height: 1.85; /* 增加行高，提升阅读舒适度 */
   letter-spacing: 0.5px;
@@ -707,7 +752,7 @@ html.dark .custom-prose div {
 .custom-prose h2,
 .custom-prose h3,
 .custom-prose h4 {
-  color: #2A2E33;
+  color: #2a2e33;
   margin-top: 2.5rem; /* mt-10 */
   margin-bottom: 1.25rem; /* mb-5 */
   font-weight: 600; /* 使用600代替bold(700)，防止圆体过粗发糊 */
@@ -721,7 +766,8 @@ html.dark .custom-prose h4 {
   color: #eff6ff; /* text-blue-50 */
 }
 
-.custom-prose strong, .custom-prose b {
+.custom-prose strong,
+.custom-prose b {
   color: #111827;
   font-weight: 600;
   padding: 0 2px;
@@ -755,10 +801,12 @@ html.dark .custom-prose h2 {
 
 .custom-prose code {
   background-color: #f3f4f6; /* bg-gray-100 */
-  color: #0284C7;
+  color: #0284c7;
   padding: 0.125rem 0.375rem; /* px-1.5 py-0.5 */
   border-radius: 0.375rem; /* rounded-md */
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 0.875rem; /* text-sm */
 }
 
@@ -941,7 +989,9 @@ html.dark .custom-prose li:hover {
   font-weight: bold;
   font-size: 1.2em;
   line-height: 1.5;
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease;
 }
 
 .custom-prose ul > li:hover::before {
@@ -983,7 +1033,7 @@ html.dark .custom-prose ul > li:hover::before {
   position: absolute;
   left: -1.5rem;
   top: 0;
-  color: #0284C7; /* 主题蓝 */
+  color: #0284c7; /* 主题蓝 */
   font-weight: 600;
   font-size: 0.9em;
   min-width: 1.2rem;
@@ -1077,7 +1127,9 @@ html.dark .custom-prose .todo-list div:has(input[type="checkbox"]:checked) {
 /* 图片样式 */
 .custom-prose img {
   border-radius: 0.75rem; /* rounded-xl */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
   margin: 2rem auto; /* my-8 mx-auto */
   border: 1px solid #f3f4f6; /* border-gray-100 */
 }
@@ -1088,7 +1140,11 @@ html.dark .custom-prose img {
 
 /* 自定义 Feature Card 样式 */
 .custom-prose .feature-card {
-  background-image: linear-gradient(to bottom right, #eff6ff, #eef2ff); /* from-blue-50 to-indigo-50 */
+  background-image: linear-gradient(
+    to bottom right,
+    #eff6ff,
+    #eef2ff
+  ); /* from-blue-50 to-indigo-50 */
   padding: 1.5rem; /* p-6 */
   border-radius: 0.75rem; /* rounded-xl */
   border: 1px solid #dbeafe; /* border-blue-100 */
@@ -1121,7 +1177,11 @@ html.dark .custom-prose .heimu:active {
 }
 
 html.dark .custom-prose .feature-card {
-  background-image: linear-gradient(to bottom right, #1f2937, #111827); /* from-gray-800 to-gray-900 */
+  background-image: linear-gradient(
+    to bottom right,
+    #1f2937,
+    #111827
+  ); /* from-gray-800 to-gray-900 */
   border-color: #374151; /* border-gray-700 */
 }
 

@@ -110,7 +110,7 @@ export default defineEventHandler(async (event) => {
     // 强制设置 Content-Length (如果能获取到)
     const contentLength = response.headers.get('content-length')
     if (contentLength) {
-        setHeader(event, 'Content-Length', contentLength)
+        setHeader(event, 'Content-Length', Number(contentLength))
     }
 
     // 禁用缓存，防止调试时看到旧的错误图片

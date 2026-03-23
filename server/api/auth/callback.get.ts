@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
       headers: {
         Authorization: `Bearer ${access_token}`
       }
-    })
+    }) as Record<string, any>
     
     // Set user session cookie
     // Simple base64 encoding for now. In production, use encryption.

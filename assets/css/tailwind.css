@@ -3,7 +3,83 @@
 
 @variant dark (&:where(.dark, .dark *));
 
-/* Page Transitions */
+/* View Transitions API (文章列表与详情卡片共享过渡) */
+/* 只有在支持 View Transitions 的浏览器才生效 */
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); /* 改为更平滑的缓动函数 */
+}
+
+/* 保证图片过渡时不被拉伸，维持容器原比例，去除不必要的交叉淡入淡出引起的拖影 */
+::view-transition-group(article-cover-1),
+::view-transition-group(article-cover-2),
+::view-transition-group(article-cover-3),
+::view-transition-group(article-cover-4),
+::view-transition-group(article-cover-5),
+::view-transition-group(article-cover-6) {
+  overflow: hidden;
+  border-radius: 0.5rem; /* 确保过渡时边角也能自然缩放 */
+}
+
+::view-transition-old(article-cover-1),
+::view-transition-new(article-cover-1),
+::view-transition-old(article-cover-2),
+::view-transition-new(article-cover-2),
+::view-transition-old(article-cover-3),
+::view-transition-new(article-cover-3),
+::view-transition-old(article-cover-4),
+::view-transition-new(article-cover-4),
+::view-transition-old(article-cover-5),
+::view-transition-new(article-cover-5),
+::view-transition-old(article-cover-6),
+::view-transition-new(article-cover-6) {
+  /* 使用确切的对象匹配以防止图片拉伸，保持比例平滑过渡 */
+  object-fit: cover;
+  height: 100%;
+  width: 100%;
+  object-position: center;
+}
+
+/* 禁用旧视图的淡出和新视图的淡入，完全依赖物理形变，消除交叉拖影 */
+::view-transition-old(article-cover-1),
+::view-transition-old(article-cover-2),
+::view-transition-old(article-cover-3),
+::view-transition-old(article-cover-4),
+::view-transition-old(article-cover-5),
+::view-transition-old(article-cover-6) {
+  animation: none;
+  opacity: 0;
+  display: none;
+}
+
+::view-transition-new(article-cover-1),
+::view-transition-new(article-cover-2),
+::view-transition-new(article-cover-3),
+::view-transition-new(article-cover-4),
+::view-transition-new(article-cover-5),
+::view-transition-new(article-cover-6) {
+  animation: none;
+}
+
+/* === 主题切换过渡动画 === */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 始终让旧视图在底层，新视图在顶层，以配合圆圈扩散放大的动画效果 */
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+/* 移除特定的 view-transition-name 样式，交由 Vue 动态设置或者移除这部分 */
+
+/* Page Transitions (回退方案) */
 .page-enter-active,
 .page-leave-active {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);

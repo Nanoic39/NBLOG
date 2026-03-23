@@ -1,6 +1,6 @@
 <template>
   <button
-    @click="toggleDark"
+    @click="handleToggle"
     :title="isDark ? '切换到日间模式' : '切换到夜间模式'"
     class="relative w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-sky-500 dark:hover:text-sky-400"
   >
@@ -33,6 +33,52 @@
 
 <script setup lang="ts">
 const { isDark, toggleDark } = useDarkMode()
+
+const handleToggle = (event: MouseEvent) => {
+  // 检查浏览器是否支持 View Transitions API
+  if (!document.startViewTransition) {
+    toggleDark()
+    return
+  }
+
+  // 获取点击位置
+  const x = event.clientX
+  const y = event.clientY
+
+  // 计算扩散的最大半径（屏幕对角线）
+  const endRadius = Math.hypot(
+    Math.max(x, innerWidth - x),
+    Math.max(y, innerHeight - y)
+  )
+
+  // 开始视图过渡
+  const transition = document.startViewTransition(() => {
+    toggleDark()
+  })
+
+  // 当 DOM 更新完成后，执行扩散动画
+  transition.ready.then(() => {
+    const isDarkMode = isDark.value
+    // 创建一个从点击点扩散的圆形剪裁路径
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`
+    ]
+
+    // 始终将动画应用到 ::view-transition-new(root)，无论切换方向
+    // 并且不再使用 reverse()
+    document.documentElement.animate(
+      {
+        clipPath: clipPath,
+      },
+      {
+        duration: 500,
+        easing: 'ease-in-out',
+        pseudoElement: '::view-transition-new(root)',
+      }
+    )
+  })
+}
 </script>
 
 <style scoped>

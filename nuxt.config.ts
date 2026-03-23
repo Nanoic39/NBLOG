@@ -13,9 +13,14 @@ export default defineNuxtConfig({
     port: 3030,
     host: "0.0.0.0",
   },
+  experimental: {
+    viewTransition: true,
+  },
   app: {
-    pageTransition: { name: "page", mode: "out-in" },
-    layoutTransition: { name: "layout", mode: "out-in" },
+    // 启用 View Transitions API 支持
+    viewTransition: true,
+    pageTransition: false,
+    layoutTransition: false,
     head: {
       script: [
         {

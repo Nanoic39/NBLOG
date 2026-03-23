@@ -211,10 +211,7 @@
       <!-- Main Articles and Sidebar Wrapper -->
       <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 relative">
         <!-- Main Articles Area -->
-        <div
-          id="latest-posts"
-          class="flex-1 min-w-0 w-full space-y-8"
-        >
+        <div id="latest-posts" class="flex-1 min-w-0 w-full space-y-8">
           <NuxtLink
             v-for="post in latestPosts"
             :key="post.id"
@@ -223,7 +220,10 @@
           >
             <!-- 左侧图片 -->
             <div class="w-full md:w-2/5 p-3 shrink-0 h-56 md:h-auto">
-              <div class="relative w-full h-full rounded-lg overflow-hidden">
+              <div
+                class="relative w-full h-full rounded-lg overflow-hidden"
+                :style="getTransitionStyle('article-cover', post.id)"
+              >
                 <img
                   :src="
                     post.coverImage ||
@@ -269,19 +269,20 @@
                 </div>
                 <h3
                   class="text-xl md:text-2xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-3 group-hover:text-[#0284C7] dark:group-hover:text-[#38bdf8] transition-colors duration-300 line-clamp-1"
+                  :style="getTransitionStyle('article-title', post.id)"
                 >
                   {{ post.title }}
                 </h3>
                 <p
-                  class="text-sm md:text-base text-[#6B7280] dark:text-[#9ca3af] mb-4 line-clamp-2 md:line-clamp-3 leading-relaxed"
-                >
-                  {{ post.description }}
-                </p>
-              </div>
+                    class="text-sm md:text-base text-[#6B7280] dark:text-[#9ca3af] mb-4 line-clamp-2 md:line-clamp-3 leading-relaxed"
+                  >
+                    {{ post.description }}
+                  </p>
+                </div>
 
-              <div
-                class="flex items-center justify-between text-xs md:text-sm text-[#9CA3AF] pt-4 border-t border-gray-100 dark:border-gray-800"
-              >
+                <div
+                  class="flex items-center justify-between text-xs md:text-sm text-[#9CA3AF] pt-4 border-t border-gray-100 dark:border-gray-800"
+                >
                 <div class="flex items-center gap-3">
                   <span class="text-xs opacity-75 font-mono">{{
                     formatDate(post.pubDate)
@@ -331,20 +332,20 @@
         </div>
 
         <!-- Sidebar -->
-      <aside
-        class="w-full lg:w-80 shrink-0 flex flex-col gap-8 order-3 lg:order-none relative"
-      >
-        <div class="sticky top-24 space-y-8">
-          <ProfileCard
-            :post-count="totalPosts"
-            :tag-count="allTags.length"
-            :category-count="3"
-          />
-          <DoingSth />
-          <HotList />
-          <TagsCloud :tags="allTags" />
-        </div>
-      </aside>
+        <aside
+          class="w-full lg:w-80 shrink-0 flex flex-col gap-8 order-3 lg:order-none relative"
+        >
+          <div class="sticky top-24 space-y-8">
+            <ProfileCard
+              :post-count="totalPosts"
+              :tag-count="allTags.length"
+              :category-count="3"
+            />
+            <DoingSth />
+            <HotList />
+            <TagsCloud :tags="allTags" />
+          </div>
+        </aside>
 
         <!-- Mobile Pagination Controls -->
         <div
@@ -482,6 +483,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from "vue";
+
+// 为卡片添加统一的动态 View Transition 名称
+const getTransitionStyle = (prefix: string, id: string | number) => {
+  // 只在客户端或特定的状态下返回，避免 SSR 渲染空 style
+  return import.meta.client ? { viewTransitionName: `${prefix}-${id}` } : {};
+};
 import headImage from "~/assets/image/HEADIMAGE.jpg";
 import ProfileCard from "~/components/Sidebar/ProfileCard.vue";
 import DoingSth from "~/components/Sidebar/DoingSth.vue";
@@ -525,6 +532,26 @@ const { data: initialData, refresh } = await useFetch("/api/posts/latest", {
 
 const latestPosts = computed(() => initialData.value?.posts || []);
 totalPosts.value = initialData.value?.total || 0;
+
+// 缓存文章列表中的封面图和标题，用于详情页平滑过渡
+const postCache = useState<Record<string, any>>('postCache', () => ({}));
+watchEffect(() => {
+  if (latestPosts.value) {
+    latestPosts.value.forEach((post: any) => {
+      const coverUrl = post.coverImage || `https://www.loliapi.com/acg/?id=${post.id}`;
+      postCache.value[post.slug] = {
+        id: post.id,
+        title: post.title,
+        coverImage: coverUrl
+      };
+      
+      // 持久化缓存到 localStorage
+      if (import.meta.client) {
+        localStorage.setItem(`post_cover_${post.slug}`, coverUrl);
+      }
+    });
+  }
+});
 
 // 切换页面
 const changePage = (newPage: number) => {
