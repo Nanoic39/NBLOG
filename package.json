@@ -27,6 +27,7 @@
     "@types/highlight.js": "^9.12.4",
     "@types/node": "^25.5.0",
     "autoprefixer": "^10.4.27",
+    "jsdom": "^29.0.1",
     "naive-ui": "^2.43.2",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.1",

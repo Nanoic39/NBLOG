@@ -101,7 +101,7 @@
               {{ article?.title || cachedPost?.title }}
             </h1>
 
-            <div v-if="pending" class="flex justify-center py-10">
+            <div v-if="pending && !article" class="flex justify-center py-10">
               <span class="animate-pulse text-[#6B7280] dark:text-[#9ca3af]"
                 >加载内容中...</span
               >
@@ -486,8 +486,13 @@ import { useRoute, useRouter } from "vue-router";
 // ... (保留其它 import)
 
 // 为卡片添加统一的动态 View Transition 名称
-const getTransitionStyle = (prefix: string, id: string | number) => {
-  return import.meta.client ? { viewTransitionName: `${prefix}-${id}` } : {};
+const transitionReady = ref(false);
+const getTransitionStyle = (
+  prefix: string,
+  id: string | number | undefined,
+) => {
+  if (!transitionReady.value || !id) return {};
+  return { viewTransitionName: `${prefix}-${id}` };
 };
 import { marked } from "marked";
 import DOMPurify from "dompurify";
@@ -501,29 +506,28 @@ marked.use({
     code({ text, lang }) {
       const validLang = lang || "plaintext";
       const language = hljs.getLanguage(validLang) ? validLang : "plaintext";
-      const highlighted = hljs.highlight(text, { language }).value;
-
-      const lines = highlighted.split("\n");
-      // 移除最后可能多余的空行
-      if (lines[lines.length - 1] === "") {
-        lines.pop();
+      const source = text.replace(/\r\n/g, "\n");
+      const highlighted = hljs.highlight(source, { language }).value;
+      const highlightedLines = highlighted.split("\n");
+      if (highlightedLines[highlightedLines.length - 1] === "") {
+        highlightedLines.pop();
+      }
+      if (highlightedLines.length === 0) {
+        highlightedLines.push("");
       }
 
-      const lineNumbersHtml = lines
+      const lineNumbersHtml = highlightedLines
         .map(
           (_, index) =>
-            `<div class="line-number text-right px-3 text-gray-400 dark:text-gray-500 text-sm select-none font-mono leading-relaxed">${index + 1}</div>`,
+            `<div class="line-number text-right px-3 text-gray-400 dark:text-gray-500 text-sm select-none font-mono">${index + 1}</div>`,
         )
         .join("");
 
-      const codeHtml = lines
-        .map(
-          (line) =>
-            `<div class="line font-mono text-sm leading-relaxed">${line || " "}</div>`,
-        )
+      const codeLinesHtml = highlightedLines
+        .map((line) => `<span class="code-line">${line || "&nbsp;"}</span>`)
         .join("");
 
-      const safeCode = encodeURIComponent(text);
+      const safeCode = encodeURIComponent(source);
 
       return `
         <div class="code-block-wrapper relative group my-6 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:shadow-md">
@@ -535,26 +539,26 @@ marked.use({
             </button>
           </div>
           <div class="code-block-content flex bg-gray-50 dark:bg-[#1e1e1e] overflow-x-auto">
-            <div class="line-numbers shrink-0 py-4 border-r border-gray-200 dark:border-gray-700/50 bg-gray-100/50 dark:bg-[#1e1e1e]">
+            <div class="line-numbers shrink-0 py-4 border-r border-gray-200 dark:border-gray-700/50 bg-gray-100/50 dark:bg-[#1e1e1e] flex flex-col">
               ${lineNumbersHtml}
             </div>
-            <pre class="!bg-transparent !m-0 !p-4 !rounded-none w-full !border-0"><code class="hljs language-${language}">${codeHtml}</code></pre>
+            <pre class="!bg-transparent !m-0 !p-4 !rounded-none w-full !border-0 !overflow-x-auto"><code class="hljs language-${language} code-lines font-mono text-sm" style="background: transparent; padding: 0;">${codeLinesHtml}</code></pre>
           </div>
         </div>
       `;
     },
     // 自定义图片渲染
     image({ href, title, text }) {
-      const altText = text ? `alt="${text}"` : '';
-      const titleAttr = title ? `title="${title}"` : '';
+      const altText = text ? `alt="${text}"` : "";
+      const titleAttr = title ? `title="${title}"` : "";
       // 使用 data-zoomable 标记图片支持放大，配合全局事件委托
       return `
         <figure class="image-wrapper my-8 mx-auto flex flex-col items-center justify-center">
           <img src="${href}" ${altText} ${titleAttr} class="cursor-zoom-in rounded-xl shadow-md border border-gray-100 dark:border-gray-800 max-w-full h-auto transition-transform duration-300 hover:scale-[1.02]" data-zoomable="true" loading="lazy" />
-          ${text ? `<figcaption class="mt-3 text-sm text-gray-500 dark:text-gray-400 text-center">${text}</figcaption>` : ''}
+          ${text ? `<figcaption class="mt-3 text-sm text-gray-500 dark:text-gray-400 text-center">${text}</figcaption>` : ""}
         </figure>
       `;
-    }
+    },
   },
 });
 
@@ -568,6 +572,7 @@ const cachedPost = computed(() => postCache.value[articleSlug]);
 
 const localCachedCover = ref<string | null>(null);
 onMounted(() => {
+  transitionReady.value = true;
   if (import.meta.client) {
     localCachedCover.value = localStorage.getItem(`post_cover_${articleSlug}`);
   }
@@ -780,6 +785,7 @@ const renderedContent = computed(() => {
       ADD_ATTR: [
         "id",
         "class",
+        "style",
         "data-code",
         "data-zoomable",
         "stroke-linecap",
@@ -800,59 +806,61 @@ const renderedContent = computed(() => {
 // 处理文章内容点击事件，例如代码复制和图片放大
 const handleProseClick = async (e: MouseEvent) => {
   const target = e.target as HTMLElement;
-  
+
   // 处理图片放大
-  if (target.tagName.toLowerCase() === 'img') {
-    const imgSrc = target.getAttribute('src');
+  if (target.tagName.toLowerCase() === "img") {
+    const imgSrc = target.getAttribute("src");
     if (imgSrc) {
       // 创建全屏遮罩层
-      const overlay = document.createElement('div');
-      overlay.className = 'fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center cursor-zoom-out opacity-0 transition-opacity duration-300 backdrop-blur-sm';
-      
+      const overlay = document.createElement("div");
+      overlay.className =
+        "fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center cursor-zoom-out opacity-0 transition-opacity duration-300 backdrop-blur-sm";
+
       // 创建放大后的图片
-      const zoomedImg = document.createElement('img');
+      const zoomedImg = document.createElement("img");
       zoomedImg.src = imgSrc;
       // 增加 w-full h-full 配合 object-contain 使图片尽可能充满视口，实现真正的“放大”效果
-      zoomedImg.className = 'w-full h-full max-w-[90vw] max-h-[90vh] object-contain scale-95 transition-transform duration-300 rounded-lg shadow-2xl';
-      
+      zoomedImg.className =
+        "w-full h-full max-w-[90vw] max-h-[90vh] object-contain scale-95 transition-transform duration-300 rounded-lg shadow-2xl";
+
       // 组装并添加到页面
       overlay.appendChild(zoomedImg);
       document.body.appendChild(overlay);
-      
+
       // 禁用页面滚动
-      document.body.style.overflow = 'hidden';
-      
+      document.body.style.overflow = "hidden";
+
       // 触发动画
       requestAnimationFrame(() => {
-        overlay.classList.remove('opacity-0');
-        zoomedImg.classList.remove('scale-95');
-        zoomedImg.classList.add('scale-100');
+        overlay.classList.remove("opacity-0");
+        zoomedImg.classList.remove("scale-95");
+        zoomedImg.classList.add("scale-100");
       });
-      
+
       // 点击关闭处理函数
       const closeZoom = () => {
-        overlay.classList.add('opacity-0');
-        zoomedImg.classList.remove('scale-100');
-        zoomedImg.classList.add('scale-95');
-        
+        overlay.classList.add("opacity-0");
+        zoomedImg.classList.remove("scale-100");
+        zoomedImg.classList.add("scale-95");
+
         // 恢复页面滚动
-        document.body.style.overflow = '';
-        
+        document.body.style.overflow = "";
+
         setTimeout(() => {
           overlay.remove();
         }, 300);
       };
-      
-      overlay.addEventListener('click', closeZoom);
-      
+
+      overlay.addEventListener("click", closeZoom);
+
       // 添加 ESC 键关闭支持
       const escHandler = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
+        if (e.key === "Escape") {
           closeZoom();
-          document.removeEventListener('keydown', escHandler);
+          document.removeEventListener("keydown", escHandler);
         }
       };
-      document.addEventListener('keydown', escHandler);
+      document.addEventListener("keydown", escHandler);
       return;
     }
   }
@@ -860,6 +868,8 @@ const handleProseClick = async (e: MouseEvent) => {
   // 处理代码复制
   const copyBtn = target.closest(".copy-btn");
   if (copyBtn) {
+    e.preventDefault();
+    e.stopPropagation();
     const codeEncoded = copyBtn.getAttribute("data-code");
     if (codeEncoded) {
       try {
@@ -872,9 +882,11 @@ const handleProseClick = async (e: MouseEvent) => {
           const textArea = document.createElement("textarea");
           textArea.value = code;
           // 确保文本域不可见
-          textArea.style.position = "absolute";
+          textArea.style.position = "fixed";
           textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
           document.body.appendChild(textArea);
+          textArea.focus();
           textArea.select();
           try {
             document.execCommand("copy");
@@ -922,8 +934,8 @@ html.dark .custom-prose p,
 html.dark .custom-prose ul,
 html.dark .custom-prose ol,
 html.dark .custom-prose li,
-html.dark .custom-prose span,
-html.dark .custom-prose div {
+html.dark .custom-prose blockquote,
+html.dark .custom-prose figcaption {
   color: #dbeafe; /* text-blue-100 */
 }
 
@@ -988,6 +1000,45 @@ html.dark .custom-prose h2 {
   margin: 0 !important;
   box-shadow: none !important;
   border: none !important;
+}
+
+.custom-prose .code-block-wrapper {
+  border-radius: 0.9rem;
+  border-color: rgba(226, 232, 240, 0.9);
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+}
+
+html.dark .custom-prose .code-block-wrapper {
+  border-color: rgba(71, 85, 105, 0.6);
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
+}
+
+.custom-prose .code-block-header {
+  backdrop-filter: blur(8px);
+}
+
+.custom-prose .code-block-content {
+  align-items: flex-start;
+}
+
+.custom-prose .line-numbers {
+  min-width: 3rem;
+}
+
+.custom-prose .code-lines {
+  display: block;
+  width: 100%;
+}
+
+.custom-prose .line-number,
+.custom-prose .code-line {
+  display: block;
+  min-height: 1.75rem;
+  line-height: 1.75rem;
+}
+
+.custom-prose .code-line {
+  white-space: pre;
 }
 
 /* 行内代码样式 (排除代码块内的 code) */
@@ -1346,6 +1397,50 @@ html.dark .custom-prose .todo-list div:has(input[type="checkbox"]:checked) {
 .custom-prose figure > img {
   margin: 2rem auto;
   display: block;
+}
+
+/* 多图画廊排版 */
+.custom-prose .image-gallery {
+  display: grid;
+  gap: 1rem;
+  margin: 2.5rem 0;
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.custom-prose .image-gallery.layout-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .custom-prose .image-gallery.layout-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .custom-prose .image-gallery.layout-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .custom-prose .image-gallery.layout-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.custom-prose .image-gallery figure.image-wrapper {
+  margin: 0 !important;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-prose .image-gallery figure.image-wrapper img {
+  margin: 0 !important;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  max-height: 300px;
+  object-fit: cover; /* 保证多图排版时尺寸一致不拉伸 */
+  border-radius: 0.5rem;
 }
 
 html.dark .custom-prose img {
