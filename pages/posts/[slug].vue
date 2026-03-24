@@ -563,6 +563,158 @@ const replaceAudioTagsWithPlaceholders = (html: string) => {
   });
 };
 
+const replaceExternalLinksAsCards = (html: string) => {
+  const getAttr = (s: string, name: string) => {
+    const re = new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i");
+    const m = s.match(re);
+    return m ? m[1] : "";
+  };
+  const normalizeHref = (raw: string) => {
+    let s = (raw || "").trim();
+    // 去掉反引号与多余引号
+    s = s.replace(/^[`'"]+|[`'"]+$/g, "");
+    return s;
+  };
+  let replaced = html.replace(
+    /<a([^>]*?)href\s*=\s*["'](https?:\/\/[^"']+)["']([^>]*)>([\s\S]*?)<\/a>/gi,
+    (m, preAttrs, href, postAttrs, inner) => {
+      if (/<(?!\/?em|\/?strong|\/?span)[^>]+>/.test(inner)) return m;
+      let url: URL | null = null;
+      try {
+        url = new URL(normalizeHref(href));
+      } catch {
+        return m;
+      }
+      const host = url.host;
+      const path = url.pathname + url.search;
+      const titleAttr = getAttr(preAttrs + " " + postAttrs, "title");
+      const textContent = inner.replace(/<[^>]*>/g, "").trim();
+      const title = escapeHtmlAttr(textContent || titleAttr || host);
+      const desc = escapeHtmlAttr(titleAttr || path || href);
+      const safeHref = escapeHtmlAttr(url.toString());
+      const iconUrl = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+      // 注意：thum.io 的 og 接口不接受编码后的斜杠
+      const coverUrl = `https://image.thum.io/get/og/${url.toString()}`;
+      return `<a class="nb-external-card" href="${safeHref}" target="_blank" rel="noopener noreferrer" data-host="${escapeHtmlAttr(host)}">
+        <span class="nb-ext-cover"><span class="nb-ext-cover-inner" style="background-image:url('${coverUrl}')"></span></span>
+        <span class="nb-ext-body">
+          <span class="nb-ext-title">${title}</span>
+          <span class="nb-ext-desc">${desc}</span>
+          <span class="nb-ext-link">
+            <span class="nb-ext-fav" style="background-image:url('${iconUrl}')"></span>
+            <span class="nb-ext-host">${host}</span>
+            <span class="nb-ext-path">${escapeHtmlAttr(path)}</span>
+            <span class="nb-ext-arrow" aria-hidden="true">↗</span>
+          </span>
+        </span>
+      </a>`;
+    },
+  );
+  // 删除意外生成的空卡片（无任何子内容）
+  replaced = replaced.replace(
+    /<a[^>]*class=["'][^"']*nb-external-card[^"']*["'][^>]*>\s*<\/a>/gi,
+    "",
+  );
+  // 去掉仅包裹卡片的 li
+  replaced = replaced.replace(
+    /<li[^>]*>\s*(<a class="nb-external-card[\s\S]*?<\/a>)\s*<\/li>/gi,
+    (_m, anchor) => anchor,
+  );
+  // 去掉仅包含卡片的 ul/ol 外壳
+  replaced = replaced.replace(
+    /<(ul|ol)[^>]*>\s*((?:\s*<a class="nb-external-card[\s\S]*?<\/a>\s*)+)\s*<\/\1>/gi,
+    (_m, anchors) => anchors,
+  );
+  // 去重：同一 href 出现多次，仅保留第一次
+  const seen = new Set<string>();
+  replaced = replaced.replace(
+    /<a[^>]*class=["'][^"']*nb-external-card[^"']*["'][^>]*href\s*=\s*["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/gi,
+    (m, href) => {
+      let key = normalizeHref(href).replace(/\/$/, "");
+      try {
+        const u = new URL(normalizeHref(href));
+        const normPath = u.pathname.replace(/\/$/, "") || "/";
+        key = `${u.protocol}//${u.host}${normPath}${u.search}`;
+      } catch {}
+      if (seen.has(key)) return "";
+      seen.add(key);
+      return m;
+    },
+  );
+  return replaced;
+};
+
+const replaceInternalLinksAsCards = (html: string) => {
+  const hasClass = (attr: string, name: string) => {
+    const m = attr.match(/class\s*=\s*["']([^"']+)["']/i);
+    if (!m) return false;
+    const cls = m[1] || "";
+    return cls.split(/\s+/).some((c) => c === name);
+  };
+  const normalize = (s: string) => (s || "").trim();
+  let replaced = html.replace(
+    /<a([^>]*?)href\s*=\s*["'](\/[^"']+|\.{1,2}\/[^"']*)["']([^>]*)>([\s\S]*?)<\/a>/gi,
+    (m, preAttrs, href, postAttrs, inner) => {
+      const attrs = (preAttrs || "") + " " + (postAttrs || "");
+      if (hasClass(attrs, "nb-external-card") || hasClass(attrs, "nb-internal-card")) return m;
+      if (/<(?!\/?em|\/?strong|\/?span)[^>]+>/.test(inner)) return m;
+      const textContent = inner.replace(/<[^>]*>/g, "").trim();
+      const path = normalize(href);
+      const title = escapeHtmlAttr(textContent || path);
+      const desc = escapeHtmlAttr(`站内链接 · ${path}`);
+      const safeHref = escapeHtmlAttr(path);
+      return `<a class="nb-internal-card" href="${safeHref}" data-int-href="${safeHref}">
+        <span class="nb-int-cover"><span class="nb-int-cover-inner"><span class="nb-int-glyph">内</span></span></span>
+        <span class="nb-int-body">
+          <span class="nb-int-title">${title}</span>
+          <span class="nb-int-desc">${desc}</span>
+          <span class="nb-int-link">
+            <span class="nb-int-path">${escapeHtmlAttr(path)}</span>
+            <span class="nb-int-arrow" aria-hidden="true">→</span>
+          </span>
+        </span>
+      </a>`;
+    },
+  );
+  // 去掉仅包裹卡片的 li
+  replaced = replaced.replace(
+    /<li[^>]*>\s*(<a class="nb-internal-card[\s\S]*?<\/a>)\s*<\/li>/gi,
+    (_m, anchor) => anchor,
+  );
+  // 去掉仅包含卡片的 ul/ol 外壳
+  replaced = replaced.replace(
+    /<(ul|ol)[^>]*>\s*((?:\s*<a class="nb-internal-card[\s\S]*?<\/a>\s*)+)\s*<\/\1>/gi,
+    (_m, anchors) => anchors,
+  );
+  return replaced;
+};
+
+const parseFootnotesFromMarkdown = (md: string) => {
+  const lines = md.split(/\r?\n/);
+  const footnotes: { id: string; text: string }[] = [];
+  const defRe = /^\[\^([A-Za-z0-9_-]+)\]:\s*(.+)$/;
+  const kept: string[] = [];
+  for (const line of lines) {
+    const m = line.match(defRe);
+    if (m) {
+      const idVal = m[1] || "";
+      const textVal = m[2] || "";
+      footnotes.push({ id: idVal, text: textVal });
+    } else {
+      kept.push(line);
+    }
+  }
+  let replaced = kept.join("\n");
+  if (footnotes.length > 0) {
+    replaced = replaced.replace(
+      /\[\^([A-Za-z0-9_-]+)\]/g,
+      (_m, id) =>
+        `<sup class="nb-footnote-ref" id="ref-${id}"><a href="#fn-${id}">[${id}]</a></sup>`,
+    );
+  }
+  return { md: replaced, footnotes };
+};
+
 const replaceVideoTagsWithPlaceholders = (html: string) => {
   return html.replace(/<video\b[\s\S]*?<\/video>/gi, (videoHtml) => {
     const sourceMatch =
@@ -631,6 +783,28 @@ const mountVideoEmbeds = () => {
     const host = el.dataset.videoHost || "";
     render(h(VideoEmbed, { src, title, host }), el);
     mountedVideoRoots.add(el);
+  });
+};
+
+const enhanceInternalLinkCovers = () => {
+  if (!proseEl.value || !import.meta.client) return;
+  const cards = proseEl.value.querySelectorAll<HTMLAnchorElement>(
+    "a.nb-internal-card",
+  );
+  cards.forEach((a) => {
+    const href = a.getAttribute("href") || a.dataset.intHref || "";
+    if (!href) return;
+    const coverInner = a.querySelector<HTMLElement>(".nb-int-cover-inner");
+    if (!coverInner) return;
+    if ((coverInner as any).__coverSet) return;
+    try {
+      const absolute = new URL(href, window.location.origin).toString();
+      const coverUrl = `https://image.thum.io/get/og/${absolute}`;
+      coverInner.style.backgroundImage = `url('${coverUrl}')`;
+      (coverInner as any).__coverSet = true;
+    } catch {
+      // ignore
+    }
   });
 };
 
@@ -888,8 +1062,13 @@ const hierarchicalToc = computed(() => {
 const renderedContent = computed(() => {
   if (!article.value?.content) return "";
 
+  // Footnote pre-parse
+  const { md, footnotes } = parseFootnotesFromMarkdown(
+    article.value.content as string,
+  );
+
   // Parse markdown
-  const rawHtml = marked.parse(article.value.content) as string;
+  const rawHtml = marked.parse(md) as string;
 
   const headings: { level: number; text: string; id: string }[] = [];
   let headingIndex = 0;
@@ -914,6 +1093,21 @@ const renderedContent = computed(() => {
 
   htmlWithIds = replaceAudioTagsWithPlaceholders(htmlWithIds);
   htmlWithIds = replaceVideoTagsWithPlaceholders(htmlWithIds);
+  htmlWithIds = replaceExternalLinksAsCards(htmlWithIds);
+  htmlWithIds = replaceInternalLinksAsCards(htmlWithIds);
+
+  if (footnotes.length > 0) {
+    const footHtml =
+      `<section class="nb-footnotes mt-10"><h4 class="nb-footnotes-title">注脚</h4><ol>` +
+      footnotes
+        .map(
+          (fn) =>
+            `<li id="fn-${fn.id}"><span class="nb-fn-index">[${fn.id}]</span><span class="nb-fn-text">${escapeHtmlAttr(fn.text)}</span> <a class="nb-fn-back" href="#ref-${fn.id}" aria-label="返回引用">↩</a></li>`,
+        )
+        .join("") +
+      `</ol></section>`;
+    htmlWithIds += footHtml;
+  }
 
   tocList.value = headings;
 
@@ -925,6 +1119,8 @@ const renderedContent = computed(() => {
         "class",
         "style",
         "aria-hidden",
+        "target",
+        "rel",
         "data-code",
         "data-zoomable",
         "data-audio-src",
@@ -933,6 +1129,7 @@ const renderedContent = computed(() => {
         "data-video-src",
         "data-video-title",
         "data-video-host",
+        "data-int-href",
         "stroke-linecap",
         "stroke-linejoin",
         "stroke-width",
@@ -953,6 +1150,7 @@ onMounted(() => {
   nextTick(() => {
     mountAudioEmbeds();
     mountVideoEmbeds();
+    enhanceInternalLinkCovers();
   });
 });
 
@@ -963,6 +1161,7 @@ watch(
     nextTick(() => {
       mountAudioEmbeds();
       mountVideoEmbeds();
+      enhanceInternalLinkCovers();
     });
   },
   { flush: "post" },
@@ -1254,6 +1453,355 @@ html.dark .custom-prose code:not(pre code) {
 .hljs {
   background: transparent !important;
   padding: 0 !important;
+}
+
+/* 外部链接卡片 */
+.custom-prose a.nb-external-card {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  border-radius: 0.9rem;
+  box-shadow: 0 2px 8px rgba(2, 6, 23, 0.03);
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.25s, transform 0.15s, border-color 0.2s, background 0.2s;
+  min-height: 176px;
+}
+.custom-prose a.nb-external-card:hover {
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.12);
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+.custom-prose a.nb-external-card:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.1);
+}
+.custom-prose a.nb-external-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25), 0 10px 24px rgba(2, 6, 23, 0.12);
+}
+html.dark .custom-prose a.nb-external-card {
+  border-color: rgba(71, 85, 105, 0.5);
+  background: linear-gradient(to bottom, #1f2937, #0f172a);
+}
+.custom-prose a.nb-external-card .nb-ext-cover {
+  width: 36%;
+  min-width: 180px;
+  background: transparent;
+  padding: 12px;
+  box-sizing: border-box;
+  display: block;
+  border-radius: 0.9rem 0 0 0.9rem;
+  overflow: hidden;
+}
+.custom-prose a.nb-external-card .nb-ext-cover-inner {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.65), 0 1px 6px rgba(2, 6, 23, 0.08);
+  display: block;
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+.custom-prose a.nb-external-card:hover .nb-ext-cover-inner {
+  transform: scale(1.03);
+}
+@media (max-width: 640px) {
+  .custom-prose a.nb-external-card .nb-ext-cover {
+    width: 38%;
+    min-width: 140px;
+    padding: 10px;
+  }
+}
+html.dark .custom-prose a.nb-external-card .nb-ext-cover-inner {
+  background-color: #0b1220;
+  box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.5), 0 1px 6px rgba(0, 0, 0, 0.25);
+}
+.custom-prose a.nb-external-card .nb-ext-body {
+  flex: 1;
+  padding: 1.2rem 1.3rem 1.3rem 1.3rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+}
+.custom-prose a.nb-external-card .nb-ext-title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.dark .custom-prose a.nb-external-card .nb-ext-title {
+  color: #e2e8f0;
+}
+.custom-prose a.nb-external-card .nb-ext-desc {
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.45;
+  max-height: 3.7em;
+  overflow: hidden;
+}
+html.dark .custom-prose a.nb-external-card .nb-ext-desc {
+  color: #cbd5e1;
+  opacity: 0.9;
+}
+.custom-prose a.nb-external-card .nb-ext-host {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+html.dark .custom-prose a.nb-external-card .nb-ext-host {
+  color: #7dd3fc;
+  opacity: 0.85;
+}
+.custom-prose a.nb-external-card .nb-ext-link {
+  margin-top: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: color 0.2s ease;
+}
+.custom-prose a.nb-external-card .nb-ext-fav {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  background-size: cover;
+  background-position: center;
+  background-color: #f1f5f9;
+  flex-shrink: 0;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+html.dark .custom-prose a.nb-external-card .nb-ext-fav {
+  background-color: #0b1220;
+  border-color: rgba(71, 85, 105, 0.6);
+}
+.custom-prose a.nb-external-card .nb-ext-path {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 50%;
+}
+html.dark .custom-prose a.nb-external-card .nb-ext-path {
+  color: #93c5fd;
+  opacity: 0.85;
+}
+.custom-prose a.nb-external-card .nb-ext-arrow {
+  margin-left: auto;
+  color: #0284c7;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+html.dark .custom-prose a.nb-external-card .nb-ext-arrow {
+  color: #38bdf8;
+}
+.custom-prose a.nb-external-card:hover .nb-ext-arrow {
+  transform: translateX(2px);
+  color: #0ea5e9;
+}
+/* 兼容性处理：无需列表包装，已在渲染阶段移除 <li>/<ul>/<ol> */
+
+/* 内部链接卡片 */
+.custom-prose a.nb-internal-card {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: linear-gradient(to bottom, #ffffff, #f9fafb);
+  border-radius: 0.9rem;
+  box-shadow: 0 2px 8px rgba(2, 6, 23, 0.03);
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.25s, transform 0.15s, border-color 0.2s, background 0.2s;
+  min-height: 148px;
+}
+.custom-prose a.nb-internal-card:hover {
+  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.1);
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+.custom-prose a.nb-internal-card:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.1);
+}
+.custom-prose a.nb-internal-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25), 0 10px 24px rgba(2, 6, 23, 0.12);
+}
+html.dark .custom-prose a.nb-internal-card {
+  border-color: rgba(71, 85, 105, 0.5);
+  background: linear-gradient(to bottom, #111827, #0f172a);
+}
+.custom-prose a.nb-internal-card .nb-int-cover {
+  width: 28%;
+  min-width: 130px;
+  background: transparent;
+  padding: 12px;
+  box-sizing: border-box;
+  display: block;
+  border-radius: 0.9rem 0 0 0.9rem;
+  overflow: hidden;
+}
+.custom-prose a.nb-internal-card .nb-int-cover-inner {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: radial-gradient(120% 120% at 20% 0%, #eef2ff 0%, #e0e7ff 40%, #c7d2fe 100%);
+  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.7), 0 1px 6px rgba(2, 6, 23, 0.06);
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+.custom-prose a.nb-internal-card:hover .nb-int-cover-inner {
+  transform: scale(1.03);
+}
+.custom-prose a.nb-internal-card .nb-int-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #4338ca;
+  background: linear-gradient(145deg, #ffffff, #eef2ff);
+  box-shadow: 0 1px 4px rgba(2, 6, 23, 0.06), inset 0 0 0 1px rgba(67, 56, 202, 0.25);
+}
+@media (max-width: 640px) {
+  .custom-prose a.nb-internal-card .nb-int-cover {
+    width: 34%;
+    min-width: 120px;
+    padding: 10px;
+  }
+}
+html.dark .custom-prose a.nb-internal-card .nb-int-cover-inner {
+  background: radial-gradient(120% 120% at 20% 0%, #1f2937 0%, #111827 100%);
+  box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.6), 0 1px 6px rgba(0, 0, 0, 0.25);
+}
+html.dark .custom-prose a.nb-internal-card .nb-int-glyph {
+  color: #c7d2fe;
+  background: linear-gradient(145deg, #0b1220, #111827);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+.custom-prose a.nb-internal-card .nb-int-body {
+  flex: 1;
+  padding: 1.05rem 1.15rem 1.15rem 1.15rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+}
+.custom-prose a.nb-internal-card .nb-int-title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 1.02rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html.dark .custom-prose a.nb-internal-card .nb-int-title {
+  color: #e2e8f0;
+}
+.custom-prose a.nb-internal-card .nb-int-desc {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  color: #475569;
+  line-height: 1.45;
+  max-height: 3.7em;
+  overflow: hidden;
+}
+html.dark .custom-prose a.nb-internal-card .nb-int-desc {
+  color: #cbd5e1;
+  opacity: 0.9;
+}
+.custom-prose a.nb-internal-card .nb-int-link {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.custom-prose a.nb-internal-card .nb-int-path {
+  font-size: 0.75rem;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+}
+html.dark .custom-prose a.nb-internal-card .nb-int-path {
+  color: #93c5fd;
+  opacity: 0.85;
+}
+.custom-prose a.nb-internal-card .nb-int-arrow {
+  margin-left: auto;
+  color: #6366f1;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+html.dark .custom-prose a.nb-internal-card .nb-int-arrow {
+  color: #a5b4fc;
+}
+.custom-prose a.nb-internal-card:hover .nb-int-arrow {
+  transform: translateX(2px);
+  color: #4f46e5;
+}
+
+/* 注脚区域 */
+.custom-prose .nb-footnotes {
+  border-top: 1px dashed rgba(148, 163, 184, 0.35);
+  padding-top: 1rem;
+}
+.custom-prose .nb-footnotes-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+}
+html.dark .custom-prose .nb-footnotes-title {
+  color: #bfdbfe;
+}
+.custom-prose .nb-footnotes ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.custom-prose .nb-footnotes li {
+  margin: 0.25rem 0;
+  color: #475569;
+}
+html.dark .custom-prose .nb-footnotes li {
+  color: #cbd5e1;
+}
+.custom-prose .nb-footnote-ref a {
+  color: #0284c7;
+  text-decoration: none;
+}
+html.dark .custom-prose .nb-footnote-ref a {
+  color: #38bdf8;
+}
+.custom-prose .nb-fn-back {
+  margin-left: 0.35rem;
+  color: #64748b;
+}
+html.dark .custom-prose .nb-fn-back {
+  color: #7dd3fc;
+  opacity: 0.85;
 }
 
 /* Blockquote 简约现代优雅样式 - 面板可见性增强 */
