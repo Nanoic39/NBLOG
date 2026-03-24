@@ -549,9 +549,7 @@ const getAudioMetaFromSrc = (src: string) => {
 const replaceAudioTagsWithPlaceholders = (html: string) => {
   return html.replace(/<audio\b[\s\S]*?<\/audio>/gi, (audioHtml) => {
     const sourceMatch =
-      audioHtml.match(
-        /<source\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i,
-      ) ||
+      audioHtml.match(/<source\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i) ||
       audioHtml.match(/<audio\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i);
 
     if (!sourceMatch?.[1]) return audioHtml;
@@ -656,7 +654,11 @@ const replaceInternalLinksAsCards = (html: string) => {
     /<a([^>]*?)href\s*=\s*["'](\/[^"']+|\.{1,2}\/[^"']*)["']([^>]*)>([\s\S]*?)<\/a>/gi,
     (m, preAttrs, href, postAttrs, inner) => {
       const attrs = (preAttrs || "") + " " + (postAttrs || "");
-      if (hasClass(attrs, "nb-external-card") || hasClass(attrs, "nb-internal-card")) return m;
+      if (
+        hasClass(attrs, "nb-external-card") ||
+        hasClass(attrs, "nb-internal-card")
+      )
+        return m;
       if (/<(?!\/?em|\/?strong|\/?span)[^>]+>/.test(inner)) return m;
       const textContent = inner.replace(/<[^>]*>/g, "").trim();
       const path = normalize(href);
@@ -718,9 +720,7 @@ const parseFootnotesFromMarkdown = (md: string) => {
 const replaceVideoTagsWithPlaceholders = (html: string) => {
   return html.replace(/<video\b[\s\S]*?<\/video>/gi, (videoHtml) => {
     const sourceMatch =
-      videoHtml.match(
-        /<source\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i,
-      ) ||
+      videoHtml.match(/<source\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i) ||
       videoHtml.match(/<video\b[^>]*\ssrc\s*=\s*["']([^"']+)["'][^>]*>/i);
 
     if (!sourceMatch?.[1]) return videoHtml;
@@ -788,9 +788,8 @@ const mountVideoEmbeds = () => {
 
 const enhanceInternalLinkCovers = () => {
   if (!proseEl.value || !import.meta.client) return;
-  const cards = proseEl.value.querySelectorAll<HTMLAnchorElement>(
-    "a.nb-internal-card",
-  );
+  const cards =
+    proseEl.value.querySelectorAll<HTMLAnchorElement>("a.nb-internal-card");
   cards.forEach((a) => {
     const href = a.getAttribute("href") || a.dataset.intHref || "";
     if (!href) return;
@@ -1177,6 +1176,26 @@ onBeforeUnmount(() => {
 const handleProseClick = async (e: MouseEvent) => {
   const target = e.target as HTMLElement;
 
+  const anchor = target.closest("a") as HTMLAnchorElement | null;
+  if (anchor && proseEl.value?.contains(anchor)) {
+    const href = anchor.getAttribute("href") || "";
+    const isFootnote = /^#(fn-|ref-)/.test(href);
+    if (isFootnote) {
+      e.preventDefault();
+      const id = href.slice(1);
+      const el = document.getElementById(id);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const currentY = window.scrollY || window.pageYOffset || 0;
+        const bias = Math.max(0, Math.floor(window.innerHeight * 0.28));
+        const targetY = Math.max(0, currentY + rect.top - bias);
+        window.scrollTo({ top: targetY, behavior: "smooth" });
+        history.replaceState(null, "", href);
+      }
+      return;
+    }
+  }
+
   // 处理图片放大
   if (target.tagName.toLowerCase() === "img") {
     const imgSrc = target.getAttribute("src");
@@ -1468,7 +1487,11 @@ html.dark .custom-prose code:not(pre code) {
   box-shadow: 0 2px 8px rgba(2, 6, 23, 0.03);
   color: inherit;
   text-decoration: none;
-  transition: box-shadow 0.25s, transform 0.15s, border-color 0.2s, background 0.2s;
+  transition:
+    box-shadow 0.25s,
+    transform 0.15s,
+    border-color 0.2s,
+    background 0.2s;
   min-height: 176px;
 }
 .custom-prose a.nb-external-card:hover {
@@ -1482,7 +1505,9 @@ html.dark .custom-prose code:not(pre code) {
 }
 .custom-prose a.nb-external-card:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25), 0 10px 24px rgba(2, 6, 23, 0.12);
+  box-shadow:
+    0 0 0 2px rgba(59, 130, 246, 0.25),
+    0 10px 24px rgba(2, 6, 23, 0.12);
 }
 html.dark .custom-prose a.nb-external-card {
   border-color: rgba(71, 85, 105, 0.5);
@@ -1506,9 +1531,13 @@ html.dark .custom-prose a.nb-external-card {
   background-repeat: no-repeat;
   background-color: #e2e8f0;
   border-radius: 0.75rem;
-  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.65), 0 1px 6px rgba(2, 6, 23, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(226, 232, 240, 0.65),
+    0 1px 6px rgba(2, 6, 23, 0.08);
   display: block;
-  transition: transform 0.35s ease, filter 0.35s ease;
+  transition:
+    transform 0.35s ease,
+    filter 0.35s ease;
 }
 .custom-prose a.nb-external-card:hover .nb-ext-cover-inner {
   transform: scale(1.03);
@@ -1522,7 +1551,9 @@ html.dark .custom-prose a.nb-external-card {
 }
 html.dark .custom-prose a.nb-external-card .nb-ext-cover-inner {
   background-color: #0b1220;
-  box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.5), 0 1px 6px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    inset 0 0 0 1px rgba(71, 85, 105, 0.5),
+    0 1px 6px rgba(0, 0, 0, 0.25);
 }
 .custom-prose a.nb-external-card .nb-ext-body {
   flex: 1;
@@ -1602,7 +1633,9 @@ html.dark .custom-prose a.nb-external-card .nb-ext-path {
 .custom-prose a.nb-external-card .nb-ext-arrow {
   margin-left: auto;
   color: #0284c7;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
 }
 html.dark .custom-prose a.nb-external-card .nb-ext-arrow {
   color: #38bdf8;
@@ -1626,7 +1659,11 @@ html.dark .custom-prose a.nb-external-card .nb-ext-arrow {
   box-shadow: 0 2px 8px rgba(2, 6, 23, 0.03);
   color: inherit;
   text-decoration: none;
-  transition: box-shadow 0.25s, transform 0.15s, border-color 0.2s, background 0.2s;
+  transition:
+    box-shadow 0.25s,
+    transform 0.15s,
+    border-color 0.2s,
+    background 0.2s;
   min-height: 148px;
 }
 .custom-prose a.nb-internal-card:hover {
@@ -1640,7 +1677,9 @@ html.dark .custom-prose a.nb-external-card .nb-ext-arrow {
 }
 .custom-prose a.nb-internal-card:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25), 0 10px 24px rgba(2, 6, 23, 0.12);
+  box-shadow:
+    0 0 0 2px rgba(99, 102, 241, 0.25),
+    0 10px 24px rgba(2, 6, 23, 0.12);
 }
 html.dark .custom-prose a.nb-internal-card {
   border-color: rgba(71, 85, 105, 0.5);
@@ -1662,9 +1701,18 @@ html.dark .custom-prose a.nb-internal-card {
   display: grid;
   place-items: center;
   border-radius: 0.75rem;
-  background: radial-gradient(120% 120% at 20% 0%, #eef2ff 0%, #e0e7ff 40%, #c7d2fe 100%);
-  box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.7), 0 1px 6px rgba(2, 6, 23, 0.06);
-  transition: transform 0.35s ease, filter 0.35s ease;
+  background: radial-gradient(
+    120% 120% at 20% 0%,
+    #eef2ff 0%,
+    #e0e7ff 40%,
+    #c7d2fe 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(226, 232, 240, 0.7),
+    0 1px 6px rgba(2, 6, 23, 0.06);
+  transition:
+    transform 0.35s ease,
+    filter 0.35s ease;
 }
 .custom-prose a.nb-internal-card:hover .nb-int-cover-inner {
   transform: scale(1.03);
@@ -1680,7 +1728,9 @@ html.dark .custom-prose a.nb-internal-card {
   font-weight: 700;
   color: #4338ca;
   background: linear-gradient(145deg, #ffffff, #eef2ff);
-  box-shadow: 0 1px 4px rgba(2, 6, 23, 0.06), inset 0 0 0 1px rgba(67, 56, 202, 0.25);
+  box-shadow:
+    0 1px 4px rgba(2, 6, 23, 0.06),
+    inset 0 0 0 1px rgba(67, 56, 202, 0.25);
 }
 @media (max-width: 640px) {
   .custom-prose a.nb-internal-card .nb-int-cover {
@@ -1691,12 +1741,16 @@ html.dark .custom-prose a.nb-internal-card {
 }
 html.dark .custom-prose a.nb-internal-card .nb-int-cover-inner {
   background: radial-gradient(120% 120% at 20% 0%, #1f2937 0%, #111827 100%);
-  box-shadow: inset 0 0 0 1px rgba(71, 85, 105, 0.6), 0 1px 6px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    inset 0 0 0 1px rgba(71, 85, 105, 0.6),
+    0 1px 6px rgba(0, 0, 0, 0.25);
 }
 html.dark .custom-prose a.nb-internal-card .nb-int-glyph {
   color: #c7d2fe;
   background: linear-gradient(145deg, #0b1220, #111827);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(99, 102, 241, 0.3);
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.25),
+    inset 0 0 0 1px rgba(99, 102, 241, 0.3);
 }
 .custom-prose a.nb-internal-card .nb-int-body {
   flex: 1;
@@ -1753,7 +1807,9 @@ html.dark .custom-prose a.nb-internal-card .nb-int-path {
 .custom-prose a.nb-internal-card .nb-int-arrow {
   margin-left: auto;
   color: #6366f1;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
 }
 html.dark .custom-prose a.nb-internal-card .nb-int-arrow {
   color: #a5b4fc;
