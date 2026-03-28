@@ -305,6 +305,138 @@
             v-html="renderedContent"
             @click="handleProseClick"
           ></div>
+
+          <footer v-if="article" class="mt-14 pt-10">
+            <div class="nb-end-marker" aria-hidden="true">
+              <span class="nb-end-line nb-end-line--l"></span>
+              <span class="nb-end-badge">到底了</span>
+              <span class="nb-end-line nb-end-line--r"></span>
+            </div>
+
+            <div
+              class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/50 dark:bg-[#1b1b1b]/55 backdrop-blur-md rounded-2xl border border-gray-100/70 dark:border-gray-700/40 p-5"
+            >
+              <div
+                class="relative overflow-hidden rounded-xl border border-gray-100/70 dark:border-gray-700/40 bg-white/65 dark:bg-[#242424]/60 p-4"
+              >
+                <svg
+                  class="nb-cc-watermark"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20Zm0 18.2A8.2 8.2 0 1 1 12 3.8a8.2 8.2 0 0 1 0 16.4Zm-2.6-6.1a2.1 2.1 0 1 1 0-4.2c.5 0 1 .2 1.4.5l.9-1.1a3.5 3.5 0 1 0 0 5.4l-.9-1.1c-.4.3-.9.5-1.4.5Zm5.2 0a2.1 2.1 0 1 1 0-4.2c.5 0 1 .2 1.4.5l.9-1.1a3.5 3.5 0 1 0 0 5.4l-.9-1.1c-.4.3-.9.5-1.4.5Z"
+                  ></path>
+                </svg>
+                <div class="text-xs text-gray-400 dark:text-gray-400 mb-2">
+                  文章类型
+                </div>
+                <div
+                  class="text-sm font-semibold text-gray-800 dark:text-gray-200"
+                >
+                  {{ articleTypeLabel }}
+                </div>
+              </div>
+
+              <div
+                class="rounded-xl border border-gray-100/70 dark:border-gray-700/40 bg-white/65 dark:bg-[#242424]/60 p-4"
+              >
+                <div class="text-xs text-gray-400 dark:text-gray-400 mb-2">
+                  文章来源
+                </div>
+                <div class="text-sm text-gray-700 dark:text-gray-200">
+                  <span v-if="!sourceLink">本站</span>
+                  <a
+                    v-else
+                    :href="sourceLink"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-[#0284C7] dark:text-[#38bdf8] hover:underline break-all"
+                    >{{ sourceLink }}</a
+                  >
+                </div>
+              </div>
+
+              <div
+                v-if="showCcLicense"
+                class="rounded-xl border border-gray-100/70 dark:border-gray-700/40 bg-white/65 dark:bg-[#242424]/60 p-4 md:col-span-2"
+              >
+                <div class="text-xs text-gray-400 dark:text-gray-400 mb-2">
+                  CC 许可
+                </div>
+                <div class="flex items-center gap-3 flex-wrap">
+                  <a
+                    v-if="ccLicenseUrl"
+                    :href="ccLicenseUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-sm font-semibold text-[#0284C7] dark:text-[#38bdf8] hover:underline"
+                    >{{ ccLicenseName }}</a
+                  >
+                  <div
+                    v-else
+                    class="text-sm font-semibold text-gray-800 dark:text-gray-200"
+                  >
+                    {{ ccLicenseName }}
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <img
+                      v-for="icon in ccLicenseIcons"
+                      :key="icon"
+                      :src="icon"
+                      alt=""
+                      class="w-5 h-5 opacity-90 dark:opacity-80"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              v-if="showRecommendations"
+              class="mt-8 rounded-2xl border border-gray-100/70 dark:border-gray-700/40 bg-white/50 dark:bg-[#1b1b1b]/55 backdrop-blur-md p-5"
+            >
+              <div class="flex items-center justify-between mb-4">
+                <div
+                  class="text-sm font-semibold text-gray-800 dark:text-gray-200"
+                >
+                  更多文章推荐
+                </div>
+                <NuxtLink
+                  to="/"
+                  class="text-xs text-gray-500 dark:text-gray-400 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors"
+                  >查看更多</NuxtLink
+                >
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <NuxtLink
+                  v-for="p in recommendedPosts"
+                  :key="p.slug"
+                  :to="`/posts/${p.slug}`"
+                  class="group rounded-xl border border-gray-100/70 dark:border-gray-700/40 bg-white/65 dark:bg-[#242424]/60 p-4 hover:shadow-[0_10px_30px_rgba(2,6,23,0.08)] dark:hover:shadow-[0_14px_40px_rgba(0,0,0,0.45)] transition-all"
+                >
+                  <div
+                    class="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-[#0284C7] dark:group-hover:text-[#38bdf8] transition-colors"
+                  >
+                    {{ p.title }}
+                  </div>
+                  <div
+                    v-if="p.description"
+                    class="mt-2 text-xs text-gray-500 dark:text-gray-400 line-clamp-2"
+                  >
+                    {{ p.description }}
+                  </div>
+                  <div
+                    class="mt-3 text-[11px] text-gray-400 dark:text-gray-500"
+                  >
+                    {{ formatDate(p.pubDate) }}
+                  </div>
+                </NuxtLink>
+              </div>
+            </div>
+          </footer>
         </article>
 
         <!-- 评论区 (位于文章卡片外部) -->
@@ -746,7 +878,8 @@ const stripLeadingTitleHeading = (md: string, title?: string) => {
   if (!normalizedHeading || normalizedHeading !== normalizedTitle) return md;
 
   lines.splice(i, 1);
-  while (i < lines.length && (lines[i]?.trim() ?? "") === "") lines.splice(i, 1);
+  while (i < lines.length && (lines[i]?.trim() ?? "") === "")
+    lines.splice(i, 1);
   return lines.join("\n");
 };
 
@@ -975,8 +1108,12 @@ const {
   query: { slug: articleSlug },
 });
 
+const { data: latestPostsData } = await useFetch(`/api/posts/latest`, {
+  query: { page: 1, limit: 12 },
+});
+
 // Format date helper
-const formatDate = (timestamp: string | number) => {
+const formatDate = (timestamp?: string | number) => {
   if (!timestamp) return "";
   const date = new Date(Number(timestamp));
   return date.toLocaleDateString("zh-CN", {
@@ -985,6 +1122,99 @@ const formatDate = (timestamp: string | number) => {
     day: "numeric",
   });
 };
+
+const articleTypeLabel = computed(() => {
+  const raw = String(
+    (article.value as any)?.type ??
+      (article.value as any)?.articleType ??
+      (article.value as any)?.postType ??
+      "original",
+  ).toLowerCase();
+
+  if (["original", "原创"].includes(raw)) return "原创";
+  if (["translation", "translate", "翻译"].includes(raw)) return "翻译";
+  if (["repost", "转载", "reprint"].includes(raw)) return "转载";
+  return "原创";
+});
+
+const sourceLink = computed(() => {
+  const link =
+    (article.value as any)?.sourceUrl ??
+    (article.value as any)?.sourceLink ??
+    (article.value as any)?.originalUrl ??
+    (article.value as any)?.originalLink ??
+    "";
+  const type = articleTypeLabel.value;
+  if (!link) return "";
+  if (type === "原创") return "";
+  return String(link);
+});
+
+const ccLicenseName = computed(() => {
+  const cc = (article.value as any)?.license?.cc;
+  return cc ? String(cc) : "";
+});
+
+const ccLicenseIcons = computed(() => {
+  const icons = (article.value as any)?.license?.icon;
+  if (!Array.isArray(icons)) return [];
+  return icons.filter((x: any) => typeof x === "string" && x.length > 0);
+});
+
+const ccLicenseUrl = computed(() => {
+  const raw = ccLicenseName.value;
+  if (!raw) return "";
+
+  const normalized = raw
+    .trim()
+    .toLowerCase()
+    .replace(/^cc\s+/, "")
+    .replace(/\s+/g, " ");
+
+  const versionMatch = normalized.match(/(\d\.\d)/);
+  const version = versionMatch?.[1] || "4.0";
+
+  if (normalized.includes("cc0") || normalized.includes("zero")) {
+    const v = normalized.match(/(\d\.\d|\d)/)?.[1] || "1.0";
+    return `https://creativecommons.org/publicdomain/zero/${v}/`;
+  }
+
+  const hasBy = /\bby\b/.test(normalized);
+  if (!hasBy) return "";
+
+  const parts: string[] = ["by"];
+  if (/\bnc\b/.test(normalized)) parts.push("nc");
+  if (/\bnd\b/.test(normalized)) parts.push("nd");
+  if (/\bsa\b/.test(normalized)) parts.push("sa");
+
+  return `https://creativecommons.org/licenses/${parts.join("-")}/${version}/`;
+});
+
+const showCcLicense = computed(() => {
+  if (articleTypeLabel.value !== "原创") return false;
+  return Boolean(ccLicenseName.value) && ccLicenseIcons.value.length > 0;
+});
+
+type RecommendedPost = {
+  id?: string | number;
+  slug: string;
+  title: string;
+  description?: string;
+  pubDate?: string | number;
+};
+
+const recommendedPosts = computed<RecommendedPost[]>(() => {
+  const posts = (latestPostsData.value as any)?.posts;
+  if (!Array.isArray(posts)) return [];
+  return posts
+    .filter((p: any) => p && p.slug && p.slug !== articleSlug)
+    .slice(0, 3);
+});
+
+const showRecommendations = computed(() => {
+  const total = Number((latestPostsData.value as any)?.total ?? 0);
+  return total > 2 && recommendedPosts.value.length > 0;
+});
 
 // Calculate days since last update
 const daysSinceUpdate = computed(() => {
@@ -1610,6 +1840,94 @@ html.dark .custom-prose .nb-divider-badge {
   100% {
     transform: translateY(0px) scale(1);
   }
+}
+
+.nb-end-marker {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.nb-end-line {
+  height: 1px;
+  flex: 1;
+  background-size: 200% 100%;
+  opacity: 0.78;
+  animation: nb-divider-breathe 7.2s ease-in-out infinite;
+}
+.nb-end-line--l {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(2, 132, 199, 0.5),
+    rgba(99, 102, 241, 0.46)
+  );
+}
+.nb-end-line--r {
+  background-image: linear-gradient(
+    90deg,
+    rgba(99, 102, 241, 0.46),
+    rgba(2, 132, 199, 0.5),
+    transparent
+  );
+}
+html.dark .nb-end-line--l {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    rgba(56, 189, 248, 0.48),
+    rgba(165, 180, 252, 0.44)
+  );
+}
+html.dark .nb-end-line--r {
+  background-image: linear-gradient(
+    90deg,
+    rgba(165, 180, 252, 0.44),
+    rgba(56, 189, 248, 0.48),
+    transparent
+  );
+}
+.nb-end-badge {
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 12px 34px rgba(2, 6, 23, 0.08),
+    0 0 0 4px rgba(2, 132, 199, 0.05);
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(90deg, #0284c7, #6366f1, #ec4899);
+  animation: nb-divider-badge-breathe 7.2s ease-in-out infinite;
+}
+html.dark .nb-end-badge {
+  border-color: rgba(51, 65, 85, 0.9);
+  background: rgba(15, 23, 42, 0.55);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.5),
+    0 0 0 4px rgba(165, 180, 252, 0.07);
+  background-image: linear-gradient(90deg, #38bdf8, #a5b4fc, #fb7185);
+}
+
+.nb-cc-watermark {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  color: #94a3b8;
+  opacity: 0.14;
+  pointer-events: none;
+}
+html.dark .nb-cc-watermark {
+  color: #64748b;
+  opacity: 0.18;
 }
 
 .custom-prose .katex {
