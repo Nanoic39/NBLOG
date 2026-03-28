@@ -1,5 +1,23 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  vite: {
+    plugins: [
+      {
+        name: "nb-app-manifest-fallback",
+        enforce: "post",
+        resolveId(id) {
+          if (id === "#app-manifest") return "\0nb:#app-manifest";
+          return null;
+        },
+        load(id) {
+          if (id === "\0nb:#app-manifest") {
+            return "export default {}";
+          }
+          return null;
+        },
+      },
+    ],
+  },
   hooks: {
     'pages:extend'(pages) {
       pages.push({

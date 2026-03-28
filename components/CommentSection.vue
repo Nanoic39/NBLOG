@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import adminAvatarImg from '~/assets/image/HEADIMAGE.jpg';
+import { useHeadImage } from '~/composables/useHeadImage';
+const adminAvatarImg = useHeadImage();
 
 const props = defineProps<{
   articleId: string | number;

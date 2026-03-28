@@ -148,7 +148,9 @@
 </template>
 
 <script setup lang="ts">
-import headImage from "~/assets/image/HEADIMAGE.jpg";
+import { useHeadImage } from '~/composables/useHeadImage';
+
+const headImage = useHeadImage();
 
 defineProps<{
   postCount?: number;

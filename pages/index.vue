@@ -489,11 +489,13 @@ const getTransitionStyle = (prefix: string, id: string | number) => {
   // 只在客户端或特定的状态下返回，避免 SSR 渲染空 style
   return import.meta.client ? { viewTransitionName: `${prefix}-${id}` } : {};
 };
-import headImage from "~/assets/image/HEADIMAGE.jpg";
 import ProfileCard from "~/components/Sidebar/ProfileCard.vue";
 import DoingSth from "~/components/Sidebar/DoingSth.vue";
 import TagsCloud from "~/components/Sidebar/TagsCloud.vue";
 import HotList from "~/components/Sidebar/HotList.vue";
+import { useHeadImage } from "~/composables/useHeadImage";
+
+const headImage = useHeadImage();
 
 definePageMeta({
   keepalive: true,

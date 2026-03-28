@@ -508,6 +508,7 @@ import { marked } from "marked";
 import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/atom-one-dark.css"; // 引入主题样式
+import "katex/dist/katex.min.css";
 import AudioEmbed from "~/components/AudioEmbed.vue";
 import VideoEmbed from "~/components/VideoEmbed.vue";
 
@@ -804,6 +805,27 @@ const enhanceInternalLinkCovers = () => {
     } catch {
       // ignore
     }
+  });
+};
+
+const renderMathInProse = async () => {
+  if (!proseEl.value || !import.meta.client) return;
+  const mod = await import("katex/contrib/auto-render");
+  const renderMathInElement = (mod as any).default as (
+    element: HTMLElement,
+    options?: Record<string, any>,
+  ) => void;
+  renderMathInElement(proseEl.value, {
+    delimiters: [
+      { left: "$$", right: "$$", display: true },
+      { left: "\\[", right: "\\]", display: true },
+      { left: "\\(", right: "\\)", display: false },
+      { left: "$", right: "$", display: false },
+    ],
+    throwOnError: false,
+    strict: false,
+    trust: false,
+    ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
   });
 };
 
@@ -1150,6 +1172,7 @@ onMounted(() => {
     mountAudioEmbeds();
     mountVideoEmbeds();
     enhanceInternalLinkCovers();
+    renderMathInProse();
   });
 });
 
@@ -1161,6 +1184,7 @@ watch(
       mountAudioEmbeds();
       mountVideoEmbeds();
       enhanceInternalLinkCovers();
+      renderMathInProse();
     });
   },
   { flush: "post" },
@@ -1378,6 +1402,78 @@ html.dark .custom-prose b {
 
 html.dark .custom-prose h2 {
   border-bottom-color: #374151; /* border-gray-700 */
+}
+
+.custom-prose .katex {
+  font-size: 1.06em;
+  color: #111827;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+html.dark .custom-prose .katex {
+  color: #e5e7eb;
+}
+.custom-prose .katex-display {
+  position: relative;
+  margin: 1.35rem 0;
+  padding: 1.1rem 1.25rem;
+  border-radius: 1.05rem;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: transparent;
+  box-shadow: 0 1px 14px rgba(2, 6, 23, 0.06);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  transition:
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+html.dark .custom-prose .katex-display {
+  background: transparent;
+  border-color: rgba(51, 65, 85, 0.85);
+  box-shadow: 0 1px 18px rgba(0, 0, 0, 0.35);
+}
+.custom-prose .katex-display:hover {
+  border-color: rgba(99, 102, 241, 0.28);
+  box-shadow: 0 1px 22px rgba(2, 6, 23, 0.09);
+}
+html.dark .custom-prose .katex-display:hover {
+  border-color: rgba(165, 180, 252, 0.28);
+  box-shadow: 0 1px 26px rgba(0, 0, 0, 0.42);
+}
+.custom-prose :is(p, li, blockquote, figcaption, h1, h2, h3, h4) .katex {
+  display: inline-block;
+  padding: 0 0.14rem;
+  border-radius: 0.35rem;
+  background: transparent;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.28);
+  vertical-align: -0.08em;
+}
+html.dark
+  .custom-prose
+  :is(p, li, blockquote, figcaption, h1, h2, h3, h4)
+  .katex {
+  background: transparent;
+  box-shadow: none;
+  border-bottom-color: rgba(165, 180, 252, 0.3);
+}
+.custom-prose .katex-display::-webkit-scrollbar {
+  height: 10px;
+}
+.custom-prose .katex-display::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-prose .katex-display::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.28);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html.dark .custom-prose .katex-display::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.28);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 /* 代码块包装器及覆盖默认 pre 样式 */
