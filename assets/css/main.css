@@ -20,7 +20,7 @@ button,
 [role="button"],
 .cursor-pointer {
   cursor:
-    url("/cursor/Link.png") 8 2,
+    url("/cursor/Link.png") 16 16,
     pointer;
 }
 
