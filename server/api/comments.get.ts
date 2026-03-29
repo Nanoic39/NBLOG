@@ -1,14 +1,11 @@
-import fs from 'fs'
-import path from 'path'
+import commentsData from './MockData/comments.json'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const articleId = query.articleId as string
 
   try {
-    const filePath = path.resolve(process.cwd(), 'server/api/MockData/comments.json')
-    const fileContent = fs.readFileSync(filePath, 'utf-8')
-    let comments = JSON.parse(fileContent)
+    let comments = Array.isArray(commentsData) ? commentsData : []
 
     if (articleId) {
       comments = comments.filter((c: any) => String(c.articleId) === String(articleId))

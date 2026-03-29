@@ -28,3 +28,4 @@ logs
 # 排除原来的头像文件（更换为我的OCこしみずゆな）
 assets/image/del
 
+.output/
