@@ -33,12 +33,27 @@ jobs:
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || vars.DEPLOY_PORT }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY_B64: ${{ secrets.DEPLOY_SSH_KEY_B64 }}
         run: |
           set -e
           [ -n "$DEPLOY_HOST" ] || (echo "Missing DEPLOY_HOST (set it in Environment/Repository secrets or Variables)" && exit 1)
           [ -n "$DEPLOY_USER" ] || (echo "Missing DEPLOY_USER (set it in Environment/Repository secrets or Variables)" && exit 1)
           [ -n "$DEPLOY_PATH" ] || (echo "Missing DEPLOY_PATH (set it in Environment/Repository secrets or Variables)" && exit 1)
-          [ -n "$DEPLOY_SSH_KEY" ] || (echo "Missing DEPLOY_SSH_KEY (must be a Repository secret)" && exit 1)
+          [ -n "$DEPLOY_SSH_KEY" ] || [ -n "$DEPLOY_SSH_KEY_B64" ] || (echo "Missing DEPLOY_SSH_KEY or DEPLOY_SSH_KEY_B64 (must be a PRIVATE key, not .pub)" && exit 1)
+
+      - name: Prepare SSH key file
+        id: sshkey
+        env:
+          DEPLOY_SSH_KEY_B64: ${{ secrets.DEPLOY_SSH_KEY_B64 }}
+        run: |
+          set -e
+          if [ -n "$DEPLOY_SSH_KEY_B64" ]; then
+            echo "$DEPLOY_SSH_KEY_B64" | base64 -d > /tmp/deploy_key
+            chmod 600 /tmp/deploy_key
+            echo "key_path=/tmp/deploy_key" >> "$GITHUB_OUTPUT"
+          else
+            echo "key_path=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -46,7 +61,9 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER }}
           port: ${{ secrets.DEPLOY_PORT || vars.DEPLOY_PORT || '22' }}
+          passphrase: ${{ secrets.DEPLOY_SSH_PASSPHRASE }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          key_path: ${{ steps.sshkey.outputs.key_path }}
           script_stop: true
           script: |
             set -e
