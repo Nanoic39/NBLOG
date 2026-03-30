@@ -40,6 +40,13 @@ export default defineNuxtConfig({
     pageTransition: false,
     layoutTransition: false,
     head: {
+      htmlAttrs: {
+        lang: "zh-CN",
+      },
+      meta: [
+        { "http-equiv": "Content-Language", content: "zh-CN" },
+        { name: "google", content: "notranslate" },
+      ],
       script: [
         {
           // 防闪烁：在页面渲染前读取 localStorage，提前挂载 dark class

@@ -29,3 +29,4 @@ logs
 assets/image/del
 
 .output/
+.output.zip
