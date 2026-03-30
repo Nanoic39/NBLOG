@@ -1,0 +1,69 @@
+name: Question / 使用咨询
+description: Ask usage or configuration questions / 提交使用或配置问题
+title: '[Question] '
+labels: ['question', 'triage']
+projects: []
+assignees:
+  - Nanoic39
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please provide enough context so we can help quickly.
+        请提供足够上下文，便于我们快速定位。
+  - type: dropdown
+    id: language
+    attributes:
+      label: Preferred language / 期望沟通语言
+      options:
+        - English
+        - 中文
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category / 问题分类
+      options:
+        - Deployment / 部署
+        - CI/CD
+        - UI/UX
+        - API
+        - Other / 其他
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question / 你的问题
+      description: What are you trying to achieve? / 你想达成什么目标？
+      placeholder: Describe your goal and blocker / 描述目标与阻碍
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境信息
+      description: OS, Node version, deployment platform, etc. / 操作系统、Node 版本、部署平台等
+      placeholder: |
+        OS:
+        Node:
+        Platform:
+    validations:
+      required: false
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you have tried / 已尝试方案
+      description: Tell us what you already tried / 说明你已经尝试过什么
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist / 提交确认
+      options:
+        - label: I have searched docs and existing issues / 我已检索文档与现有 issue
+          required: true

@@ -1,6 +1,6 @@
-name: Bug Report
-description: File a bug report
-title: '[Bug]: '
+name: Bug Report / 错误反馈
+description: Report unexpected behavior or errors / 反馈异常行为或错误
+title: '[Bug] '
 labels: ['bug', 'triage']
 projects: []
 assignees:
@@ -9,29 +9,50 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
+        Thanks for taking the time to report a bug.
+        感谢你提交错误反馈，请尽量提供可复现信息。
+  - type: dropdown
+    id: language
+    attributes:
+      label: Preferred language / 期望沟通语言
+      options:
+        - English
+        - 中文
+      default: 0
+    validations:
+      required: true
   - type: input
     id: contact
     attributes:
-      label: Contact Details
-      description: How can we get in touch with you if we need more info?
+      label: Contact details / 联系方式
+      description: How can we reach you for follow-up? / 我们如何联系你补充信息？
       placeholder: ex. email@example.com
     validations:
       required: false
   - type: textarea
     id: what-happened
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: 'A bug happened!'
+      label: What happened? / 发生了什么？
+      description: Include expected behavior and actual behavior / 请同时描述预期结果与实际结果
+      placeholder: Steps and observed result / 复现步骤与实际表现
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      description: Provide clear, ordered steps / 请按顺序提供清晰步骤
+      placeholder: |
+        1. Go to ... / 打开...
+        2. Click ... / 点击...
+        3. See error ... / 出现异常...
     validations:
       required: true
   - type: dropdown
     id: version
     attributes:
-      label: Version
-      description: What version of our software are you running?
+      label: Version / 版本
+      description: What version are you using? / 你正在使用哪个版本？
       options:
         - 1.0.0 (Default)
       default: 0
@@ -40,7 +61,7 @@ body:
   - type: dropdown
     id: browsers
     attributes:
-      label: What browsers are you seeing the problem on?
+      label: Browser / 浏览器
       multiple: true
       options:
         - Firefox
@@ -50,14 +71,18 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      label: Relevant logs / 相关日志
+      description: Paste logs or stack traces / 请粘贴日志或报错堆栈
       render: shell
   - type: checkboxes
     id: terms
     attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our Code of Conduct.
+      label: Checklist / 提交确认
+      description: Please confirm before submitting / 提交前请确认
       options:
-        - label: I agree to follow this project's Code of Conduct
+        - label: I have searched existing issues / 我已搜索过现有 issue
+          required: true
+        - label: I can reproduce this issue consistently / 我可以稳定复现该问题
+          required: false
+        - label: I agree to follow this project's Code of Conduct / 我同意遵守项目行为准则
           required: true

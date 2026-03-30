@@ -1,0 +1,59 @@
+name: Documentation Improvement / 文档改进
+description: Report docs issues or suggest clearer docs / 反馈文档问题或改进建议
+title: '[Docs] '
+labels: ['documentation', 'triage']
+projects: []
+assignees:
+  - Nanoic39
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Better docs help everyone. Thanks for contributing.
+        更好的文档能帮助所有人，感谢你的反馈。
+  - type: dropdown
+    id: language
+    attributes:
+      label: Preferred language / 期望沟通语言
+      options:
+        - English
+        - 中文
+      default: 0
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: Affected file or page / 涉及文件或页面
+      description: Path or URL if known / 如已知请填写路径或链接
+      placeholder: e.g. README.md or docs/deploy.md
+    validations:
+      required: false
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is unclear or incorrect? / 哪里不清晰或不正确？
+      description: Describe the exact problem / 请描述具体问题
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Suggested wording / 建议写法
+      description: Propose improved wording or structure / 建议更好的表述或结构
+    validations:
+      required: false
+  - type: textarea
+    id: references
+    attributes:
+      label: Reference materials / 参考资料
+      description: Optional links or screenshots / 可选链接或截图
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist / 提交确认
+      options:
+        - label: I have checked existing issues / 我已查看现有 issue
+          required: true

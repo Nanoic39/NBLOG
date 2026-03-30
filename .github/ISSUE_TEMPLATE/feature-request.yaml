@@ -1,0 +1,63 @@
+name: Feature Request / 功能建议
+description: Suggest an idea to improve the project / 提交改进想法
+title: '[Feature] '
+labels: ['enhancement', 'triage']
+projects: []
+assignees:
+  - Nanoic39
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your suggestion.
+        感谢你的建议，请尽量描述清楚业务场景与预期效果。
+  - type: dropdown
+    id: language
+    attributes:
+      label: Preferred language / 期望沟通语言
+      options:
+        - English
+        - 中文
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement / 现有问题
+      description: What problem are you trying to solve? / 你想解决什么问题？
+      placeholder: Describe the current pain point / 描述当前痛点
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution / 建议方案
+      description: What would you like to happen? / 你希望如何改进？
+      placeholder: Describe your expected behavior / 描述期望行为
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered / 备选方案
+      description: Any other options you considered? / 是否考虑过其他方案？
+      placeholder: Optional / 可选
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context / 补充信息
+      description: Links, screenshots, or references / 链接、截图或参考资料
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist / 提交确认
+      options:
+        - label: I have searched existing issues / 我已搜索现有 issue
+          required: true
+        - label: This request is specific and actionable / 该建议是可执行且具体的
+          required: true
