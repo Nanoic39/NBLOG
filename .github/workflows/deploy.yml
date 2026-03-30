@@ -35,6 +35,11 @@ jobs:
           script_stop: true
           script: |
             set -e
+            source /etc/profile || true
+            node_bin="$(ls -d /www/server/nodejs/v*/bin 2>/dev/null | sort -V | tail -n 1)"
+            if [ -n "$node_bin" ]; then
+              export PATH="$node_bin:$PATH"
+            fi
             repo_dir="${{ secrets.DEPLOY_PATH }}"
             artifact_dir="${{ secrets.DEPLOY_ARTIFACT_DIR }}"
 
