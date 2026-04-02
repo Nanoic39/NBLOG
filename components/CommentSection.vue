@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useHeadImage } from '~/composables/useHeadImage';
+import { ref, computed, onMounted } from "vue";
+import { useHeadImage } from "~/composables/useHeadImage";
 const adminAvatarImg = useHeadImage();
 
 const props = defineProps<{
@@ -9,7 +9,10 @@ const props = defineProps<{
 
 const { user, login } = useAuth();
 const config = useRuntimeConfig();
-const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
+const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(
+  /\/+$/,
+  "",
+);
 
 interface Reply {
   id: string;
@@ -36,15 +39,15 @@ interface Comment {
 }
 
 const comments = ref<Comment[]>([]);
-const newCommentContent = ref('');
+const newCommentContent = ref("");
 const isSubmitting = ref(false);
 const replyTargetId = ref<string | null>(null); // null means replying to article
-const replyTargetAuthor = ref<string>('');
-const replyContent = ref('');
+const replyTargetAuthor = ref<string>("");
+const replyContent = ref("");
 
 const normalizeTimestamp = (value: unknown) => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string') {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
     const parsed = Number(value);
     if (Number.isFinite(parsed)) return parsed;
   }
@@ -52,34 +55,45 @@ const normalizeTimestamp = (value: unknown) => {
 };
 
 const resolveCommentAvatar = (avatar?: string) => {
-  const raw = String(avatar || '').trim();
-  if (!raw) return getAvatarUrl('user');
-  if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) {
+  const raw = String(avatar || "").trim();
+  if (!raw) return getAvatarUrl("user");
+  if (
+    raw.startsWith("http://") ||
+    raw.startsWith("https://") ||
+    raw.startsWith("data:")
+  ) {
     return raw;
   }
-  if (raw.startsWith('/')) {
+  if (raw.startsWith("/")) {
     return backendBaseUrl ? `${backendBaseUrl}${raw}` : raw;
   }
   return backendBaseUrl ? `${backendBaseUrl}/${raw}` : `/${raw}`;
 };
 
 const resolveCurrentUserAvatar = () => {
-  const picture = String((user.value as any)?.picture || '').trim();
-  if (!picture) return getAvatarUrl(String((user.value as any)?.name || 'User'));
-  if (picture.startsWith('data:')) {
+  const picture = String((user.value as any)?.picture || "").trim();
+  if (!picture)
+    return getAvatarUrl(String((user.value as any)?.name || "User"));
+  if (picture.startsWith("data:")) {
     return picture;
   }
-  return '/api/auth/avatar';
+  return "/api/auth/avatar";
 };
 
 const normalizeReply = (raw: any): Reply => ({
   id: String(raw?.id || raw?._id || Date.now()),
   authorId: raw?.authorId || raw?.userId || raw?.author?.id,
-  author: String(raw?.author || raw?.authorName || raw?.user?.name || '用户'),
-  avatar: resolveCommentAvatar(raw?.avatar || raw?.authorAvatar || raw?.user?.avatar || raw?.user?.picture),
-  content: String(raw?.content || ''),
-  createdAt: normalizeTimestamp(raw?.createdAt || raw?.createTime || raw?.created_at),
-  isAdmin: Boolean(raw?.isAdmin || raw?.role === 'admin' || raw?.authorRole === 'admin'),
+  author: String(raw?.author || raw?.authorName || raw?.user?.name || "用户"),
+  avatar: resolveCommentAvatar(
+    raw?.avatar || raw?.authorAvatar || raw?.user?.avatar || raw?.user?.picture,
+  ),
+  content: String(raw?.content || ""),
+  createdAt: normalizeTimestamp(
+    raw?.createdAt || raw?.createTime || raw?.created_at,
+  ),
+  isAdmin: Boolean(
+    raw?.isAdmin || raw?.role === "admin" || raw?.authorRole === "admin",
+  ),
   replyTo: raw?.replyTo || raw?.replyToName || raw?.replyToUserName,
   replyToUserId: raw?.replyToUserId,
 });
@@ -88,21 +102,29 @@ const normalizeComment = (raw: any): Comment => ({
   id: String(raw?.id || raw?._id || Date.now()),
   articleId: String(raw?.articleId || raw?.postId || props.articleId),
   authorId: raw?.authorId || raw?.userId || raw?.author?.id,
-  author: String(raw?.author || raw?.authorName || raw?.user?.name || '用户'),
-  avatar: resolveCommentAvatar(raw?.avatar || raw?.authorAvatar || raw?.user?.avatar || raw?.user?.picture),
-  content: String(raw?.content || ''),
-  createdAt: normalizeTimestamp(raw?.createdAt || raw?.createTime || raw?.created_at),
-  isAdmin: Boolean(raw?.isAdmin || raw?.role === 'admin' || raw?.authorRole === 'admin'),
-  replies: Array.isArray(raw?.replies) ? raw.replies.map((reply: any) => normalizeReply(reply)) : [],
+  author: String(raw?.author || raw?.authorName || raw?.user?.name || "用户"),
+  avatar: resolveCommentAvatar(
+    raw?.avatar || raw?.authorAvatar || raw?.user?.avatar || raw?.user?.picture,
+  ),
+  content: String(raw?.content || ""),
+  createdAt: normalizeTimestamp(
+    raw?.createdAt || raw?.createTime || raw?.created_at,
+  ),
+  isAdmin: Boolean(
+    raw?.isAdmin || raw?.role === "admin" || raw?.authorRole === "admin",
+  ),
+  replies: Array.isArray(raw?.replies)
+    ? raw.replies.map((reply: any) => normalizeReply(reply))
+    : [],
 });
 
 // Load mock comments
 const fetchComments = async () => {
   try {
-    const { data } = await useFetch<Comment[]>('/api/comments', {
+    const { data } = await useFetch<Comment[]>("/api/comments", {
       baseURL: backendBaseUrl || undefined,
-      credentials: 'include',
-      query: { articleId: props.articleId }
+      credentials: "include",
+      query: { articleId: props.articleId },
     });
     const payload = data.value as any;
     if (Array.isArray(payload)) {
@@ -114,12 +136,14 @@ const fetchComments = async () => {
       return;
     }
     if (Array.isArray(payload?.comments)) {
-      comments.value = payload.comments.map((item: any) => normalizeComment(item));
+      comments.value = payload.comments.map((item: any) =>
+        normalizeComment(item),
+      );
       return;
     }
     comments.value = [];
   } catch (error) {
-    console.error('Failed to load comments:', error);
+    console.error("Failed to load comments:", error);
   }
 };
 
@@ -128,12 +152,12 @@ onMounted(() => {
 });
 
 const formatDate = (timestamp: number) => {
-  return new Date(timestamp).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
+  return new Date(timestamp).toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -144,21 +168,24 @@ const getAvatarUrl = (seed: string) => {
 const openReply = (commentId: string, author: string) => {
   replyTargetId.value = commentId;
   replyTargetAuthor.value = author;
-  replyContent.value = '';
+  replyContent.value = "";
 };
 
 const cancelReply = () => {
   replyTargetId.value = null;
-  replyTargetAuthor.value = '';
-  replyContent.value = '';
+  replyTargetAuthor.value = "";
+  replyContent.value = "";
 };
 
-const submitComment = async (isReply: boolean = false, parentId: string | null = null) => {
+const submitComment = async (
+  isReply: boolean = false,
+  parentId: string | null = null,
+) => {
   const content = isReply ? replyContent.value : newCommentContent.value;
-  
+
   if (!content.trim()) return;
   if (!user.value) {
-    alert('请先登录后再评论。');
+    alert("请先登录后再评论。");
     return;
   }
 
@@ -166,38 +193,42 @@ const submitComment = async (isReply: boolean = false, parentId: string | null =
   try {
     if (isReply && parentId) {
       const parentComment = comments.value.find((c) => c.id === parentId);
-      const targetReply = parentComment?.replies?.find((r) => r.author === replyTargetAuthor.value);
+      const targetReply = parentComment?.replies?.find(
+        (r) => r.author === replyTargetAuthor.value,
+      );
       const replyToUserId = targetReply?.authorId || parentComment?.authorId;
 
       const replyApi = `/api/comments/${parentId}/reply` as string;
       await $fetch(replyApi, {
-        method: 'POST',
+        method: "POST",
         baseURL: backendBaseUrl || undefined,
-        credentials: 'include',
+        credentials: "include",
         body: {
           content: content.trim(),
           replyToUserId,
-          images: []
-        }
+          images: [],
+        },
       });
       cancelReply();
     } else {
-      const commentsApi = '/api/comments' as string;
+      const commentsApi = "/api/comments" as string;
       await $fetch(commentsApi, {
-        method: 'POST',
+        method: "POST",
         baseURL: backendBaseUrl || undefined,
-        credentials: 'include',
+        credentials: "include",
         body: {
           articleId: String(props.articleId),
           content: content.trim(),
-          images: []
-        }
+          images: [],
+        },
       });
-      newCommentContent.value = '';
+      newCommentContent.value = "";
     }
     await fetchComments();
   } catch (error: any) {
-    alert(error?.data?.message || error?.statusMessage || '提交失败，请稍后重试');
+    alert(
+      error?.data?.message || error?.statusMessage || "提交失败，请稍后重试",
+    );
   } finally {
     isSubmitting.value = false;
   }
@@ -205,26 +236,48 @@ const submitComment = async (isReply: boolean = false, parentId: string | null =
 
 const handleTextareaInput = (e: Event, isReply: boolean = false) => {
   const target = e.target as HTMLTextAreaElement;
-  target.style.height = 'auto';
+  target.style.height = "auto";
   target.style.height = `${target.scrollHeight}px`;
 };
 </script>
 
 <template>
-  <div class="mt-12 bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-2xl p-6 md:p-10 shadow-sm border border-transparent dark:border-[#333333] transition-colors duration-300">
-    <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-8 flex items-center gap-2">
-      <svg class="w-6 h-6 text-[#0284C7] dark:text-[#38bdf8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+  <div
+    class="mt-12 bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-2xl p-6 md:p-10 shadow-sm border border-transparent dark:border-[#333333] transition-colors duration-300"
+  >
+    <h3
+      class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-8 flex items-center gap-2"
+    >
+      <svg
+        class="w-6 h-6 text-[#0284C7] dark:text-[#38bdf8]"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
       </svg>
-      评论区 ({{ comments.length + comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0) }})
+      评论区 ({{
+        comments.length +
+        comments.reduce((acc, c) => acc + (c.replies?.length || 0), 0)
+      }})
     </h3>
 
     <!-- 发布新评论区域 -->
-    <div class="mb-10 p-5 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-gray-100 dark:border-gray-700/50">
-      <div v-if="!user" class="mb-4 rounded-lg border border-yellow-200/70 bg-yellow-50/70 px-4 py-2 text-sm text-yellow-700 dark:border-yellow-900/60 dark:bg-yellow-900/20 dark:text-yellow-300">
+    <div
+      class="mb-10 p-5 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-gray-100 dark:border-gray-700/50"
+    >
+      <div
+        v-if="!user"
+        class="mb-4 rounded-lg border border-yellow-200/70 bg-yellow-50/70 px-4 py-2 text-sm text-yellow-700 dark:border-yellow-900/60 dark:bg-yellow-900/20 dark:text-yellow-300"
+      >
         当前接口要求登录后评论，请先登录账号。
       </div>
-      
+
       <div class="relative">
         <textarea
           v-model="newCommentContent"
@@ -233,24 +286,36 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
           placeholder="写下你的评论吧... (不支持上传图片)"
           class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/50 resize-none transition-all"
         ></textarea>
-        
+
         <div class="mt-3 flex items-center justify-between">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             <span v-if="user" class="flex items-center gap-2">
-              <img :src="user.isAdmin ? adminAvatarImg : resolveCurrentUserAvatar()" class="w-6 h-6 rounded-full object-cover" />
-              以 <span class="font-medium text-[#0284C7] dark:text-[#38bdf8]">{{ user.name }}</span> 身份评论
+              <img
+                :src="
+                  user.isAdmin ? adminAvatarImg : resolveCurrentUserAvatar()
+                "
+                class="w-6 h-6 rounded-full object-cover"
+              />
+              以
+              <span class="font-medium text-[#0284C7] dark:text-[#38bdf8]">{{
+                user.name
+              }}</span>
+              身份评论
             </span>
             <span v-else class="flex items-center gap-2">
-              <button @click="login" class="text-[#0284C7] hover:underline">登录</button> 后评论体验更好
+              <button @click="login" class="text-[#0284C7] hover:underline">
+                登录
+              </button>
+              后评论体验更好
             </span>
           </div>
-          
-          <button 
+
+          <button
             @click="submitComment(false)"
-            :disabled="isSubmitting || (!newCommentContent.trim()) || !user"
+            :disabled="isSubmitting || !newCommentContent.trim() || !user"
             class="px-6 py-2 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
           >
-            {{ isSubmitting ? '发送中...' : '发表评论' }}
+            {{ isSubmitting ? "发送中..." : "发表评论" }}
           </button>
         </div>
       </div>
@@ -260,33 +325,87 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
     <div class="space-y-8">
       <div v-for="comment in comments" :key="comment.id" class="flex gap-4">
         <!-- 评论者头像 -->
-        <img :src="comment.isAdmin ? adminAvatarImg : resolveCommentAvatar(comment.avatar)" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 object-cover" alt="avatar" />
-        
+        <img
+          :src="
+            comment.isAdmin
+              ? adminAvatarImg
+              : resolveCommentAvatar(comment.avatar)
+          "
+          class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 object-cover"
+          alt="avatar"
+        />
+
         <div class="flex-1 min-w-0">
           <!-- 评论主内容 -->
           <div class="mb-2">
             <div class="flex items-center gap-2 mb-1">
-              <span class="font-semibold text-gray-800 dark:text-gray-200">{{ comment.author }}</span>
-              <span v-if="comment.isAdmin" class="px-1.5 py-0.5 rounded bg-[#0284C7]/10 text-[#0284C7] dark:text-[#38bdf8] text-xs font-medium border border-[#0284C7]/20">站长</span>
-              <span class="text-xs text-gray-400 dark:text-gray-500">{{ formatDate(comment.createdAt) }}</span>
+              <span class="font-semibold text-gray-800 dark:text-gray-200">{{
+                comment.author
+              }}</span>
+              <span
+                v-if="comment.isAdmin"
+                class="px-1.5 py-0.5 rounded bg-[#0284C7]/10 text-[#0284C7] dark:text-[#38bdf8] text-xs font-medium border border-[#0284C7]/20"
+                >站长</span
+              >
+              <span class="text-xs text-gray-400 dark:text-gray-500">{{
+                formatDate(comment.createdAt)
+              }}</span>
             </div>
-            <p class="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ comment.content }}</p>
+            <p
+              class="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap"
+            >
+              {{ comment.content }}
+            </p>
             <div class="mt-2">
-              <button @click="openReply(comment.id, comment.author)" class="text-sm text-gray-500 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors flex items-center gap-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+              <button
+                @click="openReply(comment.id, comment.author)"
+                class="text-sm text-gray-500 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors flex items-center gap-1"
+              >
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                  />
+                </svg>
                 回复
               </button>
             </div>
           </div>
 
           <!-- 回复输入框 (针对当前主评论) -->
-          <div v-if="replyTargetId === comment.id" class="mt-4 mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
-            <div class="text-sm text-gray-600 dark:text-gray-400 mb-2 flex justify-between">
-              <span>回复 <span class="font-medium text-[#0284C7]">{{ replyTargetAuthor }}</span>：</span>
-              <button @click="cancelReply" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">取消</button>
+          <div
+            v-if="replyTargetId === comment.id"
+            class="mt-4 mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700"
+          >
+            <div
+              class="text-sm text-gray-600 dark:text-gray-400 mb-2 flex justify-between"
+            >
+              <span
+                >回复
+                <span class="font-medium text-[#0284C7]">{{
+                  replyTargetAuthor
+                }}</span
+                >：</span
+              >
+              <button
+                @click="cancelReply"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                取消
+              </button>
             </div>
-            
-            <div v-if="!user" class="mb-3 rounded-lg border border-yellow-200/70 bg-yellow-50/70 px-3 py-2 text-xs text-yellow-700 dark:border-yellow-900/60 dark:bg-yellow-900/20 dark:text-yellow-300">
+
+            <div
+              v-if="!user"
+              class="mb-3 rounded-lg border border-yellow-200/70 bg-yellow-50/70 px-3 py-2 text-xs text-yellow-700 dark:border-yellow-900/60 dark:bg-yellow-900/20 dark:text-yellow-300"
+            >
               登录后可回复评论。
             </div>
 
@@ -297,11 +416,11 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
               placeholder="写下你的回复..."
               class="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#0284C7] resize-none"
             ></textarea>
-            
+
             <div class="mt-2 flex justify-end">
-              <button 
+              <button
                 @click="submitComment(true, comment.id)"
-                :disabled="isSubmitting || (!replyContent.trim()) || !user"
+                :disabled="isSubmitting || !replyContent.trim() || !user"
                 class="px-4 py-1.5 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 text-white text-sm rounded-lg font-medium transition-colors"
               >
                 回复
@@ -310,31 +429,84 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
           </div>
 
           <!-- 子回复列表 -->
-          <div v-if="comment.replies && comment.replies.length > 0" class="mt-4 space-y-4">
-            <div v-for="reply in comment.replies" :key="reply.id" class="flex gap-3">
-              <img :src="reply.isAdmin ? adminAvatarImg : resolveCommentAvatar(reply.avatar)" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 object-cover" alt="avatar" />
-              <div class="flex-1 min-w-0 bg-gray-50/80 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
+          <div
+            v-if="comment.replies && comment.replies.length > 0"
+            class="mt-4 space-y-4"
+          >
+            <div
+              v-for="reply in comment.replies"
+              :key="reply.id"
+              class="flex gap-3"
+            >
+              <img
+                :src="
+                  reply.isAdmin
+                    ? adminAvatarImg
+                    : resolveCommentAvatar(reply.avatar)
+                "
+                class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 object-cover"
+                alt="avatar"
+              />
+              <div
+                class="flex-1 min-w-0 bg-gray-50/80 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50"
+              >
                 <div class="flex items-center gap-2 mb-1 flex-wrap">
-                  <span class="font-medium text-sm text-gray-800 dark:text-gray-200">{{ reply.author }}</span>
-                  <span v-if="reply.isAdmin" class="px-1 py-0.5 rounded bg-[#0284C7]/10 text-[#0284C7] dark:text-[#38bdf8] text-[10px] font-medium border border-[#0284C7]/20">站长</span>
-                  <span v-if="reply.replyTo" class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                  <span
+                    class="font-medium text-sm text-gray-800 dark:text-gray-200"
+                    >{{ reply.author }}</span
+                  >
+                  <span
+                    v-if="reply.isAdmin"
+                    class="px-1 py-0.5 rounded bg-[#0284C7]/10 text-[#0284C7] dark:text-[#38bdf8] text-[10px] font-medium border border-[#0284C7]/20"
+                    >站长</span
+                  >
+                  <span
+                    v-if="reply.replyTo"
+                    class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1"
+                  >
+                    <svg
+                      class="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
                     {{ reply.replyTo }}
                   </span>
-                  <span class="text-xs text-gray-400 dark:text-gray-500 ml-auto">{{ formatDate(reply.createdAt) }}</span>
+                  <span
+                    class="text-xs text-gray-400 dark:text-gray-500 ml-auto"
+                    >{{ formatDate(reply.createdAt) }}</span
+                  >
                 </div>
-                <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ reply.content }}</p>
+                <p
+                  class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap"
+                >
+                  {{ reply.content }}
+                </p>
                 <div class="mt-1.5">
-                  <button @click="openReply(comment.id, reply.author)" class="text-xs text-gray-500 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors">回复</button>
+                  <button
+                    @click="openReply(comment.id, reply.author)"
+                    class="text-xs text-gray-500 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors"
+                  >
+                    回复
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
       </div>
-      
-      <div v-if="comments.length === 0" class="text-center py-10 text-gray-500 dark:text-gray-400">
+
+      <div
+        v-if="comments.length === 0"
+        class="text-center py-10 text-gray-500 dark:text-gray-400"
+      >
         暂无评论，快来抢沙发吧！
       </div>
     </div>
