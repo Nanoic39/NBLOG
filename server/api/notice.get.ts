@@ -1,5 +1,10 @@
-import GlobalNotice from "./MockData/GlobalNotice.json";
+import { readNotice } from "../utils/notice-store";
 
-export default defineEventHandler((event) => {
-  return GlobalNotice;
+export default defineEventHandler(async () => {
+  const notice = await readNotice();
+  return {
+    theme: notice.theme,
+    title: notice.title,
+    content: notice.content,
+  };
 });

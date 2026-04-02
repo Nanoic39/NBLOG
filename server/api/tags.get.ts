@@ -1,10 +1,8 @@
-import pageList from "./MockData/pageList.json";
-import pinPageList from "./MockData/pinPageList.json";
+import { getAllPostsWithFlag } from "../utils/posts-store";
 
-export default defineEventHandler((event) => {
-  // Combine all posts
-  const allPosts = [...pinPageList, ...pageList];
-  
+export default defineEventHandler(async () => {
+  const allPosts = await getAllPostsWithFlag();
+
   const tagsMap = new Map<string, number>();
 
   allPosts.forEach((post) => {

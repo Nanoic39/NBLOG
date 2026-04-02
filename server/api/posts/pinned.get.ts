@@ -1,5 +1,6 @@
-import pinPageList from '../MockData/pinPageList.json'
+import { readPostsStore } from "../../utils/posts-store";
 
-export default defineEventHandler((event) => {
-  return pinPageList
-})
+export default defineEventHandler(async () => {
+  const store = await readPostsStore();
+  return store.pinned;
+});

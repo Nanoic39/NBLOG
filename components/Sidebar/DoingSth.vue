@@ -24,11 +24,17 @@
     <div class="flex items-start gap-3">
       <div class="flex-1 min-w-0">
         <p class="text-sm text-[#4B5563] dark:text-[#d1d5db] leading-relaxed">
-          <span class="font-bold text-[#0284C7] dark:text-[#38bdf8]">NANOIC</span>
+          <span class="font-bold text-[#0284C7] dark:text-[#38bdf8]"
+            >NANOIC</span
+          >
           已经 {{ doingData?.action }} 了
-          <span class="font-semibold text-[#2A2E33] dark:text-[#e0e0e0]">{{ doingData?.target }}</span>
+          <span class="font-semibold text-[#2A2E33] dark:text-[#e0e0e0]">{{
+            doingData?.target
+          }}</span>
           {{ doingData?.type }}
-          <span class="font-mono font-bold text-[#f59e0b]">{{ timeDiff.value }}</span>
+          <span class="font-mono font-bold text-[#f59e0b]">{{
+            timeDiff.value
+          }}</span>
           {{ timeDiff.unit }}
         </p>
       </div>
@@ -37,42 +43,47 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from "vue";
 
-const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
+const unwrapApiData = <T,>(
+  response: T | { data?: T } | null | undefined,
+): T | null => {
   if (!response) return null;
-  if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+  if (
+    typeof response === "object" &&
+    "data" in (response as Record<string, unknown>)
+  ) {
     return ((response as { data?: T }).data ?? null) as T | null;
   }
   return response as T;
 };
 
-const { data: doingData } = await useFetch('/api/doing', {
-  credentials: 'include',
-  transform: (response) => unwrapApiData(response)
+const { data: doingData } = await useFetch("/api/doing", {
+  credentials: "include",
+  transform: (response) => unwrapApiData(response),
 });
 
-const timeDiff = ref({ value: 0, unit: '秒' });
+const timeDiff = ref({ value: 0, unit: "秒" });
 let timer: NodeJS.Timeout | null = null;
 let source: EventSource | null = null;
 
 const updateDiff = () => {
   if (!doingData.value?.startTime) return;
-  
+
   const start = parseInt(doingData.value.startTime);
   const now = Date.now(); // 使用毫秒
   const diffSeconds = Math.floor((now - start) / 1000); // 转换为秒进行计算
-  
+
   if (diffSeconds < 0) {
-    timeDiff.value = { value: 0, unit: '秒' };
+    timeDiff.value = { value: 0, unit: "秒" };
   } else if (diffSeconds < 60) {
-    timeDiff.value = { value: diffSeconds, unit: '秒' };
+    timeDiff.value = { value: diffSeconds, unit: "秒" };
   } else if (diffSeconds < 3600) {
-    timeDiff.value = { value: Math.floor(diffSeconds / 60), unit: '分钟' };
+    timeDiff.value = { value: Math.floor(diffSeconds / 60), unit: "分钟" };
   } else if (diffSeconds < 86400) {
-    timeDiff.value = { value: Math.floor(diffSeconds / 3600), unit: '小时' };
+    timeDiff.value = { value: Math.floor(diffSeconds / 3600), unit: "小时" };
   } else {
-    timeDiff.value = { value: Math.floor(diffSeconds / 86400), unit: '天' };
+    timeDiff.value = { value: Math.floor(diffSeconds / 86400), unit: "天" };
   }
 };
 
@@ -80,7 +91,7 @@ onMounted(() => {
   updateDiff();
   timer = setInterval(updateDiff, 1000);
 
-  source = new EventSource('/api/doing/stream', { withCredentials: true });
+  source = new EventSource("/api/doing/stream", { withCredentials: true });
 
   const syncData = (event: MessageEvent<string>) => {
     try {
@@ -93,8 +104,8 @@ onMounted(() => {
     }
   };
 
-  source.addEventListener('snapshot', syncData);
-  source.addEventListener('update', syncData);
+  source.addEventListener("snapshot", syncData);
+  source.addEventListener("update", syncData);
 });
 
 onUnmounted(() => {

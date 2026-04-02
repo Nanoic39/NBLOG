@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useHeadImage } from "~/composables/useHeadImage";
 const adminAvatarImg = useHeadImage();
 
@@ -13,6 +13,10 @@ const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(
   /\/+$/,
   "",
 );
+const yunaApiBaseUrl = String(config.public.oauthApiBaseUrl || "").replace(
+  /\/+$/,
+  "",
+);
 
 interface Reply {
   id: string;
@@ -20,6 +24,7 @@ interface Reply {
   author: string;
   avatar: string;
   content: string;
+  images?: string[];
   createdAt: number;
   isAdmin?: boolean;
   replyTo?: string;
@@ -33,6 +38,7 @@ interface Comment {
   author: string;
   avatar: string;
   content: string;
+  images?: string[];
   createdAt: number;
   isAdmin?: boolean;
   replies: Reply[];
@@ -44,6 +50,11 @@ const isSubmitting = ref(false);
 const replyTargetId = ref<string | null>(null); // null means replying to article
 const replyTargetAuthor = ref<string>("");
 const replyContent = ref("");
+const newCommentImages = ref<string[]>([]);
+const replyImages = ref<string[]>([]);
+const isUploadingImage = ref(false);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const uploadTargetIsReply = ref(false);
 
 const normalizeTimestamp = (value: unknown) => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -80,6 +91,43 @@ const resolveCurrentUserAvatar = () => {
   return "/api/auth/avatar";
 };
 
+const resolveAssetUrl = (url?: string) => {
+  const raw = String(url || "").trim();
+  if (!raw) return "";
+  if (
+    raw.startsWith("http://") ||
+    raw.startsWith("https://") ||
+    raw.startsWith("data:")
+  ) {
+    return raw;
+  }
+  if (raw.startsWith("/api/file/")) {
+    return yunaApiBaseUrl ? `${yunaApiBaseUrl}${raw}` : raw;
+  }
+  if (raw.startsWith("/file/")) {
+    return yunaApiBaseUrl ? `${yunaApiBaseUrl}/api${raw}` : raw;
+  }
+  if (raw.startsWith("/")) {
+    return backendBaseUrl ? `${backendBaseUrl}${raw}` : raw;
+  }
+  return backendBaseUrl ? `${backendBaseUrl}/${raw}` : raw;
+};
+
+const normalizeImages = (input: any): string[] => {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((item) => {
+      if (typeof item === "string") return resolveAssetUrl(item);
+      if (item && typeof item === "object") {
+        return resolveAssetUrl(
+          item.url || item.fileUrl || item.path || item.src || item.downloadUrl,
+        );
+      }
+      return "";
+    })
+    .filter(Boolean);
+};
+
 const normalizeReply = (raw: any): Reply => ({
   id: String(raw?.id || raw?._id || Date.now()),
   authorId: raw?.authorId || raw?.userId || raw?.author?.id,
@@ -88,6 +136,7 @@ const normalizeReply = (raw: any): Reply => ({
     raw?.avatar || raw?.authorAvatar || raw?.user?.avatar || raw?.user?.picture,
   ),
   content: String(raw?.content || ""),
+  images: normalizeImages(raw?.images || raw?.imageList || raw?.attachments),
   createdAt: normalizeTimestamp(
     raw?.createdAt || raw?.createTime || raw?.created_at,
   ),
@@ -107,6 +156,7 @@ const normalizeComment = (raw: any): Comment => ({
     raw?.avatar || raw?.authorAvatar || raw?.user?.avatar || raw?.user?.picture,
   ),
   content: String(raw?.content || ""),
+  images: normalizeImages(raw?.images || raw?.imageList || raw?.attachments),
   createdAt: normalizeTimestamp(
     raw?.createdAt || raw?.createTime || raw?.created_at,
   ),
@@ -169,12 +219,91 @@ const openReply = (commentId: string, author: string) => {
   replyTargetId.value = commentId;
   replyTargetAuthor.value = author;
   replyContent.value = "";
+  replyImages.value = [];
 };
 
 const cancelReply = () => {
   replyTargetId.value = null;
   replyTargetAuthor.value = "";
   replyContent.value = "";
+  replyImages.value = [];
+};
+
+const removeImage = (url: string, isReply: boolean) => {
+  if (isReply) {
+    replyImages.value = replyImages.value.filter((item) => item !== url);
+    return;
+  }
+  newCommentImages.value = newCommentImages.value.filter((item) => item !== url);
+};
+
+const openUploadPicker = (isReply: boolean = false) => {
+  if (!user.value) {
+    alert("请先登录后再上传图片。");
+    return;
+  }
+  uploadTargetIsReply.value = isReply;
+  fileInputRef.value?.click();
+};
+
+const handleImageSelected = async (event: Event, isReply: boolean) => {
+  const target = event.target as HTMLInputElement;
+  const files = Array.from(target.files || []);
+  target.value = "";
+  if (!files.length) return;
+  if (!user.value) {
+    alert("请先登录后再上传图片。");
+    return;
+  }
+
+  const currentImages = isReply ? replyImages.value : newCommentImages.value;
+  if (currentImages.length >= 9) {
+    alert("最多上传 9 张图片。");
+    return;
+  }
+
+  isUploadingImage.value = true;
+  try {
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        alert("仅支持上传图片文件。");
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert("单张图片大小不能超过 5MB。");
+        continue;
+      }
+
+      if ((isReply ? replyImages.value : newCommentImages.value).length >= 9) {
+        break;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadApi = "/api/comments/upload" as string;
+      const result = await $fetch(uploadApi, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      const uploadedUrl = String(
+        (result as any)?.data?.url || (result as any)?.url || "",
+      ).trim();
+      if (!uploadedUrl) {
+        alert("图片上传成功，但未返回可用地址。");
+        continue;
+      }
+      if (isReply) {
+        replyImages.value = [...replyImages.value, uploadedUrl];
+      } else {
+        newCommentImages.value = [...newCommentImages.value, uploadedUrl];
+      }
+    }
+  } catch (error: any) {
+    alert(error?.data?.message || error?.statusMessage || "图片上传失败，请稍后重试");
+  } finally {
+    isUploadingImage.value = false;
+  }
 };
 
 const submitComment = async (
@@ -182,8 +311,9 @@ const submitComment = async (
   parentId: string | null = null,
 ) => {
   const content = isReply ? replyContent.value : newCommentContent.value;
+  const images = isReply ? replyImages.value : newCommentImages.value;
 
-  if (!content.trim()) return;
+  if (!content.trim() && images.length === 0) return;
   if (!user.value) {
     alert("请先登录后再评论。");
     return;
@@ -206,7 +336,7 @@ const submitComment = async (
         body: {
           content: content.trim(),
           replyToUserId,
-          images: [],
+          images,
         },
       });
       cancelReply();
@@ -219,10 +349,11 @@ const submitComment = async (
         body: {
           articleId: String(props.articleId),
           content: content.trim(),
-          images: [],
+          images,
         },
       });
       newCommentContent.value = "";
+      newCommentImages.value = [];
     }
     await fetchComments();
   } catch (error: any) {
@@ -234,7 +365,7 @@ const submitComment = async (
   }
 };
 
-const handleTextareaInput = (e: Event, isReply: boolean = false) => {
+const handleTextareaInput = (e: Event) => {
   const target = e.target as HTMLTextAreaElement;
   target.style.height = "auto";
   target.style.height = `${target.scrollHeight}px`;
@@ -281,11 +412,37 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
       <div class="relative">
         <textarea
           v-model="newCommentContent"
-          @input="(e) => handleTextareaInput(e, false)"
+          @input="(e) => handleTextareaInput(e)"
           rows="3"
-          placeholder="写下你的评论吧... (不支持上传图片)"
+          placeholder="写下你的评论吧..."
           class="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/50 resize-none transition-all"
         ></textarea>
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept="image/*"
+          multiple
+          class="hidden"
+          @change="(e) => handleImageSelected(e, uploadTargetIsReply)"
+        />
+        <div
+          v-if="newCommentImages.length > 0"
+          class="mt-3 grid grid-cols-3 md:grid-cols-6 gap-2"
+        >
+          <div
+            v-for="img in newCommentImages"
+            :key="img"
+            class="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+          >
+            <img :src="img" class="w-full h-20 object-cover" alt="uploaded-image" />
+            <button
+              @click="removeImage(img, false)"
+              class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs leading-none"
+            >
+              ×
+            </button>
+          </div>
+        </div>
 
         <div class="mt-3 flex items-center justify-between">
           <div class="text-sm text-gray-500 dark:text-gray-400">
@@ -310,13 +467,26 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
             </span>
           </div>
 
-          <button
-            @click="submitComment(false)"
-            :disabled="isSubmitting || !newCommentContent.trim() || !user"
-            class="px-6 py-2 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
-          >
-            {{ isSubmitting ? "发送中..." : "发表评论" }}
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              @click="openUploadPicker(false)"
+              :disabled="isUploadingImage || !user"
+              class="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:border-[#0284C7] hover:text-[#0284C7] disabled:opacity-50 transition-colors"
+            >
+              {{ isUploadingImage ? "上传中..." : "上传图片" }}
+            </button>
+            <button
+              @click="submitComment(false)"
+              :disabled="
+                isSubmitting ||
+                (!newCommentContent.trim() && newCommentImages.length === 0) ||
+                !user
+              "
+              class="px-6 py-2 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+            >
+              {{ isSubmitting ? "发送中..." : "发表评论" }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -356,6 +526,21 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
             >
               {{ comment.content }}
             </p>
+            <div
+              v-if="comment.images && comment.images.length > 0"
+              class="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2"
+            >
+              <a
+                v-for="img in comment.images"
+                :key="img"
+                :href="img"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="block rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+              >
+                <img :src="img" class="w-full h-28 object-cover" alt="comment-image" />
+              </a>
+            </div>
             <div class="mt-2">
               <button
                 @click="openReply(comment.id, comment.author)"
@@ -411,16 +596,45 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
 
             <textarea
               v-model="replyContent"
-              @input="(e) => handleTextareaInput(e, true)"
+              @input="(e) => handleTextareaInput(e)"
               rows="2"
-              placeholder="写下你的回复..."
+              placeholder="写下你的回复（支持附图）..."
               class="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#0284C7] resize-none"
             ></textarea>
+            <div
+              v-if="replyImages.length > 0"
+              class="mt-2 grid grid-cols-3 md:grid-cols-6 gap-2"
+            >
+              <div
+                v-for="img in replyImages"
+                :key="img"
+                class="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+              >
+                <img :src="img" class="w-full h-16 object-cover" alt="reply-image" />
+                <button
+                  @click="removeImage(img, true)"
+                  class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
 
-            <div class="mt-2 flex justify-end">
+            <div class="mt-2 flex items-center justify-end gap-2">
+              <button
+                @click="openUploadPicker(true)"
+                :disabled="isUploadingImage || !user"
+                class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 rounded-lg text-xs hover:border-[#0284C7] hover:text-[#0284C7] disabled:opacity-50 transition-colors"
+              >
+                {{ isUploadingImage ? "上传中..." : "上传图片" }}
+              </button>
               <button
                 @click="submitComment(true, comment.id)"
-                :disabled="isSubmitting || !replyContent.trim() || !user"
+                :disabled="
+                  isSubmitting ||
+                  (!replyContent.trim() && replyImages.length === 0) ||
+                  !user
+                "
                 class="px-4 py-1.5 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 text-white text-sm rounded-lg font-medium transition-colors"
               >
                 回复
@@ -489,6 +703,21 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
                 >
                   {{ reply.content }}
                 </p>
+                <div
+                  v-if="reply.images && reply.images.length > 0"
+                  class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2"
+                >
+                  <a
+                    v-for="img in reply.images"
+                    :key="img"
+                    :href="img"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="block rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
+                  >
+                    <img :src="img" class="w-full h-24 object-cover" alt="reply-image" />
+                  </a>
+                </div>
                 <div class="mt-1.5">
                   <button
                     @click="openReply(comment.id, reply.author)"
