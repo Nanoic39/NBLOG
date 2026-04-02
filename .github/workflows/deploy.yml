@@ -75,26 +75,56 @@ jobs:
             repo_dir="${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}"
             artifact_dir="${{ secrets.DEPLOY_ARTIFACT_DIR || vars.DEPLOY_ARTIFACT_DIR }}"
             repo_url="https://github.com/${{ github.repository }}.git"
+            repo_ssh_url="git@github.com:${{ github.repository }}.git"
+            clean_repo_url="${repo_url//\`/}"
+            clean_repo_url="${clean_repo_url//\"/}"
+            clean_repo_url="${clean_repo_url//\'/}"
+            clean_repo_url="${clean_repo_url// /}"
+            clean_repo_url="${clean_repo_url//$'\t'/}"
+            clean_repo_url="${clean_repo_url//$'\r'/}"
+            clean_repo_url="${clean_repo_url//$'\n'/}"
+            clean_repo_url="${clean_repo_url%/}"
+            clean_repo_ssh_url="${repo_ssh_url//\`/}"
+            clean_repo_ssh_url="${clean_repo_ssh_url//\"/}"
+            clean_repo_ssh_url="${clean_repo_ssh_url//\'/}"
+            clean_repo_ssh_url="${clean_repo_ssh_url// /}"
+            clean_repo_ssh_url="${clean_repo_ssh_url//$'\t'/}"
+            clean_repo_ssh_url="${clean_repo_ssh_url//$'\r'/}"
+            clean_repo_ssh_url="${clean_repo_ssh_url//$'\n'/}"
+            clean_repo_ssh_url="${clean_repo_ssh_url%/}"
 
             cd "$repo_dir"
-            git remote set-url origin "$repo_url"
             git config --global http.version HTTP/1.1
-            git config --global http.lowSpeedLimit 1000
-            git config --global http.lowSpeedTime 30
-            attempt=1
-            max_attempts=3
-            until git fetch --prune --tags origin; do
-              if [ "$attempt" -ge "$max_attempts" ]; then
-                echo "git fetch failed after $max_attempts attempts"
-                exit 1
-              fi
-              sleep_seconds=$((attempt * 5))
-              echo "git fetch failed, retrying in ${sleep_seconds}s (${attempt}/${max_attempts})"
-              sleep "$sleep_seconds"
-              attempt=$((attempt + 1))
-            done
-            git checkout main
-            git pull --ff-only origin main
+            git config --global http.maxRequests 2
+            git config --global http.lowSpeedLimit 0
+            git config --global http.lowSpeedTime 999999
+            fetch_with_retries() {
+              remote_url="$1"
+              attempt=1
+              max_attempts=5
+              until git fetch --prune --tags "$remote_url" +refs/heads/main:refs/remotes/origin/main; do
+                if [ "$attempt" -ge "$max_attempts" ]; then
+                  return 1
+                fi
+                sleep_seconds=$((attempt * 8))
+                echo "git fetch failed, retrying in ${sleep_seconds}s (${attempt}/${max_attempts})"
+                sleep "$sleep_seconds"
+                attempt=$((attempt + 1))
+              done
+              return 0
+            }
+            git remote set-url origin "$clean_repo_url"
+            if ! fetch_with_retries "$clean_repo_url"; then
+              mkdir -p "$HOME/.ssh"
+              chmod 700 "$HOME/.ssh"
+              touch "$HOME/.ssh/known_hosts"
+              chmod 600 "$HOME/.ssh/known_hosts"
+              ssh-keyscan -H github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+              export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30"
+              git remote set-url origin "$clean_repo_ssh_url"
+              fetch_with_retries "$clean_repo_ssh_url" || (echo "git fetch failed on both HTTPS and SSH" && exit 1)
+            fi
+            git checkout -B main origin/main
             npm ci
             npm run build
 
