@@ -41,10 +41,18 @@ import { ref, onMounted, onUnmounted } from 'vue';
 
 const config = useRuntimeConfig();
 const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
+const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
+  if (!response) return null;
+  if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+    return ((response as { data?: T }).data ?? null) as T | null;
+  }
+  return response as T;
+};
 
 const { data: doingData } = await useFetch('/api/doing', {
   baseURL: backendBaseUrl || undefined,
-  credentials: 'include'
+  credentials: 'include',
+  transform: (response) => unwrapApiData(response)
 });
 
 const timeDiff = ref({ value: 0, unit: '秒' });

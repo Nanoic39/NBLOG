@@ -29,7 +29,7 @@
 
     <div class="space-y-3">
       <NuxtLink
-        v-for="(post, index) in hotPosts || []"
+        v-for="(post, index) in hotList"
         :key="post.id"
         :to="`/posts/${post.slug}`"
         class="group flex items-start gap-3"
@@ -85,13 +85,36 @@
 </template>
 
 <script setup lang="ts">
+type HotPost = {
+  id: string | number;
+  slug: string;
+  title: string;
+  views?: number;
+  pubDate: string;
+};
+
 const config = useRuntimeConfig();
 const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
+const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
+  if (!response) return null;
+  if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+    return ((response as { data?: T }).data ?? null) as T | null;
+  }
+  return response as T;
+};
 
 const { data: hotPosts } = await useFetch("/api/posts/hot", {
   baseURL: backendBaseUrl || undefined,
   credentials: 'include',
+  transform: (response) => unwrapApiData(response),
   query: { limit: 3 },
+});
+
+const hotList = computed<HotPost[]>(() => {
+  const raw = hotPosts.value as any;
+  if (Array.isArray(raw)) return raw as HotPost[];
+  if (Array.isArray(raw?.posts)) return raw.posts as HotPost[];
+  return [];
 });
 
 const formatDate = (timestamp: string) => {

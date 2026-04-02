@@ -1079,6 +1079,13 @@ const router = useRouter();
 const articleSlug = route.params.slug as string;
 const config = useRuntimeConfig();
 const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(/\/+$/, "");
+const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
+  if (!response) return null;
+  if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+    return ((response as { data?: T }).data ?? null) as T | null;
+  }
+  return response as T;
+};
 
 // 从缓存中获取文章基础信息（用于加载时的占位和动画过渡）
 const postCache = useState<Record<string, any>>("postCache", () => ({}));
@@ -1109,12 +1116,14 @@ const {
 } = await useFetch(`/api/article/detail`, {
   baseURL: backendBaseUrl || undefined,
   credentials: "include",
+  transform: (response) => unwrapApiData(response),
   query: { slug: articleSlug },
 });
 
 const { data: latestPostsData } = await useFetch(`/api/posts/latest`, {
   baseURL: backendBaseUrl || undefined,
   credentials: "include",
+  transform: (response) => unwrapApiData(response),
   query: { page: 1, limit: 12 },
 });
 

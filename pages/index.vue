@@ -520,6 +520,13 @@ const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
 const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(/\/+$/, "");
+const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
+  if (!response) return null;
+  if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+    return ((response as { data?: T }).data ?? null) as T | null;
+  }
+  return response as T;
+};
 
 // 初始化分页状态
 const page = ref(parseInt(route.query.page as string) || 1);
@@ -532,6 +539,7 @@ const totalPages = computed(() => Math.ceil(totalPosts.value / limit));
 const { data: initialData, refresh } = await useFetch("/api/posts/latest", {
   baseURL: backendBaseUrl || undefined,
   credentials: "include",
+  transform: (response) => unwrapApiData(response),
   query: { page: page, limit },
   watch: [page],
 });
@@ -584,8 +592,14 @@ onMounted(() => {
 const { data: tagsData } = await useFetch("/api/tags", {
   baseURL: backendBaseUrl || undefined,
   credentials: "include",
+  transform: (response) => unwrapApiData(response),
 });
-const allTags = computed(() => tagsData.value || []);
+const allTags = computed(() => {
+  const raw = tagsData.value as any;
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw?.tags)) return raw.tags;
+  return [];
+});
 
 // 日期格式化
 const formatDate = (timestamp: string) => {

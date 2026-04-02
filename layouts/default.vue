@@ -51,7 +51,7 @@ const menuItems = [
   >
     <!-- 导航栏 -->
     <header
-      class="fixed z-50 transition-all duration-[800ms] ease-[cubic-bezier(0.22,1,0.36,1)] left-1/2 -translate-x-1/2"
+      class="fixed z-50 transition-all duration-800 ease-[cubic-bezier(0.22,1,0.36,1)] left-1/2 -translate-x-1/2"
       :class="[
         isScrolled
           ? 'top-4 w-[95%] max-w-[1440px] rounded-xl py-2 bg-white/90 dark:bg-[#1f1f1f]/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40 dark:border-white/10'
@@ -261,7 +261,7 @@ const menuItems = [
     </div>
 
     <!-- Main Content -->
-    <main class="flex-grow">
+    <main class="grow">
       <slot />
     </main>
 
