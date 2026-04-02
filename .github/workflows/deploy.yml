@@ -74,9 +74,25 @@ jobs:
             fi
             repo_dir="${{ secrets.DEPLOY_PATH || vars.DEPLOY_PATH }}"
             artifact_dir="${{ secrets.DEPLOY_ARTIFACT_DIR || vars.DEPLOY_ARTIFACT_DIR }}"
+            repo_url="https://github.com/${{ github.repository }}.git"
 
             cd "$repo_dir"
-            git fetch origin
+            git remote set-url origin "$repo_url"
+            git config --global http.version HTTP/1.1
+            git config --global http.lowSpeedLimit 1000
+            git config --global http.lowSpeedTime 30
+            attempt=1
+            max_attempts=3
+            until git fetch --prune --tags origin; do
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "git fetch failed after $max_attempts attempts"
+                exit 1
+              fi
+              sleep_seconds=$((attempt * 5))
+              echo "git fetch failed, retrying in ${sleep_seconds}s (${attempt}/${max_attempts})"
+              sleep "$sleep_seconds"
+              attempt=$((attempt + 1))
+            done
             git checkout main
             git pull --ff-only origin main
             npm ci

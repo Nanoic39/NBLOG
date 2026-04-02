@@ -42,6 +42,60 @@ const replyTargetId = ref<string | null>(null); // null means replying to articl
 const replyTargetAuthor = ref<string>('');
 const replyContent = ref('');
 
+const normalizeTimestamp = (value: unknown) => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return Date.now();
+};
+
+const resolveCommentAvatar = (avatar?: string) => {
+  const raw = String(avatar || '').trim();
+  if (!raw) return getAvatarUrl('user');
+  if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) {
+    return raw;
+  }
+  if (raw.startsWith('/')) {
+    return backendBaseUrl ? `${backendBaseUrl}${raw}` : raw;
+  }
+  return backendBaseUrl ? `${backendBaseUrl}/${raw}` : `/${raw}`;
+};
+
+const resolveCurrentUserAvatar = () => {
+  const picture = String((user.value as any)?.picture || '').trim();
+  if (!picture) return getAvatarUrl(String((user.value as any)?.name || 'User'));
+  if (picture.startsWith('http://') || picture.startsWith('https://') || picture.startsWith('data:')) {
+    return picture;
+  }
+  return backendBaseUrl ? `${backendBaseUrl}/api/auth/avatar` : '/api/auth/avatar';
+};
+
+const normalizeReply = (raw: any): Reply => ({
+  id: String(raw?.id || raw?._id || Date.now()),
+  authorId: raw?.authorId || raw?.userId || raw?.author?.id,
+  author: String(raw?.author || raw?.authorName || raw?.user?.name || '用户'),
+  avatar: resolveCommentAvatar(raw?.avatar || raw?.authorAvatar || raw?.user?.avatar || raw?.user?.picture),
+  content: String(raw?.content || ''),
+  createdAt: normalizeTimestamp(raw?.createdAt || raw?.createTime || raw?.created_at),
+  isAdmin: Boolean(raw?.isAdmin || raw?.role === 'admin' || raw?.authorRole === 'admin'),
+  replyTo: raw?.replyTo || raw?.replyToName || raw?.replyToUserName,
+  replyToUserId: raw?.replyToUserId,
+});
+
+const normalizeComment = (raw: any): Comment => ({
+  id: String(raw?.id || raw?._id || Date.now()),
+  articleId: String(raw?.articleId || raw?.postId || props.articleId),
+  authorId: raw?.authorId || raw?.userId || raw?.author?.id,
+  author: String(raw?.author || raw?.authorName || raw?.user?.name || '用户'),
+  avatar: resolveCommentAvatar(raw?.avatar || raw?.authorAvatar || raw?.user?.avatar || raw?.user?.picture),
+  content: String(raw?.content || ''),
+  createdAt: normalizeTimestamp(raw?.createdAt || raw?.createTime || raw?.created_at),
+  isAdmin: Boolean(raw?.isAdmin || raw?.role === 'admin' || raw?.authorRole === 'admin'),
+  replies: Array.isArray(raw?.replies) ? raw.replies.map((reply: any) => normalizeReply(reply)) : [],
+});
+
 // Load mock comments
 const fetchComments = async () => {
   try {
@@ -52,11 +106,15 @@ const fetchComments = async () => {
     });
     const payload = data.value as any;
     if (Array.isArray(payload)) {
-      comments.value = payload;
+      comments.value = payload.map((item) => normalizeComment(item));
       return;
     }
     if (Array.isArray(payload?.data)) {
-      comments.value = payload.data;
+      comments.value = payload.data.map((item: any) => normalizeComment(item));
+      return;
+    }
+    if (Array.isArray(payload?.comments)) {
+      comments.value = payload.comments.map((item: any) => normalizeComment(item));
       return;
     }
     comments.value = [];
@@ -179,7 +237,7 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
         <div class="mt-3 flex items-center justify-between">
           <div class="text-sm text-gray-500 dark:text-gray-400">
             <span v-if="user" class="flex items-center gap-2">
-              <img :src="user.isAdmin ? adminAvatarImg : (user.picture || getAvatarUrl(user.name))" class="w-6 h-6 rounded-full object-cover" />
+              <img :src="user.isAdmin ? adminAvatarImg : resolveCurrentUserAvatar()" class="w-6 h-6 rounded-full object-cover" />
               以 <span class="font-medium text-[#0284C7] dark:text-[#38bdf8]">{{ user.name }}</span> 身份评论
             </span>
             <span v-else class="flex items-center gap-2">
@@ -202,7 +260,7 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
     <div class="space-y-8">
       <div v-for="comment in comments" :key="comment.id" class="flex gap-4">
         <!-- 评论者头像 -->
-        <img :src="comment.isAdmin ? adminAvatarImg : comment.avatar" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 object-cover" alt="avatar" />
+        <img :src="comment.isAdmin ? adminAvatarImg : resolveCommentAvatar(comment.avatar)" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 object-cover" alt="avatar" />
         
         <div class="flex-1 min-w-0">
           <!-- 评论主内容 -->
@@ -254,7 +312,7 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
           <!-- 子回复列表 -->
           <div v-if="comment.replies && comment.replies.length > 0" class="mt-4 space-y-4">
             <div v-for="reply in comment.replies" :key="reply.id" class="flex gap-3">
-              <img :src="reply.isAdmin ? adminAvatarImg : reply.avatar" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 object-cover" alt="avatar" />
+              <img :src="reply.isAdmin ? adminAvatarImg : resolveCommentAvatar(reply.avatar)" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 object-cover" alt="avatar" />
               <div class="flex-1 min-w-0 bg-gray-50/80 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-700/50">
                 <div class="flex items-center gap-2 mb-1 flex-wrap">
                   <span class="font-medium text-sm text-gray-800 dark:text-gray-200">{{ reply.author }}</span>

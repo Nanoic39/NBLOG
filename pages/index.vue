@@ -213,7 +213,7 @@
         <!-- Main Articles Area -->
         <div id="latest-posts" class="flex-1 min-w-0 w-full space-y-8">
           <NuxtLink
-            v-for="post in latestPosts"
+            v-for="post in filteredPosts"
             :key="post.id"
             :to="`/posts/${post.slug}`"
             class="group bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#0284C7]/20 hover:-translate-y-1 transition-all duration-500 border border-gray-100/50 dark:border-gray-700/50 flex flex-col md:flex-row h-auto md:h-72"
@@ -259,13 +259,15 @@
             <div class="p-6 md:p-8 flex flex-col flex-grow justify-between">
               <div class="flex flex-col">
                 <div class="flex flex-wrap gap-2 mb-4">
-                  <span
+                  <button
                     v-for="tag in post.tags.slice(0, 3)"
                     :key="tag"
+                    type="button"
+                    @click.prevent.stop="goToTag(tag)"
                     class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#0284C7]/5 text-[#0284C7] dark:bg-[#38bdf8]/10 dark:text-[#38bdf8] border border-[#0284C7]/10 dark:border-[#38bdf8]/20 hover:bg-[#0284C7] hover:text-white dark:hover:bg-[#38bdf8] dark:hover:text-black transition-colors duration-300"
                   >
                     #{{ tag }}
-                  </span>
+                  </button>
                 </div>
                 <h3
                   class="text-xl md:text-2xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-3 group-hover:text-[#0284C7] dark:group-hover:text-[#38bdf8] transition-colors duration-300 line-clamp-1"
@@ -534,17 +536,27 @@ const limit = 7;
 const isLoading = ref(false);
 const totalPosts = ref(0);
 const totalPages = computed(() => Math.ceil(totalPosts.value / limit));
+const selectedTag = computed(() => {
+  const raw = route.query.tag;
+  if (Array.isArray(raw)) return String(raw[0] || "").trim();
+  return String(raw || "").trim();
+});
 
 // 首次加载
 const { data: initialData, refresh } = await useFetch("/api/posts/latest", {
   baseURL: backendBaseUrl || undefined,
   credentials: "include",
   transform: (response) => unwrapApiData(response),
-  query: { page: page, limit },
-  watch: [page],
+  query: { page: page, limit, tag: selectedTag },
+  watch: [page, selectedTag],
 });
 
 const latestPosts = computed(() => initialData.value?.posts || []);
+const filteredPosts = computed(() => {
+  const tag = selectedTag.value;
+  if (!tag) return latestPosts.value;
+  return latestPosts.value.filter((post: any) => Array.isArray(post?.tags) && post.tags.includes(tag));
+});
 totalPosts.value = initialData.value?.total || 0;
 
 // 缓存文章列表中的封面图和标题，用于详情页平滑过渡
@@ -580,6 +592,17 @@ const changePage = (newPage: number) => {
   if (postsSection) {
     postsSection.scrollIntoView({ behavior: "smooth" });
   }
+};
+
+const goToTag = (tag: string) => {
+  router.push({
+    path: "/",
+    query: {
+      ...route.query,
+      tag,
+      page: 1,
+    },
+  });
 };
 
 onMounted(() => {

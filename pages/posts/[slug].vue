@@ -288,13 +288,15 @@
               v-if="(article?.tags?.length || 0) > 0"
               class="mt-4 flex flex-wrap gap-2"
             >
-              <span
+              <button
                 v-for="tag in article?.tags || []"
                 :key="tag"
+                type="button"
+                @click="goToTag(tag)"
                 class="px-3 py-1 text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-[#0284C7] dark:text-[#38bdf8] rounded-full border border-blue-100 dark:border-blue-800/50"
               >
                 #{{ tag }}
-              </span>
+              </button>
             </div>
           </header>
 
@@ -1135,6 +1137,16 @@ const formatDate = (timestamp?: string | number) => {
     year: "numeric",
     month: "long",
     day: "numeric",
+  });
+};
+
+const goToTag = (tag: string) => {
+  router.push({
+    path: "/",
+    query: {
+      tag,
+      page: 1,
+    },
   });
 };
 

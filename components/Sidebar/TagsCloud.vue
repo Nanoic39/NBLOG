@@ -25,7 +25,7 @@
       <NuxtLink
         v-for="tag in tags"
         :key="tag.name"
-        :to="`/tags/${tag.name}`"
+        :to="{ path: '/', query: { tag: tag.name, page: 1 } }"
         class="group relative inline-block transition-all duration-300 hover:-translate-y-1 hover:scale-110 hover:z-10 cursor-pointer"
         :style="getTagStyle(tag)"
         :title="`${tag.name} (${tag.count} 篇文章)`"
