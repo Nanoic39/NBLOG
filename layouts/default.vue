@@ -25,17 +25,11 @@ const toggleMobileMenu = () => {
 };
 
 const { user, login, logout, isAdmin } = useAuth();
-const config = useRuntimeConfig();
-const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(/\/+$/, "");
 
 const getAvatarUrl = (picture: string) => {
   if (!picture) return "";
-  // 如果是 http 开头，直接返回（通常是第三方公开头像）
-  if (picture.startsWith("http")) return picture;
-
-  // 如果是相对路径，使用我们后端的代理接口
-  // 代理接口会自动带上 Token 去请求源站
-  return backendBaseUrl ? `${backendBaseUrl}/api/auth/avatar` : "/api/auth/avatar";
+  if (picture.startsWith("data:")) return picture;
+  return "/api/auth/avatar";
 };
 
 const menuItems = [

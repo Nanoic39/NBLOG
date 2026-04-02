@@ -66,10 +66,10 @@ const resolveCommentAvatar = (avatar?: string) => {
 const resolveCurrentUserAvatar = () => {
   const picture = String((user.value as any)?.picture || '').trim();
   if (!picture) return getAvatarUrl(String((user.value as any)?.name || 'User'));
-  if (picture.startsWith('http://') || picture.startsWith('https://') || picture.startsWith('data:')) {
+  if (picture.startsWith('data:')) {
     return picture;
   }
-  return backendBaseUrl ? `${backendBaseUrl}/api/auth/avatar` : '/api/auth/avatar';
+  return '/api/auth/avatar';
 };
 
 const normalizeReply = (raw: any): Reply => ({

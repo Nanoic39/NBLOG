@@ -40,6 +40,7 @@ export default defineNuxtConfig({
     pageTransition: false,
     layoutTransition: false,
     head: {
+      title: "NBLOG",
       htmlAttrs: {
         lang: "zh-CN",
       },

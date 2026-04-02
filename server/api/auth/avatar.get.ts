@@ -3,6 +3,7 @@ import { defineEventHandler, getCookie, createError } from 'h3'
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const sessionCookie = getCookie(event, 'user_session')
+  const baseUrl = String(config.public.oauthApiBaseUrl || '').trim().replace(/\/+$/, '')
 
   if (!sessionCookie) {
     throw createError({
@@ -37,33 +38,32 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // If picture is already a full URL, redirect to it (unless it needs token proxying, but usually full URLs are public)
-  if (user.picture.startsWith('http')) {
-    return sendRedirect(event, user.picture)
+  if (!baseUrl) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: '头像服务地址未配置'
+    })
   }
 
-  // Construct API URL
-  const baseUrl = config.public.oauthApiBaseUrl || ''
-  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+  const cleanBaseUrl = baseUrl
   let targetUrl = ''
+  const pictureRaw = String(user.picture || '').trim()
 
-  if (user.picture.startsWith('/file/')) {
-    // 默认情况：/api + /file/... = /api/file/...
-    targetUrl = `${cleanBaseUrl}/api${user.picture}`
-
-    // 特殊处理：如果原始路径是 /file/download/... 但目标需要 /api/file/file/download/...
-    // 即需要在 /api 和 /file/download 之间再插一个 /file
-    if (user.picture.startsWith('/file/download/')) {
-       targetUrl = `${cleanBaseUrl}/api/file${user.picture}`
+  if (pictureRaw.startsWith('http://') || pictureRaw.startsWith('https://')) {
+    const apiOrigin = new URL(cleanBaseUrl).origin
+    const pictureUrl = new URL(pictureRaw)
+    targetUrl = `${apiOrigin}${pictureUrl.pathname}${pictureUrl.search}`
+  } else if (pictureRaw.startsWith('/file/')) {
+    targetUrl = `${cleanBaseUrl}/api${pictureRaw}`
+    if (pictureRaw.startsWith('/file/download/')) {
+      targetUrl = `${cleanBaseUrl}/api/file${pictureRaw}`
     }
-  } else if (user.picture.startsWith('/api/file/')) {
-    // 如果已经是 /api/file 开头，直接拼接
-    targetUrl = `${cleanBaseUrl}${user.picture}`
+  } else if (pictureRaw.startsWith('/api/file/')) {
+    targetUrl = `${cleanBaseUrl}${pictureRaw}`
   } else {
-    // 处理可能的相对路径问题
-    targetUrl = user.picture.startsWith('/') 
-      ? `${cleanBaseUrl}${user.picture}`
-      : `${cleanBaseUrl}/${user.picture}`
+    targetUrl = pictureRaw.startsWith('/') 
+      ? `${cleanBaseUrl}${pictureRaw}`
+      : `${cleanBaseUrl}/${pictureRaw}`
   }
   
   // 确保URL中包含 inline=true 参数
