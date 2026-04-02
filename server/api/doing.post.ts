@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
   if (!body) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Invalid request body",
+      statusMessage: "请求体格式无效",
     });
   }
 
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   if (!action || !target || !type || !startTime) {
     throw createError({
       statusCode: 400,
-      statusMessage: "action, target, type and startTime are required",
+      statusMessage: "action、target、type、startTime 为必填项",
     });
   }
 

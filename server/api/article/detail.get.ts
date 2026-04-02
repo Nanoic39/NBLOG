@@ -12,14 +12,14 @@ export default defineEventHandler(async (event) => {
     } else {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Article not found',
+        statusMessage: '未找到对应文章',
       });
     }
   } catch (error) {
     console.error('Error reading mock data:', error);
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to read article detail',
+      statusMessage: '读取文章详情失败',
     });
   }
 });

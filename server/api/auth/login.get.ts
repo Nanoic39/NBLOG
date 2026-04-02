@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   if (!oauthAuthBaseUrl || !oauthClientId || !oauthRedirectUri) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'OAuth configuration missing'
+      statusMessage: 'OAuth 配置缺失，请检查环境变量'
     })
   }
 

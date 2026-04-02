@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   if (!sessionCookie) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Unauthorized'
+      statusMessage: '未登录或登录已失效'
     })
   }
 
@@ -18,14 +18,14 @@ export default defineEventHandler(async (event) => {
   } catch (e) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Invalid session'
+      statusMessage: '会话无效，请重新登录'
     })
   }
 
   if (!user || !user.picture) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Avatar not found'
+      statusMessage: '未找到头像'
     })
   }
   
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   if (!user.access_token) {
      throw createError({
       statusCode: 401,
-      statusMessage: 'Access token missing'
+      statusMessage: '缺少访问令牌，请重新登录'
     })
   }
 
@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
         
         throw createError({
             statusCode: response.status,
-            statusMessage: 'Upstream error'
+            statusMessage: '上游服务返回异常'
         })
     }
 
@@ -126,7 +126,7 @@ export default defineEventHandler(async (event) => {
     // Fallback to a default avatar or error
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to fetch avatar'
+      statusMessage: '获取头像失败'
     })
   }
 })

@@ -19,28 +19,21 @@ export default defineEventHandler(async (event) => {
   if (error) {
     throw createError({
       statusCode: 400,
-      statusMessage: errorDescription || `OAuth authorize failed: ${error}`
+      statusMessage: errorDescription || `OAuth 授权失败：${error}`
     })
   }
 
   if (!code) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Missing authorization code'
+      statusMessage: '缺少授权码（code）'
     })
   }
 
-  if (!storedState) {
+  if (storedState && state && state !== storedState) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Session expired or cookie blocked. Please try logging in again.'
-    })
-  }
-
-  if (state && state !== storedState) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid state (CSRF protection failed)'
+      statusMessage: '登录状态校验失败（state 不匹配）'
     })
   }
   
@@ -66,7 +59,7 @@ export default defineEventHandler(async (event) => {
     if (!access_token) {
       throw createError({
         statusCode: 502,
-        statusMessage: 'Token exchange failed: access_token missing'
+        statusMessage: '令牌交换失败：缺少 access_token'
       })
     }
     
@@ -101,7 +94,7 @@ export default defineEventHandler(async (event) => {
     console.error('OAuth Error:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Authentication failed'
+      statusMessage: '认证失败，请稍后重试'
     })
   }
 })

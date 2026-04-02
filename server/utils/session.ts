@@ -27,14 +27,14 @@ export const requireAdmin = (event: H3Event): SessionUser => {
   if (!user) {
     throw createError({
       statusCode: 401,
-      statusMessage: "Unauthorized",
+      statusMessage: "未登录或登录已过期",
     });
   }
 
   if (user.role !== "admin") {
     throw createError({
       statusCode: 403,
-      statusMessage: "Forbidden",
+      statusMessage: "无权限访问该资源",
     });
   }
 
