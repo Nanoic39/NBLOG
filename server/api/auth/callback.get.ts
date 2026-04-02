@@ -74,7 +74,15 @@ export default defineEventHandler(async (event) => {
     // Set user session cookie
     // Simple base64 encoding for now. In production, use encryption.
     const isAdmin = config.adminEmail && userInfo.email === config.adminEmail
-    const sessionObj = { ...userInfo, access_token, role: isAdmin ? 'admin' : 'user' }
+    const sessionObj = {
+      id: userInfo.id ?? userInfo.userId ?? userInfo.uid ?? '',
+      name: userInfo.name ?? userInfo.nickname ?? userInfo.username ?? '',
+      username: userInfo.username ?? userInfo.name ?? '',
+      email: userInfo.email ?? '',
+      picture: userInfo.picture ?? userInfo.avatar ?? userInfo.headImg ?? '',
+      access_token,
+      role: isAdmin ? 'admin' : 'user'
+    }
     const sessionData = JSON.stringify(sessionObj)
     const sessionCookie = Buffer.from(sessionData).toString('base64')
     

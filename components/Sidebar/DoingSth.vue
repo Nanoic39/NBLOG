@@ -39,8 +39,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 
-const config = useRuntimeConfig();
-const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
 const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
   if (!response) return null;
   if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
@@ -50,7 +48,6 @@ const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | nu
 };
 
 const { data: doingData } = await useFetch('/api/doing', {
-  baseURL: backendBaseUrl || undefined,
   credentials: 'include',
   transform: (response) => unwrapApiData(response)
 });
@@ -83,10 +80,7 @@ onMounted(() => {
   updateDiff();
   timer = setInterval(updateDiff, 1000);
 
-  const streamUrl = backendBaseUrl
-    ? `${backendBaseUrl}/api/doing/stream`
-    : '/api/doing/stream';
-  source = new EventSource(streamUrl, { withCredentials: true });
+  source = new EventSource('/api/doing/stream', { withCredentials: true });
 
   const syncData = (event: MessageEvent<string>) => {
     try {
