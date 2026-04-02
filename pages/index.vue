@@ -518,6 +518,8 @@ interface Post {
 // 获取文章数据
 const route = useRoute();
 const router = useRouter();
+const config = useRuntimeConfig();
+const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(/\/+$/, "");
 
 // 初始化分页状态
 const page = ref(parseInt(route.query.page as string) || 1);
@@ -528,6 +530,8 @@ const totalPages = computed(() => Math.ceil(totalPosts.value / limit));
 
 // 首次加载
 const { data: initialData, refresh } = await useFetch("/api/posts/latest", {
+  baseURL: backendBaseUrl || undefined,
+  credentials: "include",
   query: { page: page, limit },
   watch: [page],
 });
@@ -577,7 +581,10 @@ onMounted(() => {
 });
 
 // 获取所有标签
-const { data: tagsData } = await useFetch("/api/tags");
+const { data: tagsData } = await useFetch("/api/tags", {
+  baseURL: backendBaseUrl || undefined,
+  credentials: "include",
+});
 const allTags = computed(() => tagsData.value || []);
 
 // 日期格式化

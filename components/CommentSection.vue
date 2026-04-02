@@ -7,22 +7,26 @@ const props = defineProps<{
   articleId: string | number;
 }>();
 
-// Auth hook
 const { user, login } = useAuth();
+const config = useRuntimeConfig();
+const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
 
 interface Reply {
   id: string;
+  authorId?: string;
   author: string;
   avatar: string;
   content: string;
   createdAt: number;
   isAdmin?: boolean;
   replyTo?: string;
+  replyToUserId?: string;
 }
 
 interface Comment {
   id: string;
   articleId: string;
+  authorId?: string;
   author: string;
   avatar: string;
   content: string;
@@ -33,8 +37,6 @@ interface Comment {
 
 const comments = ref<Comment[]>([]);
 const newCommentContent = ref('');
-const guestName = ref('');
-const guestEmail = ref('');
 const isSubmitting = ref(false);
 const replyTargetId = ref<string | null>(null); // null means replying to article
 const replyTargetAuthor = ref<string>('');
@@ -44,11 +46,20 @@ const replyContent = ref('');
 const fetchComments = async () => {
   try {
     const { data } = await useFetch<Comment[]>('/api/comments', {
+      baseURL: backendBaseUrl || undefined,
+      credentials: 'include',
       query: { articleId: props.articleId }
     });
-    if (data.value) {
-      comments.value = data.value;
+    const payload = data.value as any;
+    if (Array.isArray(payload)) {
+      comments.value = payload;
+      return;
     }
+    if (Array.isArray(payload?.data)) {
+      comments.value = payload.data;
+      return;
+    }
+    comments.value = [];
   } catch (error) {
     console.error('Failed to load comments:', error);
   }
@@ -88,47 +99,50 @@ const submitComment = async (isReply: boolean = false, parentId: string | null =
   const content = isReply ? replyContent.value : newCommentContent.value;
   
   if (!content.trim()) return;
-  if (!user.value && (!guestName.value.trim() || !guestEmail.value.trim())) {
-    alert('请填写昵称和邮箱，或登录后再评论。');
+  if (!user.value) {
+    alert('请先登录后再评论。');
     return;
   }
 
   isSubmitting.value = true;
-  
-  // Simulate network request
-  await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    if (isReply && parentId) {
+      const parentComment = comments.value.find((c) => c.id === parentId);
+      const targetReply = parentComment?.replies?.find((r) => r.author === replyTargetAuthor.value);
+      const replyToUserId = targetReply?.authorId || parentComment?.authorId;
 
-  const authorName = user.value ? (user.value.name || user.value.preferred_username || 'User') : guestName.value;
-  const avatar = user.value?.picture ? user.value.picture : getAvatarUrl(authorName);
-  
-  const newObj = {
-    id: Date.now().toString(),
-    author: authorName,
-    avatar: avatar,
-    content: content,
-    createdAt: Date.now(),
-    isAdmin: user.value?.isAdmin || false,
-  };
-
-  if (isReply && parentId) {
-    const parentComment = comments.value.find(c => c.id === parentId);
-    if (parentComment) {
-      parentComment.replies.push({
-        ...newObj,
-        replyTo: replyTargetAuthor.value
+      const replyApi = `/api/comments/${parentId}/reply` as string;
+      await $fetch(replyApi, {
+        method: 'POST',
+        baseURL: backendBaseUrl || undefined,
+        credentials: 'include',
+        body: {
+          content: content.trim(),
+          replyToUserId,
+          images: []
+        }
       });
+      cancelReply();
+    } else {
+      const commentsApi = '/api/comments' as string;
+      await $fetch(commentsApi, {
+        method: 'POST',
+        baseURL: backendBaseUrl || undefined,
+        credentials: 'include',
+        body: {
+          articleId: String(props.articleId),
+          content: content.trim(),
+          images: []
+        }
+      });
+      newCommentContent.value = '';
     }
-    cancelReply();
-  } else {
-    comments.value.unshift({
-      ...newObj,
-      articleId: String(props.articleId),
-      replies: []
-    });
-    newCommentContent.value = '';
+    await fetchComments();
+  } catch (error: any) {
+    alert(error?.data?.message || error?.statusMessage || '提交失败，请稍后重试');
+  } finally {
+    isSubmitting.value = false;
   }
-  
-  isSubmitting.value = false;
 };
 
 const handleTextareaInput = (e: Event, isReply: boolean = false) => {
@@ -149,19 +163,8 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
 
     <!-- 发布新评论区域 -->
     <div class="mb-10 p-5 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-gray-100 dark:border-gray-700/50">
-      <div v-if="!user" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <input 
-          v-model="guestName"
-          type="text" 
-          placeholder="昵称 (必填)" 
-          class="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/50 transition-all"
-        />
-        <input 
-          v-model="guestEmail"
-          type="email" 
-          placeholder="邮箱 (必填，不对外显示)" 
-          class="w-full px-4 py-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0284C7]/50 transition-all"
-        />
+      <div v-if="!user" class="mb-4 rounded-lg border border-yellow-200/70 bg-yellow-50/70 px-4 py-2 text-sm text-yellow-700 dark:border-yellow-900/60 dark:bg-yellow-900/20 dark:text-yellow-300">
+        当前接口要求登录后评论，请先登录账号。
       </div>
       
       <div class="relative">
@@ -186,7 +189,7 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
           
           <button 
             @click="submitComment(false)"
-            :disabled="isSubmitting || (!newCommentContent.trim()) || (!user && (!guestName || !guestEmail))"
+            :disabled="isSubmitting || (!newCommentContent.trim()) || !user"
             class="px-6 py-2 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
           >
             {{ isSubmitting ? '发送中...' : '发表评论' }}
@@ -225,9 +228,8 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
               <button @click="cancelReply" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">取消</button>
             </div>
             
-            <div v-if="!user" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-              <input v-model="guestName" type="text" placeholder="昵称 (必填)" class="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#0284C7]" />
-              <input v-model="guestEmail" type="email" placeholder="邮箱 (必填)" class="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-[#0284C7]" />
+            <div v-if="!user" class="mb-3 rounded-lg border border-yellow-200/70 bg-yellow-50/70 px-3 py-2 text-xs text-yellow-700 dark:border-yellow-900/60 dark:bg-yellow-900/20 dark:text-yellow-300">
+              登录后可回复评论。
             </div>
 
             <textarea
@@ -241,7 +243,7 @@ const handleTextareaInput = (e: Event, isReply: boolean = false) => {
             <div class="mt-2 flex justify-end">
               <button 
                 @click="submitComment(true, comment.id)"
-                :disabled="isSubmitting || (!replyContent.trim()) || (!user && (!guestName || !guestEmail))"
+                :disabled="isSubmitting || (!replyContent.trim()) || !user"
                 class="px-4 py-1.5 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 text-white text-sm rounded-lg font-medium transition-colors"
               >
                 回复

@@ -1,5 +1,5 @@
-import doingSth from "./MockData/doingSth.json";
+import { readDoing } from "../utils/doing-store";
 
-export default defineEventHandler((event) => {
-  return doingSth;
+export default defineEventHandler(async () => {
+  return await readDoing();
 });

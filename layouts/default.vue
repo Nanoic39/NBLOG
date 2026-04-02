@@ -26,6 +26,7 @@ const toggleMobileMenu = () => {
 
 const { user, login, logout, isAdmin } = useAuth();
 const config = useRuntimeConfig();
+const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(/\/+$/, "");
 
 const getAvatarUrl = (picture: string) => {
   if (!picture) return "";
@@ -34,7 +35,7 @@ const getAvatarUrl = (picture: string) => {
 
   // 如果是相对路径，使用我们后端的代理接口
   // 代理接口会自动带上 Token 去请求源站
-  return "/api/auth/avatar";
+  return backendBaseUrl ? `${backendBaseUrl}/api/auth/avatar` : "/api/auth/avatar";
 };
 
 const menuItems = [

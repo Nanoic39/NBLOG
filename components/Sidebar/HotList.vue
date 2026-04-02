@@ -85,7 +85,12 @@
 </template>
 
 <script setup lang="ts">
+const config = useRuntimeConfig();
+const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
+
 const { data: hotPosts } = await useFetch("/api/posts/hot", {
+  baseURL: backendBaseUrl || undefined,
+  credentials: 'include',
   query: { limit: 3 },
 });
 

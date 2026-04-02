@@ -285,11 +285,11 @@
             </div>
 
             <div
-              v-if="article.tags && article.tags.length > 0"
+              v-if="(article?.tags?.length || 0) > 0"
               class="mt-4 flex flex-wrap gap-2"
             >
               <span
-                v-for="tag in article.tags"
+                v-for="tag in article?.tags || []"
                 :key="tag"
                 class="px-3 py-1 text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-[#0284C7] dark:text-[#38bdf8] rounded-full border border-blue-100 dark:border-blue-800/50"
               >
@@ -1077,6 +1077,8 @@ marked.use({
 const route = useRoute();
 const router = useRouter();
 const articleSlug = route.params.slug as string;
+const config = useRuntimeConfig();
+const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(/\/+$/, "");
 
 // 从缓存中获取文章基础信息（用于加载时的占位和动画过渡）
 const postCache = useState<Record<string, any>>("postCache", () => ({}));
@@ -1105,10 +1107,14 @@ const {
   pending,
   error,
 } = await useFetch(`/api/article/detail`, {
+  baseURL: backendBaseUrl || undefined,
+  credentials: "include",
   query: { slug: articleSlug },
 });
 
 const { data: latestPostsData } = await useFetch(`/api/posts/latest`, {
+  baseURL: backendBaseUrl || undefined,
+  credentials: "include",
   query: { page: 1, limit: 12 },
 });
 

@@ -151,6 +151,8 @@
 import { useHeadImage } from '~/composables/useHeadImage';
 
 const headImage = useHeadImage();
+const config = useRuntimeConfig();
+const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
 
 defineProps<{
   postCount?: number;
@@ -158,7 +160,23 @@ defineProps<{
   tagCount?: number;
 }>();
 
-const { data: notice } = await useFetch('/api/notice');
+const { data: noticeData } = await useFetch('/api/notice', {
+  baseURL: backendBaseUrl || undefined,
+  credentials: 'include'
+});
+
+const notice = computed(() => {
+  const raw = noticeData.value as any;
+  if (!raw) return null;
+  if (Array.isArray(raw)) {
+    return raw.find((item) => item?.active !== false) || raw[0] || null;
+  }
+  if (raw.data && Array.isArray(raw.data)) {
+    return raw.data.find((item: any) => item?.active !== false) || raw.data[0] || null;
+  }
+  if (raw.data && typeof raw.data === 'object') return raw.data;
+  return raw;
+});
 </script>
 
 <style scoped>

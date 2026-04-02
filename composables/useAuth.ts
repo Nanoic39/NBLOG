@@ -1,15 +1,32 @@
 export const useAuth = () => {
+  const config = useRuntimeConfig()
+  const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '')
+
+  const parseUser = (response: any) => {
+    if (!response) return null
+    if (response.user !== undefined) return response.user
+    if (response.data !== undefined) return response.data
+    return response
+  }
+
   const { data: user, refresh } = useFetch('/api/auth/user', {
+    baseURL: backendBaseUrl || undefined,
+    credentials: 'include',
     key: 'auth-user',
-    transform: (response: any) => response.user
+    transform: parseUser
   })
   
   const login = () => {
-    window.location.href = '/api/auth/login'
+    const loginUrl = `${backendBaseUrl}/api/auth/login`
+    window.location.href = backendBaseUrl ? loginUrl : '/api/auth/login'
   }
   
   const logout = async () => {
-    await $fetch('/api/auth/logout', { method: 'POST' })
+    await $fetch('/api/auth/logout', {
+      method: 'POST',
+      baseURL: backendBaseUrl || undefined,
+      credentials: 'include'
+    })
     user.value = null
     navigateTo('/')
   }

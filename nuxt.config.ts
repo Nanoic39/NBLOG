@@ -66,6 +66,7 @@ export default defineNuxtConfig({
 
     // Public keys that are exposed to the client
     public: {
+      backendBaseUrl: process.env.NUXT_PUBLIC_BACKEND_BASE_URL,
       oauthClientId: process.env.NUXT_OAUTH_CLIENT_ID,
       oauthRedirectUri: process.env.NUXT_OAUTH_REDIRECT_URI,
       oauthAuthBaseUrl: process.env.NUXT_OAUTH_AUTH_BASE_URL,

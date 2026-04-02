@@ -39,10 +39,17 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 
-const { data: doingData } = await useFetch('/api/doing');
+const config = useRuntimeConfig();
+const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
+
+const { data: doingData } = await useFetch('/api/doing', {
+  baseURL: backendBaseUrl || undefined,
+  credentials: 'include'
+});
 
 const timeDiff = ref({ value: 0, unit: '秒' });
 let timer: NodeJS.Timeout | null = null;
+let source: EventSource | null = null;
 
 const updateDiff = () => {
   if (!doingData.value?.startTime) return;
@@ -66,11 +73,30 @@ const updateDiff = () => {
 
 onMounted(() => {
   updateDiff();
-  // 每秒更新一次时间显示
   timer = setInterval(updateDiff, 1000);
+
+  const streamUrl = backendBaseUrl
+    ? `${backendBaseUrl}/api/doing/stream`
+    : '/api/doing/stream';
+  source = new EventSource(streamUrl, { withCredentials: true });
+
+  const syncData = (event: MessageEvent<string>) => {
+    try {
+      const payload = JSON.parse(event.data);
+      if (payload?.data) {
+        doingData.value = payload.data;
+      }
+    } catch {
+      return;
+    }
+  };
+
+  source.addEventListener('snapshot', syncData);
+  source.addEventListener('update', syncData);
 });
 
 onUnmounted(() => {
   if (timer) clearInterval(timer);
+  if (source) source.close();
 });
 </script>
