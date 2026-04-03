@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 definePageMeta({
   middleware: "admin",
@@ -143,4 +143,13 @@ const removePost = async (id: string) => {
 onMounted(() => {
   loadPosts();
 });
+
+watch(
+  () => route.path,
+  (nextPath, prevPath) => {
+    if (nextPath === "/admin/dashboard/posts" && nextPath !== prevPath) {
+      loadPosts();
+    }
+  },
+);
 </script>

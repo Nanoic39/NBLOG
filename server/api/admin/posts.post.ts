@@ -1,6 +1,7 @@
 import { createError, readBody } from "h3";
 import {
   computeWordCountFromContent,
+  getStableCoverById,
   type PostItem,
   readPostsStore,
   savePostsStore,
@@ -55,7 +56,7 @@ export default defineEventHandler(async (event) => {
   const slugInput = String(body.slug || "").trim();
   const slug = sanitizeSlug(slugInput || title);
   const author = String(body.author || "nanoic39").trim();
-  const coverImage = String(body.coverImage || "").trim();
+  const requestedCoverImage = String(body.coverImage || "").trim();
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => String(item).trim()).filter(Boolean)
     : [];
@@ -77,15 +78,16 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const postId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   const newPost: PostItem = {
-    id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    id: postId,
     title,
     slug,
     description,
     pubDate: String(Math.floor(Date.now() / 1000)),
     author,
     tags,
-    coverImage,
+    coverImage: requestedCoverImage || getStableCoverById(postId),
     content,
     wordCount: computeWordCountFromContent(content),
     views: 0,

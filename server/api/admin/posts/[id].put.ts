@@ -1,6 +1,7 @@
 import { createError, readBody } from "h3";
 import {
   computeWordCountFromContent,
+  getStableCoverById,
   type PostItem,
   readPostsStore,
   savePostsStore,
@@ -68,7 +69,7 @@ export default defineEventHandler(async (event) => {
   ).trim();
   const slug = sanitizeSlug(String(body.slug ?? current.slug));
   const author = String(body.author ?? current.author).trim();
-  const coverImage = String(body.coverImage ?? current.coverImage).trim();
+  const coverImage = String(body.coverImage ?? current.coverImage).trim() || getStableCoverById(id);
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => String(item).trim()).filter(Boolean)
     : current.tags;

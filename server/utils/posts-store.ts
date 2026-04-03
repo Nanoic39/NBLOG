@@ -15,6 +15,9 @@ export type PostItem = {
   views: number;
 };
 
+export const getStableCoverById = (id: string) =>
+  `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(String(id || "post"))}`;
+
 type PostsStorePayload = {
   regular: PostItem[];
   pinned: PostItem[];
@@ -43,6 +46,7 @@ export const computeWordCountFromContent = (content: string): number => {
 };
 
 const normalizePost = (raw: Partial<PostItem>): PostItem => {
+  const normalizedId = String(raw.id || Date.now());
   const tags = Array.isArray(raw.tags)
     ? raw.tags.map((tag) => String(tag).trim()).filter(Boolean)
     : [];
@@ -53,14 +57,14 @@ const normalizePost = (raw: Partial<PostItem>): PostItem => {
       : computeWordCountFromContent(content);
 
   return {
-    id: String(raw.id || Date.now()),
+    id: normalizedId,
     title: String(raw.title || ""),
     slug: String(raw.slug || ""),
     description: String(raw.description || ""),
     pubDate: String(raw.pubDate || Math.floor(Date.now() / 1000)),
     author: String(raw.author || "nanoic39"),
     tags,
-    coverImage: String(raw.coverImage || ""),
+    coverImage: String(raw.coverImage || getStableCoverById(normalizedId)),
     content,
     wordCount: Math.max(0, wordCount),
     views:

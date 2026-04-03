@@ -33,6 +33,7 @@ export default defineNuxtConfig({
   },
   experimental: {
     viewTransition: false,
+    appManifest: false,
   },
   app: {
     viewTransition: false,

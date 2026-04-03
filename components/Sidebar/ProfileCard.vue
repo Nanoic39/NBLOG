@@ -150,7 +150,6 @@
 
 <script setup lang="ts">
 import { marked } from "marked";
-import DOMPurify from "dompurify";
 import { useHeadImage } from '~/composables/useHeadImage';
 
 const headImage = useHeadImage();
@@ -188,8 +187,15 @@ const noticeContentHtml = computed(() => {
     gfm: true,
     breaks: true,
   }) as string;
-  return DOMPurify.sanitize(rendered);
+  if (import.meta.server) return rendered;
+  const purifier = (globalThis as any).window?.DOMPurify;
+  return purifier ? purifier.sanitize(rendered) : rendered;
 });
+
+if (import.meta.client && !(globalThis as any).window?.DOMPurify) {
+  const mod = await import("dompurify");
+  (globalThis as any).window.DOMPurify = mod.default;
+}
 </script>
 
 <style scoped>

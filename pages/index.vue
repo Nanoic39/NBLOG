@@ -243,7 +243,7 @@
                 <img
                   :src="
                     post.coverImage ||
-                    `https://www.loliapi.com/acg/?id=${post.id}`
+                    `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(String(post.id || post.slug || 'post'))}`
                   "
                   :alt="post.title"
                   class="w-full h-full object-cover transition-transform duration-700"
@@ -502,7 +502,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { marked } from "marked";
-import DOMPurify from "dompurify";
 
 // 为卡片添加统一的动态 View Transition 名称
 const getTransitionStyle = (prefix: string, id: string | number) => {
@@ -604,8 +603,15 @@ const noticeContentHtml = computed(() => {
     gfm: true,
     breaks: true,
   }) as string;
-  return DOMPurify.sanitize(rendered);
+  if (import.meta.server) return rendered;
+  const purifier = (globalThis as any).window?.DOMPurify;
+  return purifier ? purifier.sanitize(rendered) : rendered;
 });
+
+if (import.meta.client && !(globalThis as any).window?.DOMPurify) {
+  const mod = await import("dompurify");
+  (globalThis as any).window.DOMPurify = mod.default;
+}
 
 const latestPosts = computed(() => initialData.value?.posts || []);
 const filteredPosts = computed(() => {
@@ -620,7 +626,9 @@ const postCache = useState<Record<string, any>>('postCache', () => ({}));
 watchEffect(() => {
   if (latestPosts.value) {
     latestPosts.value.forEach((post: any) => {
-      const coverUrl = post.coverImage || `https://www.loliapi.com/acg/?id=${post.id}`;
+      const coverUrl =
+        post.coverImage ||
+        `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(String(post.id || post.slug || "post"))}`;
       postCache.value[post.slug] = {
         id: post.id,
         title: post.title,
