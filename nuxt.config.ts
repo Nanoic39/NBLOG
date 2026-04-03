@@ -32,9 +32,6 @@ export default defineNuxtConfig({
     host: "0.0.0.0",
   },
   app: {
-    viewTransition: false,
-    pageTransition: false,
-    layoutTransition: false,
     head: {
       title: "NBLOG",
       htmlAttrs: {
