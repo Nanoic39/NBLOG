@@ -1,25 +1,44 @@
-import pageDetail from '../MockData/pageDetail.json'
+import pageDetail from "../MockData/pageDetail.json";
+import { readPostsStore, savePostsStore } from "../../utils/posts-store";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
-  const slug = query.slug;
+  const slug = String(query.slug || "").trim();
 
-  try {
-    // 在实际应用中，这里会根据 slug 查询数据库
-    // 现在我们只有这一篇 mock 数据，所以只要 slug 匹配就返回，或者直接返回
-    if (slug === pageDetail.slug || !slug) {
-      return pageDetail;
-    } else {
-      throw createError({
-        statusCode: 404,
-        statusMessage: '未找到对应文章',
-      });
-    }
-  } catch (error) {
-    console.error('Error reading mock data:', error);
-    throw createError({
-      statusCode: 500,
-      statusMessage: '读取文章详情失败',
-    });
+  const store = await readPostsStore();
+  const pinnedIndex = store.pinned.findIndex((item) => item.slug === slug);
+  const regularIndex = store.regular.findIndex((item) => item.slug === slug);
+
+  if (pinnedIndex >= 0) {
+    const target = store.pinned[pinnedIndex]!;
+    const next = { ...target, views: Number(target.views || 0) + 1 };
+    store.pinned[pinnedIndex] = next;
+    await savePostsStore(store);
+    return {
+      ...next,
+      editDate: String(Date.now()),
+      content: next.content || `# ${next.title}\n\n${next.description}`,
+    };
   }
+
+  if (regularIndex >= 0) {
+    const target = store.regular[regularIndex]!;
+    const next = { ...target, views: Number(target.views || 0) + 1 };
+    store.regular[regularIndex] = next;
+    await savePostsStore(store);
+    return {
+      ...next,
+      editDate: String(Date.now()),
+      content: next.content || `# ${next.title}\n\n${next.description}`,
+    };
+  }
+
+  if (slug === pageDetail.slug || !slug) {
+    return pageDetail;
+  }
+
+  throw createError({
+    statusCode: 404,
+    statusMessage: "未找到对应文章",
+  });
 });

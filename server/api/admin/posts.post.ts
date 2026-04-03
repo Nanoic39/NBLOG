@@ -1,5 +1,10 @@
 import { createError, readBody } from "h3";
-import { type PostItem, readPostsStore, savePostsStore } from "../../utils/posts-store";
+import {
+  computeWordCountFromContent,
+  type PostItem,
+  readPostsStore,
+  savePostsStore,
+} from "../../utils/posts-store";
 import { requireAdmin } from "../../utils/session";
 
 type CreatePostBody = Partial<PostItem> & {
@@ -28,11 +33,10 @@ export default defineEventHandler(async (event) => {
   const slug = sanitizeSlug(slugInput || title);
   const author = String(body.author || "nanoic39").trim();
   const coverImage = String(body.coverImage || "").trim();
+  const content = String(body.content || "").trim();
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => String(item).trim()).filter(Boolean)
     : [];
-  const wordCount = Number(body.wordCount || 0);
-  const views = Number(body.views || 0);
   const isPinned = Boolean(body.isPinned);
 
   if (!title || !description || !slug) {
@@ -60,8 +64,9 @@ export default defineEventHandler(async (event) => {
     author,
     tags,
     coverImage,
-    wordCount: Number.isFinite(wordCount) ? Math.max(0, wordCount) : 0,
-    views: Number.isFinite(views) ? Math.max(0, views) : 0,
+    content,
+    wordCount: computeWordCountFromContent(content),
+    views: 0,
   };
 
   if (isPinned) {

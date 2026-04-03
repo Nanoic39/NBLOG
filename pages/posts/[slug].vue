@@ -442,7 +442,7 @@
         </article>
 
         <!-- 评论区 (位于文章卡片外部) -->
-        <CommentSection v-if="article" :articleId="article.id" />
+        <CommentSection v-if="article?.id !== undefined" :articleId="article.id" />
       </main>
 
       <!-- 右侧：摘要/目录 (跟随页面滚动，宽屏可见) -->
@@ -1080,10 +1080,18 @@ const route = useRoute();
 const router = useRouter();
 const articleSlug = route.params.slug as string;
 const config = useRuntimeConfig();
-const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(/\/+$/, "");
-const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
+const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(
+  /\/+$/,
+  "",
+);
+const unwrapApiData = <T,>(
+  response: T | { data?: T } | null | undefined,
+): T | null => {
   if (!response) return null;
-  if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+  if (
+    typeof response === "object" &&
+    "data" in (response as Record<string, unknown>)
+  ) {
     return ((response as { data?: T }).data ?? null) as T | null;
   }
   return response as T;

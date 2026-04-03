@@ -12,6 +12,7 @@ export type PostItem = {
   author: string;
   tags: string[];
   coverImage: string;
+  content: string;
   wordCount: number;
   views: number;
 };
@@ -30,10 +31,28 @@ const ensureDataDir = async () => {
   await mkdir(getDataDir(), { recursive: true });
 };
 
+export const computeWordCountFromContent = (content: string): number => {
+  const text = String(content || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`]*`/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[#>*_\-\[\]\(\)!~]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text ? text.length : 0;
+};
+
 const normalizePost = (raw: Partial<PostItem>): PostItem => {
   const tags = Array.isArray(raw.tags)
     ? raw.tags.map((tag) => String(tag).trim()).filter(Boolean)
     : [];
+  const content = String(raw.content || "");
+  const wordCount =
+    typeof raw.wordCount === "number" && Number.isFinite(raw.wordCount)
+      ? raw.wordCount
+      : computeWordCountFromContent(content);
 
   return {
     id: String(raw.id || Date.now()),
@@ -44,10 +63,8 @@ const normalizePost = (raw: Partial<PostItem>): PostItem => {
     author: String(raw.author || "nanoic39"),
     tags,
     coverImage: String(raw.coverImage || ""),
-    wordCount:
-      typeof raw.wordCount === "number" && Number.isFinite(raw.wordCount)
-        ? raw.wordCount
-        : 0,
+    content,
+    wordCount: Math.max(0, wordCount),
     views:
       typeof raw.views === "number" && Number.isFinite(raw.views) ? raw.views : 0,
   };

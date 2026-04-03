@@ -8,47 +8,47 @@
       <button
         @click="loadOverview"
         :disabled="isLoading"
-        class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-200 hover:border-[#0284C7] hover:text-[#0284C7] disabled:opacity-60 transition-colors"
+        class="px-4 py-2 rounded-xl border border-slate-200/90 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 disabled:opacity-60 transition-colors bg-white/70 dark:bg-slate-900/40"
       >
         {{ isLoading ? "刷新中..." : "刷新数据" }}
       </button>
     </div>
 
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1f1f1f] p-4">
-        <p class="text-xs text-gray-500 dark:text-gray-400">文章总数</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ stats.postTotal }}</p>
+      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm">
+        <p class="text-xs text-slate-500 dark:text-slate-400">文章总数</p>
+        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.postTotal }}</p>
       </div>
-      <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1f1f1f] p-4">
-        <p class="text-xs text-gray-500 dark:text-gray-400">置顶文章</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ stats.pinnedTotal }}</p>
+      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm">
+        <p class="text-xs text-slate-500 dark:text-slate-400">置顶文章</p>
+        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.pinnedTotal }}</p>
       </div>
-      <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1f1f1f] p-4">
-        <p class="text-xs text-gray-500 dark:text-gray-400">普通文章</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ stats.regularTotal }}</p>
+      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm">
+        <p class="text-xs text-slate-500 dark:text-slate-400">普通文章</p>
+        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.regularTotal }}</p>
       </div>
-      <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1f1f1f] p-4">
-        <p class="text-xs text-gray-500 dark:text-gray-400">标签数</p>
-        <p class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ stats.tagTotal }}</p>
+      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm">
+        <p class="text-xs text-slate-500 dark:text-slate-400">标签数</p>
+        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.tagTotal }}</p>
       </div>
     </div>
 
     <div class="grid lg:grid-cols-2 gap-4">
-      <section class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1f1f1f] p-5">
-        <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">正在做什么</h3>
+      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">正在做什么</h3>
         <div class="mt-3 space-y-2 text-sm">
-          <p class="text-gray-600 dark:text-gray-300">动作：{{ doing.action || "-" }}</p>
-          <p class="text-gray-600 dark:text-gray-300">目标：{{ doing.target || "-" }}</p>
-          <p class="text-gray-600 dark:text-gray-300">类型：{{ doing.type || "-" }}</p>
-          <p class="text-gray-600 dark:text-gray-300">开始时间：{{ doing.startTime || "-" }}</p>
+          <p class="text-slate-600 dark:text-slate-300">动作：{{ doing.action || "-" }}</p>
+          <p class="text-slate-600 dark:text-slate-300">目标：{{ doing.target || "-" }}</p>
+          <p class="text-slate-600 dark:text-slate-300">类型：{{ doing.type || "-" }}</p>
+          <p class="text-slate-600 dark:text-slate-300">开始时间：{{ formatTime(doing.startTime) }}</p>
         </div>
       </section>
-      <section class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1f1f1f] p-5">
-        <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">全局通知</h3>
+      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">全局通知</h3>
         <div class="mt-3 space-y-2 text-sm">
-          <p class="text-gray-600 dark:text-gray-300">主题：{{ notice.theme || "-" }}</p>
-          <p class="text-gray-600 dark:text-gray-300">标题：{{ notice.title || "-" }}</p>
-          <p class="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{{ notice.content || "-" }}</p>
+          <p class="text-slate-600 dark:text-slate-300">主题：{{ notice.theme || "-" }}</p>
+          <p class="text-slate-600 dark:text-slate-300">标题：{{ notice.title || "-" }}</p>
+          <p class="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{{ notice.content || "-" }}</p>
         </div>
       </section>
     </div>
@@ -91,6 +91,12 @@ const notice = ref({
 
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
+
+const formatTime = (timestamp: string) => {
+  const value = Number(timestamp || 0);
+  if (!Number.isFinite(value) || value <= 0) return "-";
+  return new Date(value).toLocaleString("zh-CN", { hour12: false });
+};
 
 const loadOverview = async () => {
   isLoading.value = true;

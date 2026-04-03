@@ -1,5 +1,10 @@
 import { createError, readBody } from "h3";
-import { type PostItem, readPostsStore, savePostsStore } from "../../../utils/posts-store";
+import {
+  computeWordCountFromContent,
+  type PostItem,
+  readPostsStore,
+  savePostsStore,
+} from "../../../utils/posts-store";
 import { requireAdmin } from "../../../utils/session";
 
 type UpdatePostBody = Partial<PostItem> & {
@@ -39,11 +44,10 @@ export default defineEventHandler(async (event) => {
   const slug = sanitizeSlug(String(body.slug ?? current.slug));
   const author = String(body.author ?? current.author).trim();
   const coverImage = String(body.coverImage ?? current.coverImage).trim();
+  const content = String(body.content ?? current.content ?? "");
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => String(item).trim()).filter(Boolean)
     : current.tags;
-  const wordCount = Number(body.wordCount ?? current.wordCount);
-  const views = Number(body.views ?? current.views);
   const isPinned =
     typeof body.isPinned === "boolean"
       ? body.isPinned
@@ -72,8 +76,9 @@ export default defineEventHandler(async (event) => {
     author,
     coverImage,
     tags,
-    wordCount: Number.isFinite(wordCount) ? Math.max(0, wordCount) : current.wordCount,
-    views: Number.isFinite(views) ? Math.max(0, views) : current.views,
+    content,
+    wordCount: computeWordCountFromContent(content),
+    views: current.views,
   };
 
   const pinned = store.pinned.filter((item) => item.id !== id);
