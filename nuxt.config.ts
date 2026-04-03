@@ -31,10 +31,6 @@ export default defineNuxtConfig({
     port: 3030,
     host: "0.0.0.0",
   },
-  experimental: {
-    viewTransition: false,
-    appManifest: false,
-  },
   app: {
     viewTransition: false,
     pageTransition: false,
