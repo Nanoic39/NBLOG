@@ -1,5 +1,6 @@
 <template>
-  <section class="space-y-6">
+  <NuxtPage v-if="showChildEditor" />
+  <section v-else class="space-y-6">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">文章管理</h2>
@@ -91,6 +92,10 @@ type PostItem = {
 
 const isLoading = ref(false);
 const posts = ref<PostItem[]>([]);
+const route = useRoute();
+const showChildEditor = computed(() =>
+  String(route.path || "").startsWith("/admin/dashboard/posts/"),
+);
 
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";

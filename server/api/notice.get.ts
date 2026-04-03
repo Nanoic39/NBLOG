@@ -7,7 +7,7 @@ export default defineEventHandler(async () => {
     title: notice.title,
     content: notice.content,
     type: notice.theme,
-    active: true,
+    active: notice.active,
     updatedAt: notice.updatedAt,
     updatedBy: notice.updatedBy,
   };
@@ -15,6 +15,7 @@ export default defineEventHandler(async () => {
     theme: notice.theme,
     title: notice.title,
     content: notice.content,
+    active: notice.active,
     notices: [item],
   };
 });

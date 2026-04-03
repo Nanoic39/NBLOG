@@ -9,7 +9,7 @@
       ></div>
       <aside
         :class="[
-          'fixed lg:static z-40 inset-y-0 left-0 border-r border-white/50 dark:border-white/10 bg-white/70 dark:bg-[#111827]/75 backdrop-blur-xl transition-all duration-300',
+          'fixed lg:static z-40 inset-y-0 left-0 border-r border-white/50 dark:border-white/10 bg-white/85 dark:bg-[#0f172a]/90 backdrop-blur-xl transition-all duration-300',
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
           isCollapsed ? 'w-20' : 'w-64',
         ]"
@@ -30,17 +30,17 @@
             </svg>
           </button>
         </div>
-        <nav class="p-3 space-y-1">
+        <nav class="p-3 space-y-1.5">
           <NuxtLink
             v-for="item in menuItems"
             :key="item.to"
             :to="item.to"
-            class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-sky-50/90 dark:hover:bg-sky-500/15"
+            class="group flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-700 dark:text-slate-200 hover:bg-sky-50/90 dark:hover:bg-sky-500/15 transition-colors"
             active-class="bg-sky-100/80 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 shadow-sm"
             exact-active-class="bg-sky-100/80 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 shadow-sm"
             @click="isMobileMenuOpen = false"
           >
-            <span v-html="item.icon" class="w-4 h-4"></span>
+            <span v-html="item.icon" class="w-4 h-4 shrink-0"></span>
             <span v-if="!isCollapsed">{{ item.label }}</span>
           </NuxtLink>
         </nav>
@@ -57,7 +57,7 @@
               </svg>
             </button>
             <h1 class="text-base font-medium text-slate-900 dark:text-slate-100">
-              {{ currentPageLabel }}
+              {{ currentPageTitle }}
             </h1>
           </div>
           <NuxtLink
@@ -112,5 +112,12 @@ const currentPageLabel = computed(() => {
   const path = String(route.path || "");
   const hit = menuItems.find((item) => path === item.to || path.startsWith(`${item.to}/`));
   return hit?.label || "后台";
+});
+
+const currentPageTitle = computed(() => {
+  const path = String(route.path || "");
+  if (path === "/admin/dashboard/posts/new") return "新建文章";
+  if (/^\/admin\/dashboard\/posts\/[^/]+$/.test(path)) return "编辑文章";
+  return currentPageLabel.value;
 });
 </script>

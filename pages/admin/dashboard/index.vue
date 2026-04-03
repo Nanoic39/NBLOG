@@ -46,6 +46,7 @@
       <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">全局通知</h3>
         <div class="mt-3 space-y-2 text-sm">
+          <p class="text-slate-600 dark:text-slate-300">启用：{{ notice.active ? "是" : "否" }}</p>
           <p class="text-slate-600 dark:text-slate-300">主题：{{ notice.theme || "-" }}</p>
           <p class="text-slate-600 dark:text-slate-300">标题：{{ notice.title || "-" }}</p>
           <p class="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{{ notice.content || "-" }}</p>
@@ -88,6 +89,7 @@ const notice = ref({
   theme: "",
   title: "",
   content: "",
+  active: true,
 });
 
 const parseError = (error: any) =>
@@ -122,6 +124,7 @@ const loadOverview = async () => {
       theme: String(result?.notice?.theme || ""),
       title: String(result?.notice?.title || ""),
       content: String(result?.notice?.content || ""),
+      active: result?.notice?.active !== false,
     };
   } catch (error: any) {
     alert(parseError(error));

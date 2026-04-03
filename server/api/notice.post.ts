@@ -26,6 +26,7 @@ export default defineEventHandler(async (event) => {
   const theme = themeInput === "error" ? "warning" : themeInput;
   const title = String(body.title || "").trim();
   const content = String(body.content || "").trim();
+  const active = typeof body.active === "boolean" ? body.active : true;
 
   if (!theme || !allowedThemes.has(theme)) {
     throw createError({
@@ -44,6 +45,7 @@ export default defineEventHandler(async (event) => {
     theme,
     title,
     content,
+    active,
     updatedAt: Date.now(),
     updatedBy: user.email || "admin",
   });
@@ -55,7 +57,7 @@ export default defineEventHandler(async (event) => {
       type: saved.theme,
       title: saved.title,
       content: saved.content,
-      active: body.active ?? true,
+      active: saved.active,
     },
   };
 });

@@ -27,7 +27,7 @@
       </p>
 
       <!-- 通知区域 -->
-      <div v-if="notice" class="w-full mb-6 text-left relative rounded-lg" :class="[
+      <div v-if="notice" class="hidden lg:block w-full mb-6 text-left relative rounded-lg" :class="[
         notice.theme === 'rainbow' ? 'p-[2px] rainbow-border-wrapper' : '',
         notice.theme === 'info' ? 'border border-blue-100/50 dark:border-blue-800/30' : '',
         notice.theme === 'warning' ? 'border border-yellow-200/50 dark:border-yellow-800/30' : '',
@@ -56,9 +56,10 @@
             </svg>
             {{ notice.title }}
           </h4>
-          <div class="h-24 overflow-y-auto text-sm text-[#4B5563] dark:text-[#d1d5db] leading-relaxed [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {{ notice.content }}
-          </div>
+          <div
+            class="h-24 overflow-y-auto text-sm text-[#4B5563] dark:text-[#d1d5db] leading-relaxed [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden prose prose-sm max-w-none dark:prose-invert"
+            v-html="noticeContentHtml"
+          ></div>
         </div>
       </div>
 
@@ -148,6 +149,8 @@
 </template>
 
 <script setup lang="ts">
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import { useHeadImage } from '~/composables/useHeadImage';
 
 const headImage = useHeadImage();
@@ -166,13 +169,26 @@ const notice = computed(() => {
   const raw = noticeData.value as any;
   if (!raw) return null;
   if (Array.isArray(raw)) {
-    return raw.find((item) => item?.active !== false) || raw[0] || null;
+    return raw.find((item) => item?.active === true) || null;
   }
   if (raw.data && Array.isArray(raw.data)) {
-    return raw.data.find((item: any) => item?.active !== false) || raw.data[0] || null;
+    return raw.data.find((item: any) => item?.active === true) || null;
   }
-  if (raw.data && typeof raw.data === 'object') return raw.data;
+  if (raw.data && typeof raw.data === 'object') {
+    return raw.data.active === false ? null : raw.data;
+  }
+  if (raw.active === false) return null;
   return raw;
+});
+
+const noticeContentHtml = computed(() => {
+  const source = String(notice.value?.content || "");
+  if (!source) return "";
+  const rendered = marked.parse(source, {
+    gfm: true,
+    breaks: true,
+  }) as string;
+  return DOMPurify.sanitize(rendered);
 });
 </script>
 

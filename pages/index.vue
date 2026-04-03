@@ -184,8 +184,8 @@
       class="relative z-10 container mx-auto px-6 max-w-screen-2xl py-24 min-h-screen bg-[#F9FAFB] dark:bg-[#1a1a1a] flex flex-col transition-colors duration-300"
     >
       <div
-        v-if="noticeData.title || noticeData.content"
-        class="mb-8 rounded-xl border border-[#0284C7]/20 dark:border-[#38bdf8]/25 bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md px-4 py-3 shadow-lg"
+        v-if="noticeData.active && (noticeData.title || noticeData.content)"
+        class="mb-8 rounded-xl border border-[#0284C7]/20 dark:border-[#38bdf8]/25 bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md px-4 py-3 shadow-lg lg:hidden"
       >
         <p class="text-xs uppercase tracking-wider text-[#0284C7] dark:text-[#38bdf8]">
           全局通知 · {{ noticeData.type || noticeData.theme || "info" }}
@@ -193,9 +193,10 @@
         <p class="mt-1 text-base font-semibold text-[#2A2E33] dark:text-[#e0e0e0]">
           {{ noticeData.title }}
         </p>
-        <p class="mt-1 text-sm text-[#6B7280] dark:text-[#9ca3af] whitespace-pre-wrap">
-          {{ noticeData.content }}
-        </p>
+        <div
+          class="mt-1 text-sm text-[#6B7280] dark:text-[#9ca3af] leading-relaxed prose prose-sm max-w-none dark:prose-invert"
+          v-html="noticeContentHtml"
+        ></div>
       </div>
 
       <!-- Header Area -->
@@ -500,6 +501,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from "vue";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 // 为卡片添加统一的动态 View Transition 名称
 const getTransitionStyle = (prefix: string, id: string | number) => {
@@ -537,10 +540,12 @@ interface NoticeItem {
   type?: string;
   title?: string;
   content?: string;
+  active?: boolean;
   notices?: Array<{
     title?: string;
     content?: string;
     type?: string;
+    active?: boolean;
   }>;
 }
 
@@ -588,7 +593,18 @@ const noticeData = computed(() => {
     type: String(raw.type || first?.type || ""),
     title: String(raw.title || first?.title || ""),
     content: String(raw.content || first?.content || ""),
+    active: raw.active !== false && first?.active !== false,
   };
+});
+
+const noticeContentHtml = computed(() => {
+  const source = String(noticeData.value.content || "");
+  if (!source) return "";
+  const rendered = marked.parse(source, {
+    gfm: true,
+    breaks: true,
+  }) as string;
+  return DOMPurify.sanitize(rendered);
 });
 
 const latestPosts = computed(() => initialData.value?.posts || []);

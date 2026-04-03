@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 definePageMeta({
   middleware: "admin",
@@ -89,7 +89,7 @@ const router = useRouter();
 const postId = computed(() => String(route.params.id || ""));
 const isCreateMode = computed(() => postId.value === "new");
 const isSaving = ref(false);
-const form = ref<PostForm>({
+const createDefaultForm = (): PostForm => ({
   title: "",
   slug: "",
   description: "",
@@ -100,6 +100,7 @@ const form = ref<PostForm>({
   views: 0,
   isPinned: false,
 });
+const form = ref<PostForm>(createDefaultForm());
 
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
@@ -118,7 +119,10 @@ const computeWordCount = (content: string) =>
 const estimatedWordCount = computed(() => computeWordCount(form.value.content));
 
 const loadPost = async () => {
-  if (isCreateMode.value) return;
+  if (isCreateMode.value) {
+    form.value = createDefaultForm();
+    return;
+  }
   try {
     const result = (await $fetch(`/api/admin/posts/${postId.value}`, {
       credentials: "include",
@@ -203,4 +207,11 @@ const savePost = async () => {
 onMounted(() => {
   loadPost();
 });
+
+watch(
+  () => route.params.id,
+  () => {
+    loadPost();
+  },
+);
 </script>

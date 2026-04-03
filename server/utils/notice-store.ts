@@ -6,6 +6,7 @@ export type NoticeData = {
   theme: string;
   title: string;
   content: string;
+  active: boolean;
   updatedAt: number;
   updatedBy: string;
 };
@@ -20,10 +21,12 @@ const ensureDataDir = async () => {
 };
 
 const normalizeNotice = (raw: Partial<NoticeData>): NoticeData => {
+  const rawActive = (raw as { active?: unknown }).active;
   return {
     theme: String(raw.theme || "info"),
     title: String(raw.title || ""),
     content: String(raw.content || ""),
+    active: typeof rawActive === "boolean" ? rawActive : true,
     updatedAt:
       typeof raw.updatedAt === "number" && Number.isFinite(raw.updatedAt)
         ? raw.updatedAt

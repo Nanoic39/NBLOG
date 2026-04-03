@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
       theme: notice.theme,
       title: notice.title,
       content: notice.content,
+      active: notice.active,
     },
     stats: {
       postTotal: posts.regular.length + posts.pinned.length,
