@@ -32,11 +32,10 @@ export default defineNuxtConfig({
     host: "0.0.0.0",
   },
   experimental: {
-    viewTransition: true,
+    viewTransition: false,
   },
   app: {
-    // 启用 View Transitions API 支持
-    viewTransition: true,
+    viewTransition: false,
     pageTransition: false,
     layoutTransition: false,
     head: {

@@ -72,6 +72,7 @@ import { onMounted, ref } from "vue";
 definePageMeta({
   middleware: "admin",
   layout: "admin" as any,
+  viewTransition: false,
 });
 
 type PostItem = {

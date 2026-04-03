@@ -76,16 +76,15 @@ jobs:
             artifact_dir="${{ secrets.DEPLOY_ARTIFACT_DIR || vars.DEPLOY_ARTIFACT_DIR }}"
             repo_slug="${{ github.repository }}"
             repo_url="https://github.com/${repo_slug}.git"
-            clean_repo_url="$(printf '%s' "$repo_url" | tr -d '\`"'\''[:space:]')"
+            clean_repo_url="$(printf '%s' "$repo_url" | sed -e 's/[`"'"'"']//g' -e 's/[[:space:]]//g')"
             clean_repo_url="${clean_repo_url%/}"
 
             cd "$repo_dir"
             fetch_with_retries() {
-              remote_url="$1"
               attempt=1
               max_attempts=5
               while [ "$attempt" -le "$max_attempts" ]; do
-                if git fetch --prune --tags "$remote_url" +refs/heads/main:refs/remotes/origin/main; then
+                if git fetch --prune --tags origin +refs/heads/main:refs/remotes/origin/main; then
                   return 0
                 fi
                 if [ "$attempt" -eq "$max_attempts" ]; then
@@ -102,8 +101,9 @@ jobs:
             git config --global http.maxRequests 2
             git config --global http.lowSpeedLimit 0
             git config --global http.lowSpeedTime 999999
+            git config --global http.postBuffer 524288000
             git remote set-url origin "$clean_repo_url"
-            fetch_with_retries "$clean_repo_url" || (echo "HTTPS 拉取失败" && exit 1)
+            fetch_with_retries || (echo "HTTPS 拉取失败" && exit 1)
             git checkout -B main origin/main
             npm ci
             npm run build

@@ -183,6 +183,21 @@
       id="content"
       class="relative z-10 container mx-auto px-6 max-w-screen-2xl py-24 min-h-screen bg-[#F9FAFB] dark:bg-[#1a1a1a] flex flex-col transition-colors duration-300"
     >
+      <div
+        v-if="noticeData.title || noticeData.content"
+        class="mb-8 rounded-xl border border-[#0284C7]/20 dark:border-[#38bdf8]/25 bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md px-4 py-3 shadow-lg"
+      >
+        <p class="text-xs uppercase tracking-wider text-[#0284C7] dark:text-[#38bdf8]">
+          全局通知 · {{ noticeData.type || noticeData.theme || "info" }}
+        </p>
+        <p class="mt-1 text-base font-semibold text-[#2A2E33] dark:text-[#e0e0e0]">
+          {{ noticeData.title }}
+        </p>
+        <p class="mt-1 text-sm text-[#6B7280] dark:text-[#9ca3af] whitespace-pre-wrap">
+          {{ noticeData.content }}
+        </p>
+      </div>
+
       <!-- Header Area -->
       <div>
         <h2
@@ -517,6 +532,18 @@ interface Post {
   isPinned?: boolean;
 }
 
+interface NoticeItem {
+  theme?: string;
+  type?: string;
+  title?: string;
+  content?: string;
+  notices?: Array<{
+    title?: string;
+    content?: string;
+    type?: string;
+  }>;
+}
+
 // 获取文章数据
 const route = useRoute();
 const router = useRouter();
@@ -543,12 +570,29 @@ const selectedTag = computed(() => {
 });
 
 // 首次加载
-const { data: initialData, refresh } = await useFetch("/api/posts/latest", {
+const { data: initialData } = await useFetch("/api/posts/latest", {
   baseURL: backendBaseUrl || undefined,
   credentials: "include",
   transform: (response) => unwrapApiData(response),
   query: { page: page, size, tag: selectedTag },
   watch: [page, selectedTag],
+});
+
+const { data: noticeResponse } = await useFetch("/api/notice", {
+  baseURL: backendBaseUrl || undefined,
+  credentials: "include",
+  transform: (response) => unwrapApiData(response),
+});
+
+const noticeData = computed(() => {
+  const raw = (noticeResponse.value || {}) as NoticeItem;
+  const first = Array.isArray(raw.notices) ? raw.notices[0] : undefined;
+  return {
+    theme: String(raw.theme || first?.type || ""),
+    type: String(raw.type || first?.type || ""),
+    title: String(raw.title || first?.title || ""),
+    content: String(raw.content || first?.content || ""),
+  };
 });
 
 const latestPosts = computed(() => initialData.value?.posts || []);

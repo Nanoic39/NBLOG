@@ -24,14 +24,8 @@ export default defineEventHandler(async (event) => {
   const action = String(body.action || "").trim();
   const target = String(body.target || "").trim();
   const type = String(body.type || "").trim();
-  const startTime = String(body.startTime || "").trim();
-
-  if (!action || !target || !type || !startTime) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: "action、target、type、startTime 为必填项",
-    });
-  }
+  const startTimeRaw = String(body.startTime || "").trim();
+  const startTime = startTimeRaw || String(Date.now());
 
   const previous = await readDoing();
   const saved = await saveDoing({

@@ -1,9 +1,14 @@
-import pageDetail from "../MockData/pageDetail.json";
 import { readPostsStore, savePostsStore } from "../../utils/posts-store";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
   const slug = String(query.slug || "").trim();
+  if (!slug) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "缺少文章 slug",
+    });
+  }
 
   const store = await readPostsStore();
   const pinnedIndex = store.pinned.findIndex((item) => item.slug === slug);
@@ -31,10 +36,6 @@ export default defineEventHandler(async (event) => {
       editDate: String(Date.now()),
       content: next.content || `# ${next.title}\n\n${next.description}`,
     };
-  }
-
-  if (slug === pageDetail.slug || !slug) {
-    return pageDetail;
   }
 
   throw createError({

@@ -98,7 +98,7 @@
       <!-- 社交按钮 -->
       <div class="flex gap-3 w-full justify-center">
         <a
-          href="https://github.com/Nanoic"
+          href="https://github.com/Nanoic39"
           target="_blank"
           class="p-2 rounded-lg bg-gray-50 dark:bg-white/5 text-[#4B5563] dark:text-[#9ca3af] hover:bg-[#24292e] hover:text-white dark:hover:bg-[#38bdf8] dark:hover:text-black transition-all duration-300"
           title="GitHub"
