@@ -12,6 +12,24 @@ type CreatePostBody = Partial<PostItem> & {
   isPinned?: boolean;
 };
 
+const normalizeAuthors = (raw: unknown, fallback: string) => {
+  if (!Array.isArray(raw)) {
+    const name = String(fallback || "nanoic39").trim();
+    return [{ name: name || "nanoic39" }];
+  }
+  const list = raw
+    .map((item) => {
+      const name = String((item as any)?.name || "").trim();
+      const socialUrl = String((item as any)?.socialUrl || "").trim();
+      if (!name) return null;
+      return socialUrl ? { name, socialUrl } : { name };
+    })
+    .filter(Boolean) as Array<{ name: string; socialUrl?: string }>;
+  if (list.length) return list;
+  const name = String(fallback || "nanoic39").trim();
+  return [{ name: name || "nanoic39" }];
+};
+
 const sanitizeSlug = (raw: string) =>
   raw
     .trim()
@@ -60,6 +78,19 @@ export default defineEventHandler(async (event) => {
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => String(item).trim()).filter(Boolean)
     : [];
+  const articleTypeRaw = String(body.articleType || "original").trim().toLowerCase();
+  const articleType: PostItem["articleType"] = ["original", "co-original", "translation", "repost"].includes(
+    articleTypeRaw,
+  )
+    ? (articleTypeRaw as PostItem["articleType"])
+    : "original";
+  const sourceUrl = String(body.sourceUrl || "").trim();
+  const authors = normalizeAuthors(body.authors, author);
+  const licenseRaw = (body.license || {}) as Record<string, any>;
+  const licenseCc = String(licenseRaw.cc || "").trim();
+  const licenseIcons = Array.isArray(licenseRaw.icon)
+    ? licenseRaw.icon.map((item: any) => String(item || "").trim()).filter(Boolean)
+    : [];
   const isPinned = Boolean(body.isPinned);
 
   if (!title || !slug) {
@@ -85,9 +116,22 @@ export default defineEventHandler(async (event) => {
     slug,
     description,
     pubDate: String(Math.floor(Date.now() / 1000)),
-    author,
+    author: authors.map((item) => item.name).join(" / "),
+    authors,
     tags,
     coverImage: requestedCoverImage || getStableCoverById(postId),
+    articleType,
+    sourceUrl:
+      articleType === "translation" || articleType === "repost"
+        ? sourceUrl
+        : "",
+    license:
+      licenseCc || licenseIcons.length
+        ? {
+            ...(licenseCc ? { cc: licenseCc } : {}),
+            ...(licenseIcons.length ? { icon: licenseIcons } : {}),
+          }
+        : undefined,
     content,
     wordCount: computeWordCountFromContent(content),
     views: 0,

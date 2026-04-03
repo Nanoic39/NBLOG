@@ -19,13 +19,13 @@ export default defineNuxtConfig({
     ],
   },
   hooks: {
-    'pages:extend'(pages) {
+    "pages:extend"(pages) {
       pages.push({
-        name: 'not-found',
-        path: '/:pathMatch(.*)*',
-        file: '~/pages/not-found.vue'
-      })
-    }
+        name: "not-found",
+        path: "/:pathMatch(.*)*",
+        file: "~/pages/not-found.vue",
+      });
+    },
   },
   devServer: {
     port: 3030,
@@ -98,8 +98,7 @@ export default defineNuxtConfig({
           bodyColor: "#F9FAFB",
           cardColor: "#FFFFFF",
           borderColor: "#E5E7EB",
-          fontFamily:
-            'var(--font-sans)',
+          fontFamily: "var(--font-sans)",
         },
       },
       // 夜间模式主题（深灰色系）

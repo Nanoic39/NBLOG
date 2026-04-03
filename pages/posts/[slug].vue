@@ -1160,6 +1160,7 @@ const articleTypeLabel = computed(() => {
   ).toLowerCase();
 
   if (["original", "原创"].includes(raw)) return "原创";
+  if (["co-original", "cooriginal", "原创合作"].includes(raw)) return "原创合作";
   if (["translation", "translate", "翻译"].includes(raw)) return "翻译";
   if (["repost", "转载", "reprint"].includes(raw)) return "转载";
   return "原创";

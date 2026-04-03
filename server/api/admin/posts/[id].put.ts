@@ -12,6 +12,24 @@ type UpdatePostBody = Partial<PostItem> & {
   isPinned?: boolean;
 };
 
+const normalizeAuthors = (raw: unknown, fallback: string) => {
+  if (!Array.isArray(raw)) {
+    const name = String(fallback || "nanoic39").trim();
+    return [{ name: name || "nanoic39" }];
+  }
+  const list = raw
+    .map((item) => {
+      const name = String((item as any)?.name || "").trim();
+      const socialUrl = String((item as any)?.socialUrl || "").trim();
+      if (!name) return null;
+      return socialUrl ? { name, socialUrl } : { name };
+    })
+    .filter(Boolean) as Array<{ name: string; socialUrl?: string }>;
+  if (list.length) return list;
+  const name = String(fallback || "nanoic39").trim();
+  return [{ name: name || "nanoic39" }];
+};
+
 const sanitizeSlug = (raw: string) =>
   raw
     .trim()
@@ -69,10 +87,28 @@ export default defineEventHandler(async (event) => {
   ).trim();
   const slug = sanitizeSlug(String(body.slug ?? current.slug));
   const author = String(body.author ?? current.author).trim();
+  const authors = normalizeAuthors(
+    body.authors ?? current.authors,
+    author || current.author || "nanoic39",
+  );
   const coverImage = String(body.coverImage ?? current.coverImage).trim() || getStableCoverById(id);
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => String(item).trim()).filter(Boolean)
     : current.tags;
+  const articleTypeRaw = String(body.articleType ?? current.articleType ?? "original")
+    .trim()
+    .toLowerCase();
+  const articleType: PostItem["articleType"] = ["original", "co-original", "translation", "repost"].includes(
+    articleTypeRaw,
+  )
+    ? (articleTypeRaw as PostItem["articleType"])
+    : "original";
+  const sourceUrl = String(body.sourceUrl ?? current.sourceUrl ?? "").trim();
+  const licenseRaw = ((body.license ?? current.license ?? {}) as Record<string, any>) || {};
+  const licenseCc = String(licenseRaw.cc || "").trim();
+  const licenseIcons = Array.isArray(licenseRaw.icon)
+    ? licenseRaw.icon.map((item: any) => String(item || "").trim()).filter(Boolean)
+    : [];
   const isPinned =
     typeof body.isPinned === "boolean"
       ? body.isPinned
@@ -98,9 +134,22 @@ export default defineEventHandler(async (event) => {
     title,
     description,
     slug,
-    author,
+    author: authors.map((item) => item.name).join(" / "),
+    authors,
     coverImage,
     tags,
+    articleType,
+    sourceUrl:
+      articleType === "translation" || articleType === "repost"
+        ? sourceUrl
+        : "",
+    license:
+      licenseCc || licenseIcons.length
+        ? {
+            ...(licenseCc ? { cc: licenseCc } : {}),
+            ...(licenseIcons.length ? { icon: licenseIcons } : {}),
+          }
+        : undefined,
     content,
     wordCount: computeWordCountFromContent(content),
     views: current.views,

@@ -8,8 +8,18 @@ export type PostItem = {
   description: string;
   pubDate: string;
   author: string;
+  authors?: Array<{
+    name: string;
+    socialUrl?: string;
+  }>;
   tags: string[];
   coverImage: string;
+  articleType?: "original" | "co-original" | "translation" | "repost";
+  sourceUrl?: string;
+  license?: {
+    cc?: string;
+    icon?: string[];
+  };
   content: string;
   wordCount: number;
   views: number;
@@ -51,6 +61,35 @@ const normalizePost = (raw: Partial<PostItem>): PostItem => {
     ? raw.tags.map((tag) => String(tag).trim()).filter(Boolean)
     : [];
   const content = String(raw.content || "");
+  const authors = Array.isArray(raw.authors)
+    ? raw.authors
+        .map((item) => {
+          if (!item) return null;
+          const name = String((item as any).name || "").trim();
+          const socialUrl = String((item as any).socialUrl || "").trim();
+          if (!name) return null;
+          return socialUrl ? { name, socialUrl } : { name };
+        })
+        .filter(Boolean) as Array<{ name: string; socialUrl?: string }>
+    : [];
+  const fallbackAuthor = String(raw.author || "").trim();
+  const normalizedAuthors = authors.length
+    ? authors
+    : fallbackAuthor
+      ? [{ name: fallbackAuthor }]
+      : [{ name: "nanoic39" }];
+  const articleTypeRaw = String(raw.articleType || "original").trim().toLowerCase();
+  const articleType: PostItem["articleType"] = ["original", "co-original", "translation", "repost"].includes(
+    articleTypeRaw,
+  )
+    ? (articleTypeRaw as PostItem["articleType"])
+    : "original";
+  const sourceUrl = String(raw.sourceUrl || "").trim();
+  const licenseRaw = (raw.license || {}) as Record<string, any>;
+  const licenseCc = String(licenseRaw.cc || "").trim();
+  const licenseIcons = Array.isArray(licenseRaw.icon)
+    ? licenseRaw.icon.map((item: any) => String(item || "").trim()).filter(Boolean)
+    : [];
   const wordCount =
     typeof raw.wordCount === "number" && Number.isFinite(raw.wordCount)
       ? raw.wordCount
@@ -62,9 +101,22 @@ const normalizePost = (raw: Partial<PostItem>): PostItem => {
     slug: String(raw.slug || ""),
     description: String(raw.description || ""),
     pubDate: String(raw.pubDate || Math.floor(Date.now() / 1000)),
-    author: String(raw.author || "nanoic39"),
+    author: normalizedAuthors.map((item) => item.name).join(" / "),
+    authors: normalizedAuthors,
     tags,
     coverImage: String(raw.coverImage || getStableCoverById(normalizedId)),
+    articleType,
+    sourceUrl:
+      articleType === "translation" || articleType === "repost"
+        ? sourceUrl
+        : "",
+    license:
+      licenseCc || licenseIcons.length
+        ? {
+            ...(licenseCc ? { cc: licenseCc } : {}),
+            ...(licenseIcons.length ? { icon: licenseIcons } : {}),
+          }
+        : undefined,
     content,
     wordCount: Math.max(0, wordCount),
     views:
