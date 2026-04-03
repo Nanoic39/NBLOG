@@ -74,12 +74,33 @@ const noticeForm = ref({
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
 
+const normalizeTimestamp = (value: unknown) => {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : NaN;
+  if (!Number.isFinite(parsed) || parsed <= 0) return Date.now();
+  return parsed < 1_000_000_000_000 ? parsed * 1000 : parsed;
+};
+
 const toLocalDatetimeValue = (timestamp: string | number) => {
-  const value = Number(timestamp || 0);
-  const safe = Number.isFinite(value) && value > 0 ? value : Date.now();
+  const safe = normalizeTimestamp(timestamp);
   const date = new Date(safe);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const fromLocalDatetimeValue = (value: string) => {
+  const raw = String(value || "").trim();
+  if (!raw) return Date.now();
+  const parsed = new Date(raw).getTime();
+  if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  const safeRaw = raw.includes("T") ? raw : raw.replace(" ", "T");
+  const fallback = new Date(safeRaw).getTime();
+  if (Number.isFinite(fallback) && fallback > 0) return fallback;
+  return Date.now();
 };
 
 const loadData = async () => {
@@ -91,7 +112,7 @@ const loadData = async () => {
       action: String(result?.doing?.action || ""),
       target: String(result?.doing?.target || ""),
       type: String(result?.doing?.type || ""),
-      startTime: String(result?.doing?.startTime || Date.now()),
+      startTime: String(normalizeTimestamp(result?.doing?.startTime || Date.now())),
     };
     startTimeInput.value = toLocalDatetimeValue(doingForm.value.startTime);
     noticeForm.value = {
@@ -108,7 +129,7 @@ const saveDoing = async () => {
   isSavingDoing.value = true;
   try {
     const selectedTimestamp = startTimeInput.value
-      ? new Date(startTimeInput.value).getTime()
+      ? fromLocalDatetimeValue(startTimeInput.value)
       : Date.now();
     doingForm.value.startTime = String(
       Number.isFinite(selectedTimestamp) ? selectedTimestamp : Date.now(),

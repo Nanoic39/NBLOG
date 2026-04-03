@@ -151,8 +151,6 @@
 import { useHeadImage } from '~/composables/useHeadImage';
 
 const headImage = useHeadImage();
-const config = useRuntimeConfig();
-const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
 
 defineProps<{
   postCount?: number;
@@ -161,7 +159,6 @@ defineProps<{
 }>();
 
 const { data: noticeData } = await useFetch('/api/notice', {
-  baseURL: backendBaseUrl || undefined,
   credentials: 'include'
 });
 

@@ -56,12 +56,22 @@ const timeDiff = ref({ value: 0, unit: '秒' });
 let timer: NodeJS.Timeout | null = null;
 let source: EventSource | null = null;
 
+const normalizeTimestamp = (value: unknown) => {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : NaN;
+  if (!Number.isFinite(parsed) || parsed <= 0) return Date.now();
+  return parsed < 1_000_000_000_000 ? parsed * 1000 : parsed;
+};
+
 const updateDiff = () => {
   if (!doingData.value?.startTime) return;
-  
-  const start = parseInt(doingData.value.startTime);
-  const now = Date.now(); // 使用毫秒
-  const diffSeconds = Math.floor((now - start) / 1000); // 转换为秒进行计算
+  const start = normalizeTimestamp(doingData.value.startTime);
+  const now = Date.now();
+  const diffSeconds = Math.floor((now - start) / 1000);
   
   if (diffSeconds < 0) {
     timeDiff.value = { value: 0, unit: '秒' };

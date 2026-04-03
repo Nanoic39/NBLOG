@@ -9,10 +9,6 @@ const props = defineProps<{
 
 const { user, login } = useAuth();
 const config = useRuntimeConfig();
-const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(
-  /\/+$/,
-  "",
-);
 const yunaApiBaseUrl = String(config.public.oauthApiBaseUrl || "").replace(
   /\/+$/,
   "",
@@ -75,10 +71,8 @@ const resolveCommentAvatar = (avatar?: string) => {
   ) {
     return raw;
   }
-  if (raw.startsWith("/")) {
-    return backendBaseUrl ? `${backendBaseUrl}${raw}` : raw;
-  }
-  return backendBaseUrl ? `${backendBaseUrl}/${raw}` : `/${raw}`;
+  if (raw.startsWith("/")) return raw;
+  return `/${raw}`;
 };
 
 const resolveCurrentUserAvatar = () => {
@@ -107,10 +101,8 @@ const resolveAssetUrl = (url?: string) => {
   if (raw.startsWith("/file/")) {
     return yunaApiBaseUrl ? `${yunaApiBaseUrl}/api${raw}` : raw;
   }
-  if (raw.startsWith("/")) {
-    return backendBaseUrl ? `${backendBaseUrl}${raw}` : raw;
-  }
-  return backendBaseUrl ? `${backendBaseUrl}/${raw}` : raw;
+  if (raw.startsWith("/")) return raw;
+  return `/${raw}`;
 };
 
 const normalizeImages = (input: any): string[] => {
@@ -172,7 +164,6 @@ const normalizeComment = (raw: any): Comment => ({
 const fetchComments = async () => {
   try {
     const { data } = await useFetch<Comment[]>("/api/comments", {
-      baseURL: backendBaseUrl || undefined,
       credentials: "include",
       query: { articleId: props.articleId },
     });
@@ -331,7 +322,6 @@ const submitComment = async (
       const replyApi = `/api/comments/${parentId}/reply` as string;
       await $fetch(replyApi, {
         method: "POST",
-        baseURL: backendBaseUrl || undefined,
         credentials: "include",
         body: {
           content: content.trim(),
@@ -344,7 +334,6 @@ const submitComment = async (
       const commentsApi = "/api/comments" as string;
       await $fetch(commentsApi, {
         method: "POST",
-        baseURL: backendBaseUrl || undefined,
         credentials: "include",
         body: {
           articleId: String(props.articleId),

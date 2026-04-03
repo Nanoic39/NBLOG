@@ -20,6 +20,27 @@ const sanitizeSlug = (raw: string) =>
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 
+const extractTitleFromContent = (content: string) => {
+  const line = String(content || "")
+    .split("\n")
+    .map((item) => item.trim())
+    .find((item) => item.startsWith("# "));
+  return line ? line.replace(/^#\s+/, "").trim() : "";
+};
+
+const extractDescription = (content: string) => {
+  const plain = String(content || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`]*`/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[#>*_\-\[\]\(\)!~]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return plain.slice(0, 140);
+};
+
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
   const id = String(getRouterParam(event, "id") || "").trim();
@@ -39,12 +60,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: "文章不存在" });
   }
 
-  const title = String(body.title ?? current.title).trim();
-  const description = String(body.description ?? current.description).trim();
+  const content = String(body.content ?? current.content ?? "");
+  const fallbackTitle = extractTitleFromContent(content);
+  const title = String(body.title ?? current.title ?? fallbackTitle).trim();
+  const description = String(
+    body.description ?? current.description ?? extractDescription(content),
+  ).trim();
   const slug = sanitizeSlug(String(body.slug ?? current.slug));
   const author = String(body.author ?? current.author).trim();
   const coverImage = String(body.coverImage ?? current.coverImage).trim();
-  const content = String(body.content ?? current.content ?? "");
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => String(item).trim()).filter(Boolean)
     : current.tags;
@@ -53,10 +77,10 @@ export default defineEventHandler(async (event) => {
       ? body.isPinned
       : store.pinned.some((item) => item.id === id);
 
-  if (!title || !description || !slug) {
+  if (!title || !slug) {
     throw createError({
       statusCode: 400,
-      statusMessage: "title、description、slug 不能为空",
+      statusMessage: "title、slug 不能为空",
     });
   }
 

@@ -1,7 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import pageList from "../api/MockData/pageList.json";
-import pinPageList from "../api/MockData/pinPageList.json";
 
 export type PostItem = {
   id: string;
@@ -73,10 +71,10 @@ const normalizePost = (raw: Partial<PostItem>): PostItem => {
 const normalizeStore = (raw: Partial<PostsStorePayload> | null | undefined): PostsStorePayload => {
   const regular = Array.isArray(raw?.regular)
     ? raw!.regular.map((item) => normalizePost(item))
-    : pageList.map((item) => normalizePost(item as Partial<PostItem>));
+    : [];
   const pinned = Array.isArray(raw?.pinned)
     ? raw!.pinned.map((item) => normalizePost(item))
-    : pinPageList.map((item) => normalizePost(item as Partial<PostItem>));
+    : [];
 
   return { regular, pinned };
 };

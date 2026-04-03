@@ -547,8 +547,6 @@ interface NoticeItem {
 // 获取文章数据
 const route = useRoute();
 const router = useRouter();
-const config = useRuntimeConfig();
-const backendBaseUrl = String(config.public.backendBaseUrl || "").replace(/\/+$/, "");
 const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
   if (!response) return null;
   if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
@@ -571,7 +569,6 @@ const selectedTag = computed(() => {
 
 // 首次加载
 const { data: initialData } = await useFetch("/api/posts/latest", {
-  baseURL: backendBaseUrl || undefined,
   credentials: "include",
   transform: (response) => unwrapApiData(response),
   query: { page: page, size, tag: selectedTag },
@@ -579,7 +576,6 @@ const { data: initialData } = await useFetch("/api/posts/latest", {
 });
 
 const { data: noticeResponse } = await useFetch("/api/notice", {
-  baseURL: backendBaseUrl || undefined,
   credentials: "include",
   transform: (response) => unwrapApiData(response),
 });
@@ -657,7 +653,6 @@ onMounted(() => {
 
 // 获取所有标签
 const { data: tagsData } = await useFetch("/api/tags", {
-  baseURL: backendBaseUrl || undefined,
   credentials: "include",
   transform: (response) => unwrapApiData(response),
 });

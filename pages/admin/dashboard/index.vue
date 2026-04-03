@@ -96,7 +96,8 @@ const parseError = (error: any) =>
 const formatTime = (timestamp: string) => {
   const value = Number(timestamp || 0);
   if (!Number.isFinite(value) || value <= 0) return "-";
-  return new Date(value).toLocaleString("zh-CN", { hour12: false });
+  const normalized = value < 1_000_000_000_000 ? value * 1000 : value;
+  return new Date(normalized).toLocaleString("zh-CN", { hour12: false });
 };
 
 const loadOverview = async () => {

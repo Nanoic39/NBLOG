@@ -93,8 +93,6 @@ type HotPost = {
   pubDate: string;
 };
 
-const config = useRuntimeConfig();
-const backendBaseUrl = String(config.public.backendBaseUrl || '').replace(/\/+$/, '');
 const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
   if (!response) return null;
   if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
@@ -104,7 +102,6 @@ const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | nu
 };
 
 const { data: hotPosts } = await useFetch("/api/posts/hot", {
-  baseURL: backendBaseUrl || undefined,
   credentials: 'include',
   transform: (response) => unwrapApiData(response),
   query: { page: 1, size: 3 },

@@ -20,6 +20,27 @@ const sanitizeSlug = (raw: string) =>
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 
+const extractTitleFromContent = (content: string) => {
+  const line = String(content || "")
+    .split("\n")
+    .map((item) => item.trim())
+    .find((item) => item.startsWith("# "));
+  return line ? line.replace(/^#\s+/, "").trim() : "";
+};
+
+const extractDescription = (content: string) => {
+  const plain = String(content || "")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`]*`/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[#>*_\-\[\]\(\)!~]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return plain.slice(0, 140);
+};
+
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
   const body = (await readBody(event)) as CreatePostBody | null;
@@ -27,22 +48,23 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: "请求体格式无效" });
   }
 
-  const title = String(body.title || "").trim();
-  const description = String(body.description || "").trim();
+  const content = String(body.content || "").trim();
+  const fallbackTitle = extractTitleFromContent(content);
+  const title = String(body.title || fallbackTitle || `未命名文章-${Date.now()}`).trim();
+  const description = String(body.description || extractDescription(content)).trim();
   const slugInput = String(body.slug || "").trim();
   const slug = sanitizeSlug(slugInput || title);
   const author = String(body.author || "nanoic39").trim();
   const coverImage = String(body.coverImage || "").trim();
-  const content = String(body.content || "").trim();
   const tags = Array.isArray(body.tags)
     ? body.tags.map((item) => String(item).trim()).filter(Boolean)
     : [];
   const isPinned = Boolean(body.isPinned);
 
-  if (!title || !description || !slug) {
+  if (!title || !slug) {
     throw createError({
       statusCode: 400,
-      statusMessage: "title、description、slug 为必填项",
+      statusMessage: "title、slug 为必填项",
     });
   }
 

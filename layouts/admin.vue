@@ -56,12 +56,17 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 class="text-base font-medium text-slate-900 dark:text-slate-100">站长管理后台</h1>
+            <h1 class="text-base font-medium text-slate-900 dark:text-slate-100">
+              {{ currentPageLabel }}
+            </h1>
           </div>
           <NuxtLink
             to="/"
-            class="text-sm text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
+            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-300/80 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-300 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 transition-colors"
           >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
             返回站点
           </NuxtLink>
         </header>
@@ -74,10 +79,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 const isMobileMenuOpen = ref(false);
 const isCollapsed = ref(false);
+const route = useRoute();
 
 const menuItems = [
   {
@@ -101,4 +107,10 @@ const menuItems = [
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M3 11l8.586 8.586a2 2 0 002.828 0l6.172-6.172a2 2 0 000-2.828L12 2H5a2 2 0 00-2 2v7z"/></svg>',
   },
 ];
+
+const currentPageLabel = computed(() => {
+  const path = String(route.path || "");
+  const hit = menuItems.find((item) => path === item.to || path.startsWith(`${item.to}/`));
+  return hit?.label || "后台";
+});
 </script>

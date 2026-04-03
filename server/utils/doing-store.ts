@@ -1,6 +1,5 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import doingMock from "../api/MockData/doingSth.json";
 
 export type DoingData = {
   action: string;
@@ -16,12 +15,24 @@ const getDataDir = () =>
 
 const getDoingFilePath = () => path.join(getDataDir(), "doing.json");
 
+const normalizeTimestamp = (value: unknown): number => {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : NaN;
+  if (!Number.isFinite(parsed) || parsed <= 0) return Date.now();
+  return parsed < 1_000_000_000_000 ? parsed * 1000 : parsed;
+};
+
 const normalizeDoingData = (input: Partial<DoingData>): DoingData => {
+  const startTime = normalizeTimestamp(input.startTime);
   return {
     action: String(input.action || ""),
     target: String(input.target || ""),
     type: String(input.type || ""),
-    startTime: String(input.startTime || Date.now()),
+    startTime: String(startTime),
     updatedAt:
       typeof input.updatedAt === "number" ? input.updatedAt : Date.now(),
     updatedBy: String(input.updatedBy || "system"),
@@ -41,13 +52,16 @@ export const readDoing = async (): Promise<DoingData> => {
     const data = JSON.parse(content) as Partial<DoingData>;
     return normalizeDoingData(data);
   } catch {
-    const defaultData = normalizeDoingData({
-      ...doingMock,
+    const initial = normalizeDoingData({
+      action: "",
+      target: "",
+      type: "",
+      startTime: String(Date.now()),
       updatedAt: Date.now(),
       updatedBy: "system",
     });
-    await writeFile(filePath, JSON.stringify(defaultData, null, 2), "utf-8");
-    return defaultData;
+    await writeFile(filePath, JSON.stringify(initial, null, 2), "utf-8");
+    return initial;
   }
 };
 
