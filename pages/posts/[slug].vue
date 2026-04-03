@@ -1126,7 +1126,7 @@ const { data: latestPostsData } = await useFetch(`/api/posts/latest`, {
   baseURL: backendBaseUrl || undefined,
   credentials: "include",
   transform: (response) => unwrapApiData(response),
-  query: { page: 1, limit: 12 },
+  query: { page: 1, size: 12 },
 });
 
 // Format date helper

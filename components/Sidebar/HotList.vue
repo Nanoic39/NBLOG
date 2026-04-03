@@ -107,7 +107,7 @@ const { data: hotPosts } = await useFetch("/api/posts/hot", {
   baseURL: backendBaseUrl || undefined,
   credentials: 'include',
   transform: (response) => unwrapApiData(response),
-  query: { limit: 3 },
+  query: { page: 1, size: 3 },
 });
 
 const hotList = computed<HotPost[]>(() => {

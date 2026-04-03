@@ -532,10 +532,10 @@ const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | nu
 
 // 初始化分页状态
 const page = ref(parseInt(route.query.page as string) || 1);
-const limit = 7;
+const size = 7;
 const isLoading = ref(false);
 const totalPosts = ref(0);
-const totalPages = computed(() => Math.ceil(totalPosts.value / limit));
+const totalPages = computed(() => Math.ceil(totalPosts.value / size));
 const selectedTag = computed(() => {
   const raw = route.query.tag;
   if (Array.isArray(raw)) return String(raw[0] || "").trim();
@@ -547,7 +547,7 @@ const { data: initialData, refresh } = await useFetch("/api/posts/latest", {
   baseURL: backendBaseUrl || undefined,
   credentials: "include",
   transform: (response) => unwrapApiData(response),
-  query: { page: page, limit, tag: selectedTag },
+  query: { page: page, size, tag: selectedTag },
   watch: [page, selectedTag],
 });
 

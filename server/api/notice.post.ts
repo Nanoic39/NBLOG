@@ -4,8 +4,10 @@ import { requireAdmin } from "../utils/session";
 
 type NoticeBody = {
   theme?: string;
+  type?: string;
   title?: string;
   content?: string;
+  active?: boolean;
 };
 
 export default defineEventHandler(async (event) => {
@@ -20,7 +22,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const allowedThemes = new Set(["info", "warning", "feature", "rainbow"]);
-  const theme = String(body.theme || "").trim();
+  const themeInput = String(body.theme || body.type || "").trim();
+  const theme = themeInput === "error" ? "warning" : themeInput;
   const title = String(body.title || "").trim();
   const content = String(body.content || "").trim();
 
@@ -49,8 +52,10 @@ export default defineEventHandler(async (event) => {
     success: true,
     data: {
       theme: saved.theme,
+      type: saved.theme,
       title: saved.title,
       content: saved.content,
+      active: body.active ?? true,
     },
   };
 });
