@@ -1399,7 +1399,7 @@ const renderedContent = computed(() => {
   const { md, footnotes } = parseFootnotesFromMarkdown(cleanedMd);
 
   // Parse markdown
-  const rawHtml = marked.parse(md) as string;
+  const rawHtml = marked.parse(md, { gfm: true, breaks: true }) as string;
 
   const headings: { level: number; text: string; id: string }[] = [];
   let headingIndex = 0;

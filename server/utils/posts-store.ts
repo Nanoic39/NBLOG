@@ -26,7 +26,7 @@ export type PostItem = {
 };
 
 export const getStableCoverById = (id: string) =>
-  `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(String(id || "post"))}`;
+  `https://www.loliapi.com/acg/?id=${encodeURIComponent(String(id || "post"))}`;
 
 type PostsStorePayload = {
   regular: PostItem[];
