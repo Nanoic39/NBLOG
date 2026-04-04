@@ -75,8 +75,13 @@ export default defineEventHandler(async (event) => {
     })
     
     const tokenPayload = unwrap<Record<string, any>>(tokenResponse as Record<string, any>) || {}
-    const access_token =
-      String(tokenPayload.access_token || tokenPayload.token || tokenPayload.accessToken || '').trim()
+    const access_token = String(
+      tokenPayload.access_token || tokenPayload.token || tokenPayload.accessToken || ''
+    )
+      .trim()
+      .replace(/^Bearer\s+/i, '')
+      .replace(/^"|"$/g, '')
+      .trim()
     log('oauth.token_response', {
       hasAccessToken: Boolean(access_token),
       tokenPayloadKeys: Object.keys(tokenPayload || {}),

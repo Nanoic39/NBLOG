@@ -7,6 +7,35 @@ export type SessionUser = {
   [key: string]: any;
 };
 
+const normalizeAccessToken = (raw: unknown): string => {
+  let token = "";
+  if (typeof raw === "string") {
+    token = raw;
+  } else if (raw && typeof raw === "object") {
+    const fromObject = raw as Record<string, any>;
+    const candidate =
+      fromObject.access_token ??
+      fromObject.accessToken ??
+      fromObject.token ??
+      fromObject.value ??
+      fromObject.jwt;
+    if (typeof candidate === "string") {
+      token = candidate;
+    }
+  }
+  token = String(token || "").trim();
+  token = token.replace(/^Bearer\s+/i, "").trim();
+  if (
+    (token.startsWith('"') && token.endsWith('"')) ||
+    (token.startsWith("'") && token.endsWith("'"))
+  ) {
+    token = token.slice(1, -1).trim();
+  }
+  if (!token) return "";
+  if (/^(undefined|null|nan)$/i.test(token)) return "";
+  return token;
+};
+
 const decodeSessionCookie = (sessionCookie: string): SessionUser | null => {
   try {
     const raw = String(sessionCookie || "").trim();
@@ -23,6 +52,7 @@ const decodeSessionCookie = (sessionCookie: string): SessionUser | null => {
     const parsed = JSON.parse(sessionData) as Record<string, any>;
     if (!parsed || typeof parsed !== "object") return null;
     if ("access_token" in parsed || "role" in parsed || "email" in parsed) {
+      parsed.access_token = normalizeAccessToken(parsed.access_token);
       return parsed as SessionUser;
     }
     if ("t" in parsed || "r" in parsed || "e" in parsed) {
@@ -32,10 +62,11 @@ const decodeSessionCookie = (sessionCookie: string): SessionUser | null => {
         username: parsed.u ?? "",
         email: parsed.e ?? "",
         picture: parsed.p ?? "",
-        access_token: parsed.t ?? "",
+        access_token: normalizeAccessToken(parsed.t),
         role: parsed.r ?? "user",
       };
     }
+    parsed.access_token = normalizeAccessToken(parsed.access_token ?? parsed.t);
     return parsed as SessionUser;
   } catch {
     return null;
@@ -184,14 +215,15 @@ const getAccessToken = (event: H3Event, auth: UpstreamAuthMode) => {
     });
   }
   const token = String(user.access_token || "").trim();
-  if (!token) {
+  const normalizedToken = normalizeAccessToken(token);
+  if (!normalizedToken) {
     throw createError({
       statusCode: 401,
       statusMessage: "Unauthorized",
       message: "缺少访问令牌，请重新登录",
     });
   }
-  return token;
+  return normalizedToken;
 };
 
 const pickErrorMessage = (raw: any, fallback: string) => {
@@ -224,12 +256,15 @@ export const requestUpstream = async <T = any>(
   const token = getAccessToken(event, auth);
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
+  const bearerToken = String(headers.Authorization || "").replace(/^Bearer\s+/i, "");
   debugProxyLog(event, "upstream.request", {
     method,
     auth,
     path,
     baseUrl,
     hasAuthorization: Boolean(headers.Authorization),
+    tokenLength: bearerToken.length,
+    tokenLooksJwt: bearerToken.split(".").length === 3,
     queryKeys: Object.keys(options.query || {}),
     hasBody: options.body !== undefined,
   });
