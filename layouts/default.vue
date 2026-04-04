@@ -1,17 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 
 // useDarkMode 由 Nuxt 自动从 composables/ 目录导入
 const { initDarkMode } = useDarkMode();
 
 const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
-const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
-const withApiBase = (path: string) => {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
-};
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50;
@@ -30,12 +24,24 @@ const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
-const { user, login, logout, isAdmin } = useAuth();
+const { user, login, logout } = useAuth();
+const displayName = computed(() =>
+  String(
+    (user.value as any)?.name ||
+      (user.value as any)?.preferred_username ||
+      (user.value as any)?.username ||
+      (user.value as any)?.email ||
+      "User",
+  ),
+);
+const displayInitial = computed(() =>
+  String(displayName.value || "U").charAt(0).toUpperCase(),
+);
 
 const getAvatarUrl = (picture: string) => {
   if (!picture) return "";
   if (picture.startsWith("data:")) return picture;
-  return withApiBase("/api/auth/avatar");
+  return "/api/auth/avatar";
 };
 
 const menuItems = [
@@ -107,11 +113,9 @@ const menuItems = [
                 v-else
                 class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400"
               >
-                {{
-                  (user.name || user.preferred_username || "U")[0].toUpperCase()
-                }}
+                {{ displayInitial }}
               </div>
-              <span>{{ user.name || user.preferred_username || "User" }}</span>
+              <span>{{ displayName }}</span>
             </button>
 
             <!-- Dropdown Menu -->
@@ -127,7 +131,7 @@ const menuItems = [
                   <p
                     class="text-sm font-semibold text-gray-900 dark:text-white truncate"
                   >
-                    {{ user.name }}
+                    {{ displayName }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {{ user.email }}
@@ -219,14 +223,12 @@ const menuItems = [
               v-else
               class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-base font-bold text-gray-500 dark:text-gray-400"
             >
-              {{
-                (user.name || user.preferred_username || "U")[0].toUpperCase()
-              }}
+              {{ displayInitial }}
             </div>
             <div class="flex flex-col">
               <span
                 class="text-base font-semibold text-[#2A2E33] dark:text-[#e0e0e0]"
-                >{{ user.name || user.preferred_username }}</span
+                >{{ displayName }}</span
               >
               <span class="text-xs text-gray-500">{{ user.email }}</span>
             </div>

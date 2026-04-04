@@ -108,7 +108,16 @@
         <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-white/70 dark:bg-slate-900/35">
           <p class="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-400">基础信息</p>
           <input v-model="form.title" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="标题" />
-          <input v-model="form.slug" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="slug（可空自动生成）" />
+          <select v-model="form.slugMode" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm">
+            <option value="id">slug 类型：使用 id（默认）</option>
+            <option value="pinyin">slug 类型：英文+短横线（中文转拼音）</option>
+            <option value="title">slug 类型：与标题一致</option>
+          </select>
+          <input v-model="form.slug" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="slug（会随标题和类型自动更新）" />
+          <select v-model="form.publishStatus" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm">
+            <option value="draft">保存为草稿</option>
+            <option value="published">发布</option>
+          </select>
           <textarea v-model="form.description" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="摘要"></textarea>
         </div>
 
@@ -380,6 +389,7 @@
 <script setup lang="ts">
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { pinyin } from "pinyin-pro";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 definePageMeta({
@@ -396,6 +406,8 @@ type AuthorItem = {
 type PostForm = {
   title: string;
   slug: string;
+  slugMode: "id" | "pinyin" | "title";
+  publishStatus: "draft" | "published";
   description: string;
   authors: AuthorItem[];
   coverImage: string;
@@ -520,6 +532,8 @@ const floatingItems = computed(() => {
 const createDefaultForm = (): PostForm => ({
   title: "",
   slug: "",
+  slugMode: "id",
+  publishStatus: "draft",
   description: "",
   authors: [{ name: "nanoic39", socialUrl: "" }],
   coverImage: "",
@@ -532,6 +546,7 @@ const createDefaultForm = (): PostForm => ({
 });
 
 const form = ref<PostForm>(createDefaultForm());
+const pendingCreateId = ref(String(Date.now()));
 
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
@@ -546,6 +561,61 @@ const computeWordCount = (content: string) =>
     .replace(/[#>*_\-\[\]\(\)!~]/g, " ")
     .replace(/\s+/g, " ")
     .trim().length;
+
+const normalizeSlugText = (value: string) =>
+  String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-+/g, "-");
+
+const buildPinyinSlug = (title: string) => {
+  const py = pinyin(String(title || ""), { toneType: "none", type: "array" });
+  const merged = Array.isArray(py) ? py.join(" ") : String(py || "");
+  return normalizeSlugText(merged);
+};
+
+const buildTitleSlug = (title: string) =>
+  String(title || "")
+    .trim()
+    .replace(/[/?#%]/g, "-")
+    .replace(/\s+/g, "-");
+
+const buildSlugByMode = (mode: PostForm["slugMode"], title: string) => {
+  if (mode === "id") {
+    return isCreateMode.value ? pendingCreateId.value : postId.value;
+  }
+  if (mode === "pinyin") {
+    const pySlug = buildPinyinSlug(title);
+    if (pySlug) return pySlug;
+    return normalizeSlugText(String(title || ""));
+  }
+  return buildTitleSlug(title);
+};
+
+const applyAutoSlug = () => {
+  form.value.slug = buildSlugByMode(form.value.slugMode, form.value.title);
+};
+
+const normalizePublishStatus = (post: any): PostForm["publishStatus"] => {
+  const rawStatus = String(post?.status ?? post?.publishStatus ?? "").toLowerCase();
+  if (rawStatus.includes("draft")) return "draft";
+  if (rawStatus.includes("publish")) return "published";
+  if (post?.isDraft === true) return "draft";
+  if (post?.published === false) return "draft";
+  return "published";
+};
+
+const inferSlugMode = (slug: string, title: string, id: string): PostForm["slugMode"] => {
+  const currentSlug = String(slug || "").trim();
+  if (!currentSlug) return "id";
+  if (currentSlug === String(id || "").trim()) return "id";
+  if (currentSlug === buildPinyinSlug(title)) return "pinyin";
+  if (currentSlug === buildTitleSlug(title)) return "title";
+  return "id";
+};
 
 const estimatedWordCount = computed(() => computeWordCount(form.value.content));
 const hasSelection = computed(() => selectionState.value.end > selectionState.value.start);
@@ -1158,7 +1228,9 @@ const handlePageKeydown = (event: KeyboardEvent) => {
 
 const loadPost = async () => {
   if (isCreateMode.value) {
+    pendingCreateId.value = String(Date.now());
     form.value = createDefaultForm();
+    applyAutoSlug();
     selectedTags.value = [];
     editorComments.value = [];
     saveMessage.value = "";
@@ -1183,6 +1255,8 @@ const loadPost = async () => {
     form.value = {
       title: String(post.title || ""),
       slug: String(post.slug || ""),
+      slugMode: inferSlugMode(String(post.slug || ""), String(post.title || ""), String(post.id || postId.value)),
+      publishStatus: normalizePublishStatus(post),
       description: String(post.description || ""),
       authors:
         authorsRaw.length > 0
@@ -1260,9 +1334,13 @@ const savePost = async () => {
     }))
     .filter((item) => item.name);
   const finalAuthors = authors.length ? authors : [{ name: "nanoic39", socialUrl: "" }];
-  const payload = {
+  const payload: Record<string, any> = {
     title: form.value.title,
     slug: form.value.slug,
+    status: form.value.publishStatus,
+    publishStatus: form.value.publishStatus,
+    isDraft: form.value.publishStatus === "draft",
+    published: form.value.publishStatus === "published",
     description: form.value.description,
     author: finalAuthors.map((item) => item.name).join(" / "),
     authors: finalAuthors,
@@ -1281,7 +1359,12 @@ const savePost = async () => {
           icon: createLicenseIcons(form.value.licenseCc),
         }
       : undefined,
+    slugType: form.value.slugMode,
   };
+  if (isCreateMode.value && form.value.slugMode === "id") {
+    payload.id = pendingCreateId.value;
+    payload.slug = pendingCreateId.value;
+  }
   try {
     if (isCreateMode.value) {
       const result = (await $fetch(withApiBase("/api/admin/posts"), {
@@ -1291,6 +1374,17 @@ const savePost = async () => {
       })) as any;
       const createdId = String(result?.data?.id || result?.id || "").trim();
       if (createdId) {
+        if (form.value.slugMode === "id" && payload.slug !== createdId) {
+          await $fetch(withApiBase(`/api/admin/posts/${createdId}`), {
+            method: "PUT",
+            credentials: "include",
+            body: {
+              ...payload,
+              id: createdId,
+              slug: createdId,
+            },
+          });
+        }
         saveMessage.value = "文章已保存，已进入编辑状态";
         await router.replace(`/admin/dashboard/posts/${createdId}`);
       } else {
@@ -1331,6 +1425,13 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", handleWindowSelectionSync);
   window.removeEventListener("scroll", handleWindowSelectionSync, true);
 });
+
+watch(
+  () => [form.value.title, form.value.slugMode, postId.value, isCreateMode.value],
+  () => {
+    applyAutoSlug();
+  },
+);
 
 watch(
   () => route.params.id,

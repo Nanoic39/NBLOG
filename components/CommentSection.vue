@@ -87,7 +87,7 @@ const resolveCurrentUserAvatar = () => {
   if (picture.startsWith("data:")) {
     return picture;
   }
-  return withApiBase("/api/auth/avatar");
+  return "/api/auth/avatar";
 };
 
 const resolveAssetUrl = (url?: string) => {

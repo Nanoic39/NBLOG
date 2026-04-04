@@ -47,7 +47,10 @@
             <td class="py-2 pr-3">{{ (post.tags || []).join(", ") }}</td>
             <td class="py-2 pr-3">{{ post.wordCount || 0 }}</td>
             <td class="py-2 pr-3">{{ post.views || 0 }}</td>
-            <td class="py-2 pr-3">{{ post.isPinned ? "置顶" : "普通" }}</td>
+            <td class="py-2 pr-3">
+              {{ post.publishStatus === "draft" ? "草稿" : "发布" }}
+              <span class="text-xs text-slate-400 ml-1">· {{ post.isPinned ? "置顶" : "普通" }}</span>
+            </td>
             <td class="py-2 pr-3">
               <div class="flex items-center gap-2">
                 <NuxtLink :to="`/admin/dashboard/posts/${post.id}`" class="text-sky-600 dark:text-sky-300 hover:underline">内容编辑</NuxtLink>
@@ -88,6 +91,7 @@ type PostItem = {
   wordCount: number;
   views: number;
   isPinned: boolean;
+  publishStatus: "draft" | "published";
 };
 
 const isLoading = ref(false);
@@ -106,13 +110,26 @@ const showChildEditor = computed(() =>
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
 
+const normalizePublishStatus = (post: any): PostItem["publishStatus"] => {
+  const rawStatus = String(post?.status ?? post?.publishStatus ?? "").toLowerCase();
+  if (rawStatus.includes("draft")) return "draft";
+  if (rawStatus.includes("publish")) return "published";
+  if (post?.isDraft === true) return "draft";
+  if (post?.published === false) return "draft";
+  return "published";
+};
+
 const loadPosts = async () => {
   isLoading.value = true;
   try {
     const result = (await $fetch(withApiBase("/api/admin/posts"), {
       credentials: "include",
     })) as any;
-    posts.value = Array.isArray(result?.posts) ? result.posts : [];
+    const list = Array.isArray(result?.posts) ? result.posts : [];
+    posts.value = list.map((item: any) => ({
+      ...item,
+      publishStatus: normalizePublishStatus(item),
+    }));
   } catch (error: any) {
     alert(parseError(error));
   } finally {
