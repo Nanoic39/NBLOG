@@ -311,6 +311,17 @@ const maxWeekdayPreference = computed(() =>
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
 
+const logClientError = (scene: string, error: any) => {
+  const payload = {
+    scene,
+    statusCode: Number(error?.statusCode || 0),
+    statusMessage: String(error?.statusMessage || ""),
+    message: String(error?.data?.message || error?.message || ""),
+    data: error?.data || null,
+  };
+  console.error("[NBLOG_CLIENT]", payload, error);
+};
+
 const formatTime = (timestamp: string) => {
   const value = Number(timestamp || 0);
   if (!Number.isFinite(value) || value <= 0) return "-";
@@ -430,6 +441,7 @@ const submitQuickReply = async (comment: LatestCommentItem) => {
     quickReplyMap.value[comment.id] = "";
     await loadOverview();
   } catch (error: any) {
+    logClientError("admin.quick_reply", error);
     alert(parseError(error));
   } finally {
     isReplySubmitting.value = false;
@@ -474,6 +486,7 @@ const loadOverview = async () => {
       : [];
     buildPreferenceCharts(Array.isArray(postsResult?.posts) ? postsResult.posts : []);
   } catch (error: any) {
+    logClientError("admin.load_overview", error);
     alert(parseError(error));
   } finally {
     isLoading.value = false;

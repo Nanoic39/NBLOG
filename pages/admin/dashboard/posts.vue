@@ -132,6 +132,17 @@ const showChildEditor = computed(() =>
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
 
+const logClientError = (scene: string, error: any) => {
+  const payload = {
+    scene,
+    statusCode: Number(error?.statusCode || 0),
+    statusMessage: String(error?.statusMessage || ""),
+    message: String(error?.data?.message || error?.message || ""),
+    data: error?.data || null,
+  };
+  console.error("[NBLOG_CLIENT]", payload, error);
+};
+
 const normalizePublishStatus = (post: any): PostItem["publishStatus"] => {
   const rawStatus = String(
     post?.status ?? post?.publishStatus ?? "",
@@ -155,6 +166,7 @@ const loadPosts = async () => {
       publishStatus: normalizePublishStatus(item),
     }));
   } catch (error: any) {
+    logClientError("admin.posts.load", error);
     alert(parseError(error));
   } finally {
     isLoading.value = false;
@@ -170,6 +182,7 @@ const togglePin = async (post: PostItem) => {
     });
     await loadPosts();
   } catch (error: any) {
+    logClientError("admin.posts.toggle_pin", error);
     alert(parseError(error));
   }
 };
@@ -183,6 +196,7 @@ const removePost = async (id: string) => {
     });
     await loadPosts();
   } catch (error: any) {
+    logClientError("admin.posts.delete", error);
     alert(parseError(error));
   }
 };

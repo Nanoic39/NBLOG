@@ -242,6 +242,7 @@ export const requestUpstream = async <T = any>(
   event: H3Event,
   options: RequestUpstreamOptions,
 ): Promise<T> => {
+  const traceId = getTraceId(event);
   const method = options.method || "GET";
   const auth = options.auth || "none";
   const baseUrl = getUpstreamApiBaseUrl();
@@ -258,6 +259,7 @@ export const requestUpstream = async <T = any>(
   if (token) headers.Authorization = `Bearer ${token}`;
   const bearerToken = String(headers.Authorization || "").replace(/^Bearer\s+/i, "");
   debugProxyLog(event, "upstream.request", {
+    traceId,
     method,
     auth,
     path,
@@ -280,6 +282,7 @@ export const requestUpstream = async <T = any>(
   if (!response.ok) {
     const message = pickErrorMessage(response._data, "上游服务返回异常");
     debugProxyLog(event, "upstream.response_error", {
+      traceId,
       method,
       path,
       statusCode: response.status,
@@ -289,9 +292,19 @@ export const requestUpstream = async <T = any>(
       statusCode: response.status,
       statusMessage: `Upstream_${response.status}`,
       message,
+      data: {
+        traceId,
+        path,
+        method,
+        auth,
+        hasAuthorization: Boolean(headers.Authorization),
+        tokenLength: bearerToken.length,
+        tokenLooksJwt: bearerToken.split(".").length === 3,
+      },
     });
   }
   debugProxyLog(event, "upstream.response_ok", {
+    traceId,
     method,
     path,
     statusCode: response.status,
