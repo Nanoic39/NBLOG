@@ -1,42 +1,55 @@
-import { subscribeDoing } from "../../utils/doing-channel";
-import { readDoing } from "../../utils/doing-store";
+import { createError } from "h3";
+import { getSessionUser } from "../../utils/session";
 
 export default defineEventHandler(async (event) => {
-  setHeader(event, "Content-Type", "text/event-stream");
+  const config = useRuntimeConfig();
+  const baseUrl = String(config.public.oauthApiBaseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
+  if (!baseUrl) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "上游接口地址未配置",
+    });
+  }
+  const user = getSessionUser(event);
+  const token = String(user?.access_token || "").trim();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const upstream = await fetch(`${baseUrl}/api/doing/stream`, {
+    method: "GET",
+    headers,
+  });
+  if (!upstream.ok || !upstream.body) {
+    throw createError({
+      statusCode: upstream.status || 502,
+      statusMessage: "连接状态流失败",
+    });
+  }
+
+  const contentType = upstream.headers.get("content-type") || "text/event-stream";
+  setHeader(event, "Content-Type", contentType);
   setHeader(event, "Cache-Control", "no-cache, no-transform");
   setHeader(event, "Connection", "keep-alive");
 
+  const reader = upstream.body.getReader();
   const res = event.node.res;
 
-  const sendEvent = (type: string, payload: unknown) => {
-    res.write(`event: ${type}\n`);
-    res.write(`data: ${JSON.stringify(payload)}\n\n`);
-  };
-
-  const current = await readDoing();
-  sendEvent("snapshot", {
-    data: current,
-    ts: Date.now(),
+  event.node.req.on("close", async () => {
+    try {
+      await reader.cancel();
+    } catch {}
+    if (!res.writableEnded) res.end();
   });
 
-  const unsubscribe = subscribeDoing((data) => {
-    sendEvent("update", {
-      data,
-      ts: Date.now(),
-    });
-  });
-
-  const heartbeatTimer = setInterval(() => {
-    sendEvent("ping", {
-      ts: Date.now(),
-    });
-  }, 25000);
-
-  event.node.req.on("close", () => {
-    clearInterval(heartbeatTimer);
-    unsubscribe();
-    res.end();
-  });
-
-  return new Promise(() => {});
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value?.length) {
+      res.write(Buffer.from(value));
+    }
+  }
+  if (!res.writableEnded) res.end();
+  return;
 });

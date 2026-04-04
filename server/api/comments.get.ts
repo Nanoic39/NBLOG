@@ -1,33 +1,28 @@
-import { readCommentsStore } from "../utils/comments-store";
+import { requestUpstream, unwrapApiData } from "../utils/session";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
-  const articleId = String(query.articleId || "").trim();
-  const page = Math.max(1, Number(query.page || 1) || 1);
-  const size = Math.max(1, Math.min(100, Number(query.size || 100) || 100));
-
-  try {
-    let comments = await readCommentsStore();
-
-    if (articleId) {
-      comments = comments.filter((c: any) => String(c.articleId) === articleId);
-    }
-    comments = comments.sort((a: any, b: any) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
-    const start = (page - 1) * size;
-    const sliced = comments.slice(start, start + size);
-    return {
-      data: sliced,
-      total: comments.length,
-      page,
-      size,
-    };
-  } catch (error) {
-    console.error("Error reading comments store:", error);
-    return {
-      data: [],
-      total: 0,
-      page,
-      size,
-    };
-  }
+  const upstream = await requestUpstream<any>(event, {
+    path: "/api/comments",
+    query,
+  });
+  const payload = unwrapApiData<any>(upstream);
+  const data = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload?.comments)
+        ? payload.comments
+        : Array.isArray(payload?.list)
+          ? payload.list
+          : [];
+  const total = Number(payload?.total ?? payload?.count ?? data.length) || data.length;
+  const page = Number(query.page || payload?.page || 1) || 1;
+  const size = Number(query.size || payload?.size || data.length || 20) || 20;
+  return {
+    data,
+    total,
+    page,
+    size,
+  };
 });

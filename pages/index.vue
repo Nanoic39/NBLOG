@@ -548,6 +548,17 @@ interface NoticeItem {
   }>;
 }
 
+interface LatestPostsResponse {
+  posts?: any[];
+  total?: number;
+  hasMore?: boolean;
+  meta?: {
+    page?: number;
+    size?: number;
+    returned?: number;
+  };
+}
+
 // 获取文章数据
 const route = useRoute();
 const router = useRouter();
@@ -572,9 +583,9 @@ const selectedTag = computed(() => {
 });
 
 // 首次加载
-const { data: initialData } = await useFetch("/api/posts/latest", {
+const { data: initialData } = await useFetch<LatestPostsResponse | null>("/api/posts/latest", {
   credentials: "include",
-  transform: (response) => unwrapApiData(response),
+  transform: (response) => unwrapApiData<LatestPostsResponse>(response),
   query: { page: page, size, tag: selectedTag },
   watch: [page, selectedTag],
 });
@@ -635,10 +646,6 @@ watchEffect(() => {
         coverImage: coverUrl
       };
       
-      // 持久化缓存到 localStorage
-      if (import.meta.client) {
-        localStorage.setItem(`post_cover_${post.slug}`, coverUrl);
-      }
     });
   }
 });

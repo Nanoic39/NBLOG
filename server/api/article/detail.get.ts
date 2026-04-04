@@ -1,4 +1,5 @@
-import { readPostsStore, savePostsStore } from "../../utils/posts-store";
+import { createError } from "h3";
+import { requestUpstream, unwrapApiData } from "../../utils/session";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
@@ -10,36 +11,34 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const store = await readPostsStore();
-  const pinnedIndex = store.pinned.findIndex((item) => item.slug === slug);
-  const regularIndex = store.regular.findIndex((item) => item.slug === slug);
-
-  if (pinnedIndex >= 0) {
-    const target = store.pinned[pinnedIndex]!;
-    const next = { ...target, views: Number(target.views || 0) + 1 };
-    store.pinned[pinnedIndex] = next;
-    await savePostsStore(store);
-    return {
-      ...next,
-      editDate: String(Date.now()),
-      content: next.content || `# ${next.title}\n\n${next.description}`,
-    };
-  }
-
-  if (regularIndex >= 0) {
-    const target = store.regular[regularIndex]!;
-    const next = { ...target, views: Number(target.views || 0) + 1 };
-    store.regular[regularIndex] = next;
-    await savePostsStore(store);
-    return {
-      ...next,
-      editDate: String(Date.now()),
-      content: next.content || `# ${next.title}\n\n${next.description}`,
-    };
-  }
-
-  throw createError({
-    statusCode: 404,
-    statusMessage: "未找到对应文章",
+  const listRaw = await requestUpstream<any>(event, {
+    path: "/api/posts/latest",
+    query: { page: 1, size: 500 },
   });
+  const listPayload = unwrapApiData<any>(listRaw);
+  const list = Array.isArray(listPayload)
+    ? listPayload
+    : Array.isArray(listPayload?.posts)
+      ? listPayload.posts
+      : Array.isArray(listPayload?.list)
+        ? listPayload.list
+        : Array.isArray(listPayload?.records)
+          ? listPayload.records
+          : [];
+  const hit = list.find((item: any) => String(item?.slug || "").trim() === slug);
+  if (!hit?.id) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "未找到对应文章",
+    });
+  }
+  const detailRaw = await requestUpstream<any>(event, {
+    path: `/api/posts/${encodeURIComponent(String(hit.id))}`,
+  });
+  const detail = unwrapApiData<any>(detailRaw);
+  return {
+    ...detail,
+    editDate: String(Date.now()),
+    content: detail?.content || `# ${detail?.title || ""}\n\n${detail?.description || ""}`,
+  };
 });

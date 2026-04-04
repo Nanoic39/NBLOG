@@ -1096,17 +1096,12 @@ const unwrapApiData = <T,>(
 const postCache = useState<Record<string, any>>("postCache", () => ({}));
 const cachedPost = computed(() => postCache.value[articleSlug]);
 
-const localCachedCover = ref<string | null>(null);
 onMounted(() => {
   transitionReady.value = true;
-  if (import.meta.client) {
-    localCachedCover.value = localStorage.getItem(`post_cover_${articleSlug}`);
-  }
 });
 
 const displayCoverImage = computed(() => {
   return (
-    localCachedCover.value ||
     cachedPost.value?.coverImage ||
     article.value?.coverImage ||
     (article.value ? `https://www.loliapi.com/acg/?id=${article.value.id}` : "")

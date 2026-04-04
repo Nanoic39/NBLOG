@@ -1,13 +1,21 @@
-import { readPostsStore } from "../../utils/posts-store";
-import { requireAdmin } from "../../utils/session";
+import { requestUpstream, unwrapApiData } from "../../utils/session";
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event);
-  const store = await readPostsStore();
+  const upstream = await requestUpstream<any>(event, {
+    path: "/api/admin/posts",
+    auth: "admin",
+  });
+  const payload = unwrapApiData<any>(upstream);
+  const posts = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.posts)
+      ? payload.posts
+      : Array.isArray(payload?.list)
+        ? payload.list
+        : Array.isArray(payload?.records)
+          ? payload.records
+          : [];
   return {
-    posts: [
-      ...store.pinned.map((item) => ({ ...item, isPinned: true })),
-      ...store.regular.map((item) => ({ ...item, isPinned: false })),
-    ],
+    posts,
   };
 });

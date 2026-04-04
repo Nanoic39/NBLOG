@@ -1,43 +1,40 @@
-import { getAllPostsWithFlag } from "../../utils/posts-store";
+import { requestUpstream, unwrapApiData } from "../../utils/session";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
-
-  let page = parseInt(query.page as string);
-  const sizeRaw = parseInt(query.size as string);
-  const limitRaw = parseInt(query.limit as string);
-  let size = Number.isFinite(sizeRaw) && sizeRaw > 0 ? sizeRaw : limitRaw;
-  const tag = String(query.tag || "").trim();
-  const keyword = String(query.keyword || "").trim().toLowerCase();
-
-  if (isNaN(page) || page < 1) page = 1;
-  if (isNaN(size) || size < 1) size = 10;
-
-  const allPosts = await getAllPostsWithFlag();
-  const filtered = allPosts.filter((post) => {
-    const matchTag = tag
-      ? Array.isArray(post.tags) && post.tags.includes(tag)
-      : true;
-    const matchKeyword = keyword
-      ? String(post.title || "").toLowerCase().includes(keyword) ||
-        String(post.description || "").toLowerCase().includes(keyword)
-      : true;
-    return matchTag && matchKeyword;
+  const upstream = await requestUpstream<any>(event, {
+    path: "/api/posts/latest",
+    query,
   });
-
-  const startIndex = (page - 1) * size;
-  const endIndex = startIndex + size;
-
-  const paginatedPosts = filtered.slice(startIndex, endIndex);
+  const payload = unwrapApiData<any>(upstream);
+  const list = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.posts)
+      ? payload.posts
+      : Array.isArray(payload?.list)
+        ? payload.list
+        : Array.isArray(payload?.records)
+          ? payload.records
+          : [];
+  const totalRaw =
+    Number(payload?.total ?? payload?.count ?? payload?.meta?.total ?? list.length) || list.length;
+  const pageRaw = Number(query.page || payload?.page || payload?.meta?.page || 1);
+  const sizeRaw = Number(query.size || query.limit || payload?.size || payload?.meta?.size || list.length || 10);
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+  const size = Number.isFinite(sizeRaw) && sizeRaw > 0 ? sizeRaw : 10;
+  const hasMore =
+    typeof payload?.hasMore === "boolean"
+      ? payload.hasMore
+      : page * size < totalRaw;
 
   return {
-    posts: paginatedPosts,
-    total: filtered.length,
-    hasMore: endIndex < filtered.length,
+    posts: list,
+    total: totalRaw,
+    hasMore,
     meta: {
       page,
       size,
-      returned: paginatedPosts.length,
+      returned: list.length,
     },
   };
 });

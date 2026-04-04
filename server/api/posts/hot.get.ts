@@ -1,28 +1,40 @@
-import { getAllPostsWithFlag } from "../../utils/posts-store";
+import { requestUpstream, unwrapApiData } from "../../utils/session";
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event);
-  let page = parseInt(query.page as string);
-  const sizeRaw = parseInt(query.size as string);
-  const limitRaw = parseInt(query.limit as string);
-  let size = Number.isFinite(sizeRaw) && sizeRaw > 0 ? sizeRaw : limitRaw;
-  if (isNaN(page) || page < 1) page = 1;
-  if (isNaN(size) || size < 1) size = 10;
-
-  const allPosts = await getAllPostsWithFlag();
-  const hotPosts = [...allPosts].sort((a, b) => (b.views || 0) - (a.views || 0));
-  const startIndex = (page - 1) * size;
-  const endIndex = startIndex + size;
-  const paginatedPosts = hotPosts.slice(startIndex, endIndex);
+  const upstream = await requestUpstream<any>(event, {
+    path: "/api/posts/hot",
+    query,
+  });
+  const payload = unwrapApiData<any>(upstream);
+  const list = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.posts)
+      ? payload.posts
+      : Array.isArray(payload?.list)
+        ? payload.list
+        : Array.isArray(payload?.records)
+          ? payload.records
+          : [];
+  const totalRaw =
+    Number(payload?.total ?? payload?.count ?? payload?.meta?.total ?? list.length) || list.length;
+  const pageRaw = Number(query.page || payload?.page || payload?.meta?.page || 1);
+  const sizeRaw = Number(query.size || query.limit || payload?.size || payload?.meta?.size || list.length || 10);
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+  const size = Number.isFinite(sizeRaw) && sizeRaw > 0 ? sizeRaw : 10;
+  const hasMore =
+    typeof payload?.hasMore === "boolean"
+      ? payload.hasMore
+      : page * size < totalRaw;
 
   return {
-    posts: paginatedPosts,
-    total: hotPosts.length,
-    hasMore: endIndex < hotPosts.length,
+    posts: list,
+    total: totalRaw,
+    hasMore,
     meta: {
       page,
       size,
-      returned: paginatedPosts.length,
+      returned: list.length,
     },
   };
 });

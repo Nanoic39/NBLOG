@@ -1,22 +1,12 @@
-import { getAllPostsWithFlag } from "../utils/posts-store";
+import { requestUpstream, unwrapApiData } from "../utils/session";
 
-export default defineEventHandler(async () => {
-  const allPosts = await getAllPostsWithFlag();
-
-  const tagsMap = new Map<string, number>();
-
-  allPosts.forEach((post) => {
-    if (post.tags && Array.isArray(post.tags)) {
-      post.tags.forEach((tag) => {
-        tagsMap.set(tag, (tagsMap.get(tag) || 0) + 1);
-      });
-    }
+export default defineEventHandler(async (event) => {
+  const upstream = await requestUpstream<any>(event, {
+    path: "/api/tags",
   });
-
-  // Convert to array and sort by count (descending)
-  const tags = Array.from(tagsMap.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
-
-  return tags;
+  const payload = unwrapApiData<any>(upstream);
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.tags)) return payload.tags;
+  if (Array.isArray(payload?.list)) return payload.list;
+  return [];
 });

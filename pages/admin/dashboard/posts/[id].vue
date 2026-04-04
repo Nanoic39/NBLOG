@@ -52,6 +52,9 @@
               {{ item.label }}
             </button>
           </div>
+          <p class="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+            快捷键：Ctrl/⌘+S 保存，Ctrl/⌘+B 加粗，Ctrl/⌘+I 斜体，Ctrl/⌘+K 链接，Ctrl/⌘+Shift+X 删除线，Ctrl/⌘+Shift+L 布局菜单
+          </p>
         </div>
 
         <div class="grid xl:grid-cols-2 gap-4">
@@ -66,6 +69,7 @@
               @input="handleEditorInteraction"
               @select="handleEditorInteraction"
               @keyup="handleEditorInteraction"
+              @keydown="handleEditorKeydown"
               @mouseup="handleEditorInteraction"
               @scroll="syncFloatingToolbar"
             ></textarea>
@@ -323,7 +327,12 @@ type ToolbarKey =
   | "math"
   | "custom"
   | "divider"
-  | "layout"
+  | "layoutMenu"
+  | "alignLeft"
+  | "alignCenter"
+  | "alignRight"
+  | "imageGrid2"
+  | "imageGrid3"
   | "imageCenter"
   | "imageCaption";
 
@@ -371,7 +380,12 @@ const toolbarItems: Array<{
   { key: "math", label: "公式" },
   { key: "custom", label: "提示块" },
   { key: "divider", label: "分割线" },
-  { key: "layout", label: "布局" },
+  { key: "layoutMenu", label: "布局设置" },
+  { key: "alignLeft", label: "左对齐", requiresSelection: true },
+  { key: "alignCenter", label: "居中", requiresSelection: true },
+  { key: "alignRight", label: "右对齐", requiresSelection: true },
+  { key: "imageGrid2", label: "双图排版" },
+  { key: "imageGrid3", label: "三图排版" },
 ];
 
 const floatingItems = computed(() => {
@@ -690,6 +704,56 @@ const insertAtSelection = (snippet: string) => {
   focusEditorSelection(cursor, cursor);
 };
 
+const replaceSelection = (nextText: string, fallback = "布局内容") => {
+  const editor = editorRef.value;
+  if (!editor) return;
+  const value = form.value.content;
+  const start = editor.selectionStart || 0;
+  const end = editor.selectionEnd || 0;
+  const selected = start === end ? fallback : value.slice(start, end);
+  const text = nextText.replace(/\{\{content\}\}/g, selected);
+  form.value.content = `${value.slice(0, start)}${text}${value.slice(end)}`;
+  focusEditorSelection(start, start + text.length);
+};
+
+const extractImageUrls = (text: string) => {
+  const source = String(text || "");
+  const urls: string[] = [];
+  const markdownRegex = /!\[[^\]]*\]\(([^)]+)\)/g;
+  const htmlRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/g;
+  let match: RegExpExecArray | null = null;
+  while ((match = markdownRegex.exec(source))) {
+    const url = String(match[1] || "").trim();
+    if (url) urls.push(url);
+  }
+  while ((match = htmlRegex.exec(source))) {
+    const url = String(match[1] || "").trim();
+    if (url) urls.push(url);
+  }
+  return Array.from(new Set(urls));
+};
+
+const buildImageGridLayout = (count: 2 | 3) => {
+  const selected = selectionState.value.text;
+  const urls = extractImageUrls(selected);
+  const fallbackUrls =
+    count === 2
+      ? ["https://example.com/image-1.png", "https://example.com/image-2.png"]
+      : [
+          "https://example.com/image-1.png",
+          "https://example.com/image-2.png",
+          "https://example.com/image-3.png",
+        ];
+  const finalUrls = Array.from({ length: count }, (_, index) => urls[index] || fallbackUrls[index]);
+  const columns = count === 2 ? "repeat(2,minmax(0,1fr))" : "repeat(3,minmax(0,1fr))";
+  return `\n<div class="image-layout image-layout-${count}" style="display:grid;grid-template-columns:${columns};gap:12px;align-items:start;">\n${finalUrls
+    .map(
+      (url, index) =>
+        `  <figure style="margin:0;">\n    <img src="${url}" alt="图片${index + 1}" style="width:100%;display:block;border-radius:10px;" />\n  </figure>`,
+    )
+    .join("\n")}\n</div>\n`;
+};
+
 const isWrappedBy = (
   value: string,
   start: number,
@@ -808,11 +872,68 @@ const applyToolbar = (key: ToolbarKey) => {
   if (key === "math") return insertAtSelection("\n$$\na^2+b^2=c^2\n$$\n");
   if (key === "custom") return insertAtSelection("\n:::info\n提示内容\n:::\n");
   if (key === "divider") return insertAtSelection("\n---\n");
-  if (key === "layout") {
-    return insertAtSelection("\n<div class=\"grid grid-cols-2 gap-4\">\n<div>左侧</div>\n<div>右侧</div>\n</div>\n");
+  if (key === "layoutMenu") {
+    const raw = import.meta.client
+      ? window.prompt("输入布局类型：left / center / right / grid2 / grid3", "center") || ""
+      : "";
+    const mode = raw.trim().toLowerCase();
+    if (mode === "left") return applyToolbar("alignLeft");
+    if (mode === "right") return applyToolbar("alignRight");
+    if (mode === "grid2") return applyToolbar("imageGrid2");
+    if (mode === "grid3") return applyToolbar("imageGrid3");
+    return applyToolbar("alignCenter");
   }
+  if (key === "alignLeft") {
+    return replaceSelection('<div style="text-align:left;">{{content}}</div>');
+  }
+  if (key === "alignCenter") {
+    return replaceSelection('<div style="text-align:center;">{{content}}</div>');
+  }
+  if (key === "alignRight") {
+    return replaceSelection('<div style="text-align:right;">{{content}}</div>');
+  }
+  if (key === "imageGrid2") return insertAtSelection(buildImageGridLayout(2));
+  if (key === "imageGrid3") return insertAtSelection(buildImageGridLayout(3));
   if (key === "imageCenter") return toggleSelectionWrap('<div class="text-center">', "</div>");
   if (key === "imageCaption") return insertAtSelection("\n<figcaption>图片说明</figcaption>\n");
+};
+
+const handleEditorKeydown = (event: KeyboardEvent) => {
+  if (event.isComposing) return;
+  const isModifier = event.ctrlKey || event.metaKey;
+  if (!isModifier) return;
+  const key = event.key.toLowerCase();
+  if (key === "s") {
+    event.preventDefault();
+    if (!isSaving.value) {
+      void savePost();
+    }
+    return;
+  }
+  if (key === "b") {
+    event.preventDefault();
+    applyToolbar("bold");
+    return;
+  }
+  if (key === "i") {
+    event.preventDefault();
+    applyToolbar("italic");
+    return;
+  }
+  if (key === "k") {
+    event.preventDefault();
+    applyToolbar("link");
+    return;
+  }
+  if (event.shiftKey && key === "x") {
+    event.preventDefault();
+    applyToolbar("strike");
+    return;
+  }
+  if (event.shiftKey && key === "l") {
+    event.preventDefault();
+    applyToolbar("layoutMenu");
+  }
 };
 
 const loadPost = async () => {
