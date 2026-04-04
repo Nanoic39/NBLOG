@@ -246,6 +246,12 @@ type ChartItem = {
 };
 
 const isLoading = ref(false);
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 const stats = ref<Stats>({
   postTotal: 0,
   pinnedTotal: 0,
@@ -415,7 +421,7 @@ const submitQuickReply = async (comment: LatestCommentItem) => {
   if (!content) return;
   isReplySubmitting.value = true;
   try {
-    await $fetch(`/api/comments/${comment.id}/reply`, {
+    await $fetch(withApiBase(`/api/comments/${comment.id}/reply`), {
       method: "POST",
       credentials: "include",
       body: {
@@ -436,10 +442,10 @@ const loadOverview = async () => {
   isLoading.value = true;
   try {
     const [result, postsResult] = (await Promise.all([
-      $fetch("/api/admin/overview", {
+      $fetch(withApiBase("/api/admin/overview"), {
         credentials: "include",
       }),
-      $fetch("/api/admin/posts", {
+      $fetch(withApiBase("/api/admin/posts"), {
         credentials: "include",
       }),
     ])) as [any, any];

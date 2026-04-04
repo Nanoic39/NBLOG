@@ -6,6 +6,12 @@ const { initDarkMode } = useDarkMode();
 
 const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 50;
@@ -29,7 +35,7 @@ const { user, login, logout, isAdmin } = useAuth();
 const getAvatarUrl = (picture: string) => {
   if (!picture) return "";
   if (picture.startsWith("data:")) return picture;
-  return "/api/auth/avatar";
+  return withApiBase("/api/auth/avatar");
 };
 
 const menuItems = [

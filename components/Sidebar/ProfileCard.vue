@@ -153,6 +153,12 @@ import { marked } from "marked";
 import { useHeadImage } from '~/composables/useHeadImage';
 
 const headImage = useHeadImage();
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 
 defineProps<{
   postCount?: number;
@@ -160,7 +166,7 @@ defineProps<{
   tagCount?: number;
 }>();
 
-const { data: noticeData } = await useFetch('/api/notice', {
+const { data: noticeData } = await useFetch(withApiBase('/api/notice'), {
   credentials: 'include'
 });
 

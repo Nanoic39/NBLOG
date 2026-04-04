@@ -70,6 +70,12 @@ type TagItem = {
 const isLoading = ref(false);
 const tags = ref<TagItem[]>([]);
 const renameMap = ref<Record<string, string>>({});
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
@@ -77,7 +83,7 @@ const parseError = (error: any) =>
 const loadTags = async () => {
   isLoading.value = true;
   try {
-    const result = (await $fetch("/api/admin/tags", {
+    const result = (await $fetch(withApiBase("/api/admin/tags"), {
       credentials: "include",
     })) as any;
     tags.value = Array.isArray(result?.tags) ? result.tags : [];
@@ -100,7 +106,7 @@ const renameTag = async (name: string) => {
     return;
   }
   try {
-    await $fetch("/api/admin/tags", {
+    await $fetch(withApiBase("/api/admin/tags"), {
       method: "POST",
       credentials: "include",
       body: {
@@ -118,7 +124,7 @@ const renameTag = async (name: string) => {
 const deleteTag = async (name: string) => {
   if (!window.confirm(`确认删除标签「${name}」吗？`)) return;
   try {
-    await $fetch("/api/admin/tags", {
+    await $fetch(withApiBase("/api/admin/tags"), {
       method: "POST",
       credentials: "include",
       body: {

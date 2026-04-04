@@ -35,12 +35,17 @@
         </select>
         <input v-model="noticeForm.title" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="通知标题" />
         <textarea v-model="noticeForm.content" rows="4" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="通知内容"></textarea>
-        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-          <input
-            v-model="noticeForm.active"
-            type="checkbox"
-            class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-2 focus:ring-sky-500/35 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-sky-500 dark:checked:border-sky-500"
-          />
+        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+          <span class="relative inline-flex h-5 w-5 items-center justify-center">
+            <input
+              v-model="noticeForm.active"
+              type="checkbox"
+              class="peer absolute inset-0 h-full w-full appearance-none rounded-md border border-slate-300 bg-white/90 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/35 checked:border-sky-500 checked:bg-sky-500 dark:border-slate-600 dark:bg-slate-900/80 dark:checked:border-sky-500 dark:checked:bg-sky-500"
+            />
+            <svg class="pointer-events-none h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100" viewBox="0 0 20 20" fill="none">
+              <path d="M5 10.5L8.2 13.5L15 6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
           启用通知展示
         </label>
         <button
@@ -79,6 +84,12 @@ const noticeForm = ref({
   content: "",
   active: true,
 });
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
@@ -114,7 +125,7 @@ const fromLocalDatetimeValue = (value: string) => {
 
 const loadData = async () => {
   try {
-    const result = (await $fetch("/api/admin/overview", {
+    const result = (await $fetch(withApiBase("/api/admin/overview"), {
       credentials: "include",
     })) as any;
     doingForm.value = {
@@ -144,7 +155,7 @@ const saveDoing = async () => {
     doingForm.value.startTime = String(
       Number.isFinite(selectedTimestamp) ? selectedTimestamp : Date.now(),
     );
-    const doingApi = "/api/doing" as string;
+    const doingApi = withApiBase("/api/doing") as string;
     await $fetch(doingApi, {
       method: "POST",
       credentials: "include",
@@ -161,7 +172,7 @@ const saveDoing = async () => {
 const saveNotice = async () => {
   isSavingNotice.value = true;
   try {
-    const noticeApi = "/api/notice" as string;
+    const noticeApi = withApiBase("/api/notice") as string;
     await $fetch(noticeApi, {
       method: "POST",
       credentials: "include",

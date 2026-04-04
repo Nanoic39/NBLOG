@@ -1078,6 +1078,12 @@ marked.use({
 
 const route = useRoute();
 const router = useRouter();
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 const articleSlug = route.params.slug as string;
 const unwrapApiData = <T,>(
   response: T | { data?: T } | null | undefined,
@@ -1123,13 +1129,13 @@ const {
   data: article,
   pending,
   error,
-} = await useFetch(`/api/article/detail`, {
+} = await useFetch(withApiBase(`/api/article/detail`), {
   credentials: "include",
   transform: (response) => unwrapApiData(response),
   query: { slug: articleSlug },
 });
 
-const { data: latestPostsData } = await useFetch(`/api/posts/latest`, {
+const { data: latestPostsData } = await useFetch(withApiBase(`/api/posts/latest`), {
   credentials: "include",
   transform: (response) => unwrapApiData(response),
   query: { page: 1, size: 12 },

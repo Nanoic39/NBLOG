@@ -92,6 +92,12 @@ type HotPost = {
   views?: number;
   pubDate: string;
 };
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 
 const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
   if (!response) return null;
@@ -101,7 +107,7 @@ const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | nu
   return response as T;
 };
 
-const { data: hotPosts } = await useFetch("/api/posts/hot", {
+const { data: hotPosts } = await useFetch(withApiBase("/api/posts/hot"), {
   credentials: 'include',
   transform: (response) => unwrapApiData(response),
   query: { page: 1, size: 3 },

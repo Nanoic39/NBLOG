@@ -93,6 +93,12 @@ type PostItem = {
 const isLoading = ref(false);
 const posts = ref<PostItem[]>([]);
 const route = useRoute();
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 const showChildEditor = computed(() =>
   String(route.path || "").startsWith("/admin/dashboard/posts/"),
 );
@@ -103,7 +109,7 @@ const parseError = (error: any) =>
 const loadPosts = async () => {
   isLoading.value = true;
   try {
-    const result = (await $fetch("/api/admin/posts", {
+    const result = (await $fetch(withApiBase("/api/admin/posts"), {
       credentials: "include",
     })) as any;
     posts.value = Array.isArray(result?.posts) ? result.posts : [];
@@ -116,7 +122,7 @@ const loadPosts = async () => {
 
 const togglePin = async (post: PostItem) => {
   try {
-    await $fetch(`/api/admin/posts/${post.id}`, {
+    await $fetch(withApiBase(`/api/admin/posts/${post.id}`), {
       method: "PUT",
       credentials: "include",
       body: { isPinned: !post.isPinned },
@@ -130,7 +136,7 @@ const togglePin = async (post: PostItem) => {
 const removePost = async (id: string) => {
   if (!window.confirm("确认删除这篇文章吗？")) return;
   try {
-    await $fetch(`/api/admin/posts/${id}`, {
+    await $fetch(withApiBase(`/api/admin/posts/${id}`), {
       method: "DELETE",
       credentials: "include",
     });

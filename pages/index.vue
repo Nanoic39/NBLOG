@@ -187,10 +187,14 @@
         v-if="noticeData.active && (noticeData.title || noticeData.content)"
         class="mb-8 rounded-xl border border-[#0284C7]/20 dark:border-[#38bdf8]/25 bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md px-4 py-3 shadow-lg lg:hidden"
       >
-        <p class="text-xs uppercase tracking-wider text-[#0284C7] dark:text-[#38bdf8]">
+        <p
+          class="text-xs uppercase tracking-wider text-[#0284C7] dark:text-[#38bdf8]"
+        >
           全局通知 · {{ noticeData.type || noticeData.theme || "info" }}
         </p>
-        <p class="mt-1 text-base font-semibold text-[#2A2E33] dark:text-[#e0e0e0]">
+        <p
+          class="mt-1 text-base font-semibold text-[#2A2E33] dark:text-[#e0e0e0]"
+        >
           {{ noticeData.title }}
         </p>
         <div
@@ -239,12 +243,14 @@
             <div class="w-full md:w-2/5 p-3 shrink-0 h-56 md:h-auto">
               <div
                 class="relative w-full h-full rounded-lg overflow-hidden"
-                :style="getTransitionStyle('article-cover', getPostTransitionId(post))"
+                :style="
+                  getTransitionStyle('article-cover', getPostTransitionId(post))
+                "
               >
                 <img
                   :src="
                     post.coverImage ||
-                    `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(String(post.id || post.slug || 'post'))}`
+                    `https://www.loliapi.com/acg/?id=${encodeURIComponent(String(post.id || post.slug || 'post'))}`
                   "
                   :alt="post.title"
                   class="w-full h-full object-cover transition-transform duration-700"
@@ -288,20 +294,25 @@
                 </div>
                 <h3
                   class="text-xl md:text-2xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-3 group-hover:text-[#0284C7] dark:group-hover:text-[#38bdf8] transition-colors duration-300 line-clamp-1"
-                  :style="getTransitionStyle('article-title', getPostTransitionId(post))"
+                  :style="
+                    getTransitionStyle(
+                      'article-title',
+                      getPostTransitionId(post),
+                    )
+                  "
                 >
                   {{ post.title }}
                 </h3>
                 <p
-                    class="text-sm md:text-base text-[#6B7280] dark:text-[#9ca3af] mb-4 line-clamp-2 md:line-clamp-3 leading-relaxed"
-                  >
-                    {{ post.description }}
-                  </p>
-                </div>
-
-                <div
-                  class="flex items-center justify-between text-xs md:text-sm text-[#9CA3AF] pt-4 border-t border-gray-100 dark:border-gray-800"
+                  class="text-sm md:text-base text-[#6B7280] dark:text-[#9ca3af] mb-4 line-clamp-2 md:line-clamp-3 leading-relaxed"
                 >
+                  {{ post.description }}
+                </p>
+              </div>
+
+              <div
+                class="flex items-center justify-between text-xs md:text-sm text-[#9CA3AF] pt-4 border-t border-gray-100 dark:border-gray-800"
+              >
                 <div class="flex items-center gap-3">
                   <span class="text-xs opacity-75 font-mono">{{
                     formatDate(post.pubDate)
@@ -563,9 +574,22 @@ interface LatestPostsResponse {
 // 获取文章数据
 const route = useRoute();
 const router = useRouter();
-const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "")
+  .trim()
+  .replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
+const unwrapApiData = <T,>(
+  response: T | { data?: T } | null | undefined,
+): T | null => {
   if (!response) return null;
-  if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+  if (
+    typeof response === "object" &&
+    "data" in (response as Record<string, unknown>)
+  ) {
     return ((response as { data?: T }).data ?? null) as T | null;
   }
   return response as T;
@@ -584,14 +608,17 @@ const selectedTag = computed(() => {
 });
 
 // 首次加载
-const { data: initialData } = await useFetch<LatestPostsResponse | null>("/api/posts/latest", {
-  credentials: "include",
-  transform: (response) => unwrapApiData<LatestPostsResponse>(response),
-  query: { page: page, size, tag: selectedTag },
-  watch: [page, selectedTag],
-});
+const { data: initialData } = await useFetch<LatestPostsResponse | null>(
+  withApiBase("/api/posts/latest"),
+  {
+    credentials: "include",
+    transform: (response) => unwrapApiData<LatestPostsResponse>(response),
+    query: { page: page, size, tag: selectedTag },
+    watch: [page, selectedTag],
+  },
+);
 
-const { data: noticeResponse } = await useFetch("/api/notice", {
+const { data: noticeResponse } = await useFetch(withApiBase("/api/notice"), {
   credentials: "include",
   transform: (response) => unwrapApiData(response),
 });
@@ -629,18 +656,20 @@ const latestPosts = computed(() => initialData.value?.posts || []);
 const filteredPosts = computed(() => {
   const tag = selectedTag.value;
   if (!tag) return latestPosts.value;
-  return latestPosts.value.filter((post: any) => Array.isArray(post?.tags) && post.tags.includes(tag));
+  return latestPosts.value.filter(
+    (post: any) => Array.isArray(post?.tags) && post.tags.includes(tag),
+  );
 });
 totalPosts.value = initialData.value?.total || 0;
 
 // 缓存文章列表中的封面图和标题，用于详情页平滑过渡
-const postCache = useState<Record<string, any>>('postCache', () => ({}));
+const postCache = useState<Record<string, any>>("postCache", () => ({}));
 watchEffect(() => {
   if (latestPosts.value) {
     latestPosts.value.forEach((post: any, index: number) => {
       const coverUrl =
         post.coverImage ||
-        `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(String(post.id || post.slug || "post"))}`;
+        `https://www.loliapi.com/acg/?id=${encodeURIComponent(String(post.id || post.slug || "post"))}`;
       const transitionKey = `p${page.value}-${index + 1}`;
       postCache.value[post.slug] = {
         id: post.id,
@@ -648,7 +677,6 @@ watchEffect(() => {
         coverImage: coverUrl,
         transitionKey,
       };
-      
     });
   }
 });
@@ -661,7 +689,13 @@ const getPostTransitionId = (post: any) => {
 const openPost = async (event: MouseEvent, slug: string) => {
   if (!import.meta.client) return;
   if (event.defaultPrevented) return;
-  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+  if (
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  ) {
     return;
   }
   const to = `/posts/${slug}`;
@@ -704,7 +738,7 @@ onMounted(() => {
 });
 
 // 获取所有标签
-const { data: tagsData } = await useFetch("/api/tags", {
+const { data: tagsData } = await useFetch(withApiBase("/api/tags"), {
   credentials: "include",
   transform: (response) => unwrapApiData(response),
 });

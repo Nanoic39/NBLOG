@@ -272,12 +272,17 @@
           </div>
         </div>
 
-        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-          <input
-            v-model="form.isPinned"
-            type="checkbox"
-            class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-2 focus:ring-sky-500/35 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-sky-500 dark:checked:border-sky-500"
-          />
+        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+          <span class="relative inline-flex h-5 w-5 items-center justify-center">
+            <input
+              v-model="form.isPinned"
+              type="checkbox"
+              class="peer absolute inset-0 h-full w-full appearance-none rounded-md border border-slate-300 bg-white/90 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/35 checked:border-sky-500 checked:bg-sky-500 dark:border-slate-600 dark:bg-slate-900/80 dark:checked:border-sky-500 dark:checked:bg-sky-500"
+            />
+            <svg class="pointer-events-none h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100" viewBox="0 0 20 20" fill="none">
+              <path d="M5 10.5L8.2 13.5L15 6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
           设为置顶
         </label>
 
@@ -435,6 +440,12 @@ type ToolbarKey =
 
 const route = useRoute();
 const router = useRouter();
+const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 const postId = computed(() => String(route.params.id || ""));
 const isCreateMode = computed(() => postId.value === "new");
 const isSaving = ref(false);
@@ -688,7 +699,7 @@ const addTagFromInput = () => {
 
 const loadTags = async () => {
   try {
-    const result = (await $fetch("/api/admin/tags", {
+    const result = (await $fetch(withApiBase("/api/admin/tags"), {
       credentials: "include",
     })) as any;
     const tags = Array.isArray(result?.tags)
@@ -701,7 +712,7 @@ const loadTags = async () => {
 const loadMyImages = async () => {
   isLoadingMedia.value = true;
   try {
-    const result = (await $fetch("/api/admin/media-images", {
+    const result = (await $fetch(withApiBase("/api/admin/media-images"), {
       credentials: "include",
     })) as any;
     mediaImages.value = Array.isArray(result?.data)
@@ -753,7 +764,7 @@ const loadEditorComments = async () => {
   }
   isLoadingComments.value = true;
   try {
-    const result = (await $fetch("/api/comments", {
+    const result = (await $fetch(withApiBase("/api/comments"), {
       credentials: "include",
       query: {
         articleId: postId.value,
@@ -1158,7 +1169,7 @@ const loadPost = async () => {
     return;
   }
   try {
-    const result = (await $fetch(`/api/admin/posts/${postId.value}`, {
+    const result = (await $fetch(withApiBase(`/api/admin/posts/${postId.value}`), {
       credentials: "include",
     })) as any;
     const post = result?.data || result || {};
@@ -1212,7 +1223,7 @@ const uploadCoverImage = async (event: Event) => {
   try {
     const formData = new FormData();
     formData.append("file", file);
-    const result = (await $fetch("/api/comments/upload", {
+    const result = (await $fetch(withApiBase("/api/comments/upload"), {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -1273,7 +1284,7 @@ const savePost = async () => {
   };
   try {
     if (isCreateMode.value) {
-      const result = (await $fetch("/api/admin/posts", {
+      const result = (await $fetch(withApiBase("/api/admin/posts"), {
         method: "POST",
         credentials: "include",
         body: payload,
@@ -1286,7 +1297,7 @@ const savePost = async () => {
         saveMessage.value = "文章已保存";
       }
     } else {
-      await $fetch(`/api/admin/posts/${postId.value}`, {
+      await $fetch(withApiBase(`/api/admin/posts/${postId.value}`), {
         method: "PUT",
         credentials: "include",
         body: payload,

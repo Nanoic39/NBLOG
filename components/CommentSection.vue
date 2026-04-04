@@ -9,6 +9,11 @@ const props = defineProps<{
 
 const { user, login } = useAuth();
 const config = useRuntimeConfig();
+const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const withApiBase = (path: string) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+};
 const yunaApiBaseUrl = String(config.public.oauthApiBaseUrl || "").replace(
   /\/+$/,
   "",
@@ -82,7 +87,7 @@ const resolveCurrentUserAvatar = () => {
   if (picture.startsWith("data:")) {
     return picture;
   }
-  return "/api/auth/avatar";
+  return withApiBase("/api/auth/avatar");
 };
 
 const resolveAssetUrl = (url?: string) => {
@@ -163,7 +168,7 @@ const normalizeComment = (raw: any): Comment => ({
 // Load mock comments
 const fetchComments = async () => {
   try {
-    const { data } = await useFetch<Comment[]>("/api/comments", {
+    const { data } = await useFetch<Comment[]>(withApiBase("/api/comments"), {
       credentials: "include",
       query: { articleId: props.articleId },
     });
@@ -271,7 +276,7 @@ const handleImageSelected = async (event: Event, isReply: boolean) => {
 
       const formData = new FormData();
       formData.append("file", file);
-      const uploadApi = "/api/comments/upload" as string;
+      const uploadApi = withApiBase("/api/comments/upload") as string;
       const result = await $fetch(uploadApi, {
         method: "POST",
         credentials: "include",
@@ -319,7 +324,7 @@ const submitComment = async (
       );
       const replyToUserId = targetReply?.authorId || parentComment?.authorId;
 
-      const replyApi = `/api/comments/${parentId}/reply` as string;
+      const replyApi = withApiBase(`/api/comments/${parentId}/reply`) as string;
       await $fetch(replyApi, {
         method: "POST",
         credentials: "include",
@@ -331,7 +336,7 @@ const submitComment = async (
       });
       cancelReply();
     } else {
-      const commentsApi = "/api/comments" as string;
+      const commentsApi = withApiBase("/api/comments") as string;
       await $fetch(commentsApi, {
         method: "POST",
         credentials: "include",
