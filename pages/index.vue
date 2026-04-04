@@ -233,12 +233,13 @@
             :key="post.id"
             :to="`/posts/${post.slug}`"
             class="group bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#0284C7]/20 hover:-translate-y-1 transition-all duration-500 border border-gray-100/50 dark:border-gray-700/50 flex flex-col md:flex-row h-auto md:h-72"
+            @click="openPost($event, post.slug)"
           >
             <!-- 左侧图片 -->
             <div class="w-full md:w-2/5 p-3 shrink-0 h-56 md:h-auto">
               <div
                 class="relative w-full h-full rounded-lg overflow-hidden"
-                :style="getTransitionStyle('article-cover', post.id)"
+                :style="getTransitionStyle('article-cover', getPostTransitionId(post))"
               >
                 <img
                   :src="
@@ -287,7 +288,7 @@
                 </div>
                 <h3
                   class="text-xl md:text-2xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-3 group-hover:text-[#0284C7] dark:group-hover:text-[#38bdf8] transition-colors duration-300 line-clamp-1"
-                  :style="getTransitionStyle('article-title', post.id)"
+                  :style="getTransitionStyle('article-title', getPostTransitionId(post))"
                 >
                   {{ post.title }}
                 </h3>
@@ -636,19 +637,39 @@ totalPosts.value = initialData.value?.total || 0;
 const postCache = useState<Record<string, any>>('postCache', () => ({}));
 watchEffect(() => {
   if (latestPosts.value) {
-    latestPosts.value.forEach((post: any) => {
+    latestPosts.value.forEach((post: any, index: number) => {
       const coverUrl =
         post.coverImage ||
         `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(String(post.id || post.slug || "post"))}`;
+      const transitionKey = `p${page.value}-${index + 1}`;
       postCache.value[post.slug] = {
         id: post.id,
         title: post.title,
-        coverImage: coverUrl
+        coverImage: coverUrl,
+        transitionKey,
       };
       
     });
   }
 });
+
+const getPostTransitionId = (post: any) => {
+  const cached = postCache.value[String(post?.slug || "")];
+  return String(cached?.transitionKey || post?.id || post?.slug || "post");
+};
+
+const openPost = async (event: MouseEvent, slug: string) => {
+  if (!import.meta.client) return;
+  if (event.defaultPrevented) return;
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return;
+  }
+  const to = `/posts/${slug}`;
+  const transition = (document as any).startViewTransition;
+  if (typeof transition !== "function") return;
+  event.preventDefault();
+  await transition(() => router.push(to));
+};
 
 // 切换页面
 const changePage = (newPage: number) => {

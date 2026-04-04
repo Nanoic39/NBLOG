@@ -31,7 +31,7 @@
       {{ saveMessage }}
     </p>
 
-    <div class="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-4">
+    <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-4">
       <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-3">
         <div class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-2.5">
           <div class="flex flex-wrap gap-1.5">
@@ -57,14 +57,15 @@
           </p>
         </div>
 
-        <div class="grid xl:grid-cols-2 gap-4">
+        <div class="grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start">
           <div class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3">
             <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">Markdown 编辑区（回车即换行）</p>
             <textarea
               ref="editorRef"
               v-model="form.content"
-              rows="24"
-              class="w-full min-h-[560px] resize-y rounded-xl border border-slate-300 dark:border-slate-600 bg-white/90 dark:bg-slate-950/50 px-3 py-3 font-mono text-sm leading-7 outline-none focus:border-sky-500"
+              rows="1"
+              class="w-full min-h-[560px] resize-none overflow-hidden rounded-xl border border-slate-300 dark:border-slate-600 bg-white/90 dark:bg-slate-950/50 px-3 py-3 font-mono text-sm leading-7 outline-none focus:border-sky-500"
+              :style="{ height: `${editorHeight}px` }"
               placeholder="在此输入 Markdown 正文内容"
               @input="handleEditorInteraction"
               @select="handleEditorInteraction"
@@ -75,19 +76,41 @@
             ></textarea>
           </div>
 
-          <div class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3">
+          <div class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3 xl:sticky xl:top-24">
             <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">实时预览</p>
-            <div class="min-h-[560px] max-h-[720px] overflow-auto rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white dark:bg-slate-950/40 px-4 py-3">
-              <article class="prose prose-slate dark:prose-invert max-w-none prose-headings:scroll-mt-24 prose-img:rounded-lg prose-pre:rounded-lg" v-html="renderedPreview"></article>
+            <div
+              class="min-h-[560px] overflow-auto rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-slate-100/50 dark:bg-slate-950/40 px-3 py-3"
+              :style="{ maxHeight: 'calc(100vh - 11rem)' }"
+            >
+              <article class="bg-white/90 dark:bg-[#242424]/90 backdrop-blur rounded-2xl p-5 md:p-7 border border-slate-200/80 dark:border-slate-700/70 shadow-sm">
+                <div class="w-full h-44 rounded-xl overflow-hidden mb-5 border border-slate-200/60 dark:border-slate-700/70">
+                  <img :src="coverPreviewUrl" :alt="form.title || '文章封面'" class="w-full h-full object-cover" />
+                </div>
+                <header class="border-b border-slate-200/80 dark:border-slate-700/70 pb-4 mb-5">
+                  <h1 class="text-2xl md:text-3xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] leading-tight">
+                    {{ form.title || "未命名文章" }}
+                  </h1>
+                  <p class="mt-2 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                    {{ form.description || "这里会显示文章摘要。" }}
+                  </p>
+                </header>
+                <article
+                  class="prose custom-prose prose-slate dark:prose-invert max-w-none prose-headings:scroll-mt-24 prose-img:rounded-xl prose-pre:rounded-lg"
+                  v-html="renderedPreview"
+                ></article>
+              </article>
             </div>
           </div>
         </div>
       </section>
 
-      <aside class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-4">
-        <input v-model="form.title" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="标题" />
-        <input v-model="form.slug" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="slug（可空自动生成）" />
-        <textarea v-model="form.description" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="摘要"></textarea>
+      <aside class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-4 lg:sticky lg:top-20 h-fit max-h-[calc(100vh-6rem)] overflow-auto">
+        <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-white/70 dark:bg-slate-900/35">
+          <p class="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-400">基础信息</p>
+          <input v-model="form.title" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="标题" />
+          <input v-model="form.slug" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="slug（可空自动生成）" />
+          <textarea v-model="form.description" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="摘要"></textarea>
+        </div>
 
         <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
           <div class="flex items-center justify-between">
@@ -118,28 +141,39 @@
         </div>
 
         <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-          <p class="text-xs text-slate-500 dark:text-slate-400">标签（可选已有 + 可输入新标签）</p>
-          <div class="flex flex-wrap gap-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs text-slate-500 dark:text-slate-400">标签（可选已有 + 可输入新标签 + 拖动排序）</p>
+            <span class="text-[11px] text-slate-400">拖动标签胶囊可排序</span>
+          </div>
+          <div class="rounded-xl border border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/45 px-2.5 py-2 flex flex-wrap gap-1.5 min-h-11">
             <button
               v-for="tag in selectedTags"
               :key="tag"
               type="button"
-              class="px-2 py-1 rounded-lg text-xs bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300"
+              draggable="true"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300 border border-sky-200/80 dark:border-sky-500/30 cursor-move"
+              @dragstart="handleTagDragStart(tag)"
+              @dragenter.prevent="handleTagDragEnter(tag)"
+              @dragover.prevent
+              @dragend="handleTagDragEnd"
               @click="removeTag(tag)"
             >
-              {{ tag }} ×
+              <span class="opacity-60">⋮⋮</span>
+              <span>{{ tag }}</span>
+              <span>×</span>
             </button>
-          </div>
-          <div class="flex gap-2">
             <input
               v-model="tagInput"
-              class="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+              class="flex-1 min-w-[120px] px-2 py-1.5 rounded-lg bg-transparent text-sm outline-none"
               placeholder="输入标签后回车"
               @keydown.enter.prevent="addTagFromInput"
+              @keydown.backspace="handleTagInputBackspace"
             />
-            <button type="button" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm" @click="addTagFromInput">添加</button>
           </div>
-          <div class="max-h-24 overflow-auto flex flex-wrap gap-1.5">
+          <div class="flex gap-2">
+            <button type="button" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm" @click="addTagFromInput">添加标签</button>
+          </div>
+          <div class="max-h-28 overflow-auto flex flex-wrap gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 p-2">
             <button
               v-for="tag in allTags"
               :key="tag"
@@ -170,21 +204,38 @@
         </div>
 
         <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-          <p class="text-xs text-slate-500 dark:text-slate-400">CC 许可（可空）</p>
+          <div class="flex items-center gap-2">
+            <p class="text-xs text-slate-500 dark:text-slate-400">CC 许可（可空）</p>
+            <div class="relative group">
+              <button type="button" class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 text-[10px] text-slate-500 dark:text-slate-300">?</button>
+              <div class="absolute z-20 hidden group-hover:block top-6 left-0 w-72 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-2.5 space-y-1.5">
+                <p
+                  v-for="item in ccLicenseTips"
+                  :key="item.value"
+                  class="text-[11px] leading-5 text-slate-600 dark:text-slate-300"
+                >
+                  <span class="font-medium text-slate-800 dark:text-slate-200">{{ item.value }}：</span>{{ item.desc }}
+                </p>
+              </div>
+            </div>
+          </div>
           <select v-model="form.licenseCc" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm">
             <option value="">不设置</option>
-            <option value="CC BY 4.0">CC BY 4.0</option>
-            <option value="CC BY-SA 4.0">CC BY-SA 4.0</option>
-            <option value="CC BY-NC 4.0">CC BY-NC 4.0</option>
-            <option value="CC BY-NC-SA 4.0">CC BY-NC-SA 4.0</option>
-            <option value="CC BY-ND 4.0">CC BY-ND 4.0</option>
-            <option value="CC0 1.0">CC0 1.0</option>
+            <option v-for="item in ccLicenseTips" :key="item.value" :value="item.value" :title="item.desc">{{ item.value }}</option>
           </select>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ selectedCcDesc }}</p>
         </div>
 
         <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-          <p class="text-xs text-slate-500 dark:text-slate-400">封面图（选择已有 / 手输链接 / 上传）</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">封面图（从 YunaNexusCore 文件系统选择 / 手输链接 / 上传）</p>
           <div class="flex gap-2">
+            <button
+              type="button"
+              class="px-2.5 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600"
+              @click="openCoverPicker"
+            >
+              选择已有
+            </button>
             <button
               type="button"
               class="px-2.5 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600"
@@ -198,7 +249,7 @@
           <input v-model="form.coverImage" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm" placeholder="封面链接（空则默认）" />
           <div class="max-h-28 overflow-auto grid grid-cols-4 gap-2">
             <button
-              v-for="url in mediaImages"
+              v-for="url in mediaImages.slice(0, 8)"
               :key="url"
               type="button"
               class="rounded-lg overflow-hidden border"
@@ -271,6 +322,48 @@
       >
         {{ item.label }}
       </button>
+    </div>
+
+    <div
+      v-if="showCoverPicker"
+      class="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4"
+      @click.self="showCoverPicker = false"
+    >
+      <div class="w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl p-4">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">选择已有封面</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">来源：YunaNexusCore 当前用户文件系统图片</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" class="px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600" :disabled="isLoadingMedia" @click="loadMyImages">
+              {{ isLoadingMedia ? "刷新中..." : "刷新列表" }}
+            </button>
+            <button type="button" class="px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600" @click="showCoverPicker = false">关闭</button>
+          </div>
+        </div>
+        <input
+          v-model="coverKeyword"
+          class="w-full mb-3 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+          placeholder="输入关键词过滤图片地址"
+        />
+        <div class="max-h-[62vh] overflow-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pr-1">
+          <button
+            v-for="url in filteredMediaImages"
+            :key="url"
+            type="button"
+            class="rounded-xl overflow-hidden border text-left"
+            :class="form.coverImage === url ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-500/30' : 'border-slate-300 dark:border-slate-700'"
+            @click="selectCoverImage(url)"
+          >
+            <img :src="url" alt="cover-option" class="w-full h-28 object-cover" />
+            <p class="px-2 py-1 text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ url }}</p>
+          </button>
+          <p v-if="!isLoadingMedia && filteredMediaImages.length === 0" class="col-span-full text-center text-sm text-slate-400 py-8">
+            暂无可选图片
+          </p>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -346,10 +439,14 @@ const isLoadingComments = ref(false);
 const saveMessage = ref("");
 const allTags = ref<string[]>([]);
 const selectedTags = ref<string[]>([]);
+const draggingTag = ref("");
 const tagInput = ref("");
 const mediaImages = ref<string[]>([]);
+const showCoverPicker = ref(false);
+const coverKeyword = ref("");
 const editorComments = ref<EditorCommentItem[]>([]);
 const editorRef = ref<HTMLTextAreaElement | null>(null);
+const editorHeight = ref(560);
 const selectionState = ref({
   start: 0,
   end: 0,
@@ -447,13 +544,58 @@ const coverPreviewUrl = computed(() => {
   return getDefaultCoverUrl(isCreateMode.value ? "post" : postId.value);
 });
 
+const ccLicenseTips = [
+  { value: "CC BY 4.0", desc: "可传播与改编，需署名原作者。" },
+  { value: "CC BY-SA 4.0", desc: "可改编与商用，需署名且衍生作品同协议共享。" },
+  { value: "CC BY-NC 4.0", desc: "可改编但禁止商业用途，需署名。" },
+  { value: "CC BY-NC-SA 4.0", desc: "禁止商用，衍生作品需同协议共享并署名。" },
+  { value: "CC BY-ND 4.0", desc: "允许传播但禁止演绎修改，需署名。" },
+  { value: "CC0 1.0", desc: "近似放弃版权限制，可自由使用。" },
+];
+
+const selectedCcDesc = computed(() => {
+  const current = String(form.value.licenseCc || "").trim();
+  if (!current) return "未设置许可。";
+  return ccLicenseTips.find((item) => item.value === current)?.desc || "该许可暂无说明。";
+});
+
+const filteredMediaImages = computed(() => {
+  const keyword = String(coverKeyword.value || "").trim().toLowerCase();
+  if (!keyword) return mediaImages.value;
+  return mediaImages.value.filter((url) => String(url || "").toLowerCase().includes(keyword));
+});
+
+const wrapPreviewTables = (html: string) =>
+  html
+    .replace(/<table>/g, '<div class="table-container"><div class="table-wrapper"><table>')
+    .replace(/<\/table>/g, "</table></div></div>");
+
+const enhanceSitePreviewHtml = (html: string) =>
+  wrapPreviewTables(html).replace(
+    /<img([^>]*?)>/g,
+    '<img$1 loading="lazy" data-zoomable="true">',
+  );
+
 const renderedPreview = computed(() => {
   const markdown = String(form.value.content || "");
   if (!markdown.trim()) {
     return `<p class="text-slate-400">暂无预览内容</p>`;
   }
   const html = marked.parse(markdown, { gfm: true, breaks: true }) as string;
-  return DOMPurify.sanitize(html);
+  const siteLikeHtml = enhanceSitePreviewHtml(html);
+  return DOMPurify.sanitize(siteLikeHtml, {
+    ADD_ATTR: [
+      "id",
+      "class",
+      "style",
+      "target",
+      "rel",
+      "data-zoomable",
+      "loading",
+      "align",
+    ],
+    ADD_TAGS: ["section", "figure", "figcaption"],
+  });
 });
 
 const addAuthor = () => {
@@ -490,6 +632,37 @@ const addTag = (raw: string) => {
   if (!tag || selectedTags.value.includes(tag)) return;
   selectedTags.value.push(tag);
   if (!allTags.value.includes(tag)) allTags.value.unshift(tag);
+};
+
+const moveTagByValue = (fromTag: string, toTag: string) => {
+  if (!fromTag || !toTag || fromTag === toTag) return;
+  const fromIndex = selectedTags.value.indexOf(fromTag);
+  const toIndex = selectedTags.value.indexOf(toTag);
+  if (fromIndex < 0 || toIndex < 0) return;
+  const list = [...selectedTags.value];
+  const [item] = list.splice(fromIndex, 1);
+  if (!item) return;
+  list.splice(toIndex, 0, item);
+  selectedTags.value = list;
+};
+
+const handleTagDragStart = (tag: string) => {
+  draggingTag.value = tag;
+};
+
+const handleTagDragEnter = (tag: string) => {
+  if (!draggingTag.value) return;
+  moveTagByValue(draggingTag.value, tag);
+};
+
+const handleTagDragEnd = () => {
+  draggingTag.value = "";
+};
+
+const handleTagInputBackspace = () => {
+  if (tagInput.value.trim()) return;
+  const last = selectedTags.value[selectedTags.value.length - 1];
+  if (last) removeTag(last);
 };
 
 const removeTag = (tag: string) => {
@@ -535,6 +708,18 @@ const loadMyImages = async () => {
   } finally {
     isLoadingMedia.value = false;
   }
+};
+
+const openCoverPicker = async () => {
+  showCoverPicker.value = true;
+  if (mediaImages.value.length === 0) {
+    await loadMyImages();
+  }
+};
+
+const selectCoverImage = (url: string) => {
+  form.value.coverImage = url;
+  showCoverPicker.value = false;
 };
 
 const normalizeCommentTime = (value: unknown) => {
@@ -680,7 +865,16 @@ const syncFloatingToolbar = () => {
 
 const handleEditorInteraction = () => {
   saveMessage.value = "";
+  updateEditorHeight();
   syncFloatingToolbar();
+};
+
+const updateEditorHeight = () => {
+  const editor = editorRef.value;
+  if (!editor) return;
+  editor.style.height = "auto";
+  const next = Math.max(560, editor.scrollHeight + 2);
+  editorHeight.value = next;
 };
 
 const focusEditorSelection = (start: number, end: number) => {
@@ -942,7 +1136,10 @@ const loadPost = async () => {
     selectedTags.value = [];
     editorComments.value = [];
     saveMessage.value = "";
-    nextTick(syncFloatingToolbar);
+    nextTick(() => {
+      updateEditorHeight();
+      syncFloatingToolbar();
+    });
     return;
   }
   try {
@@ -983,7 +1180,10 @@ const loadPost = async () => {
       if (!allTags.value.includes(tag)) allTags.value.unshift(tag);
     });
     await loadEditorComments();
-    nextTick(syncFloatingToolbar);
+    nextTick(() => {
+      updateEditorHeight();
+      syncFloatingToolbar();
+    });
   } catch (error: any) {
     alert(parseError(error));
     router.push("/admin/dashboard/posts");
@@ -1094,6 +1294,7 @@ const handleWindowSelectionSync = () => {
 onMounted(async () => {
   await Promise.all([loadTags(), loadMyImages()]);
   await loadPost();
+  nextTick(updateEditorHeight);
   window.addEventListener("resize", handleWindowSelectionSync);
   window.addEventListener("scroll", handleWindowSelectionSync, true);
 });
@@ -1107,6 +1308,13 @@ watch(
   () => route.params.id,
   async () => {
     await loadPost();
+  },
+);
+
+watch(
+  () => form.value.content,
+  () => {
+    nextTick(updateEditorHeight);
   },
 );
 </script>

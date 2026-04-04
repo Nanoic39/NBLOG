@@ -75,7 +75,7 @@
           <div
             class="w-full h-64 md:h-96 mb-8 rounded-xl overflow-hidden relative"
             :style="
-              getTransitionStyle('article-cover', article?.id || cachedPost?.id)
+              getTransitionStyle('article-cover', transitionIdentity)
             "
           >
             <img
@@ -94,7 +94,7 @@
               :style="
                 getTransitionStyle(
                   'article-title',
-                  article?.id || cachedPost?.id,
+                  transitionIdentity,
                 )
               "
             >
@@ -1095,6 +1095,16 @@ const unwrapApiData = <T,>(
 // 从缓存中获取文章基础信息（用于加载时的占位和动画过渡）
 const postCache = useState<Record<string, any>>("postCache", () => ({}));
 const cachedPost = computed(() => postCache.value[articleSlug]);
+const transitionIdentity = computed(
+  () =>
+    String(
+      cachedPost.value?.transitionKey ||
+        article.value?.transitionKey ||
+        article.value?.id ||
+        cachedPost.value?.id ||
+        articleSlug,
+    ),
+);
 
 onMounted(() => {
   transitionReady.value = true;
