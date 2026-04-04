@@ -7,26 +7,52 @@ export default defineEventHandler(async (event) => {
   const baseUrl = String(config.public.backendBaseUrl || "")
     .trim()
     .replace(/\/+$/, "");
+  const debugRaw = String((config as any).debugProxyLog || "").trim().toLowerCase();
+  const debugEnabled =
+    ["1", "true", "on", "yes"].includes(debugRaw) ||
+    ["1", "true", "on", "yes"].includes(
+      String((config.public as any)?.debugProxyLog || "")
+        .trim()
+        .toLowerCase(),
+    );
+  const traceId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const log = (stage: string, payload: Record<string, any>) => {
+    if (!debugEnabled) return;
+    try {
+      console.info(
+        `[NBLOG_AVATAR][${traceId}][${stage}] ${JSON.stringify(payload)}`,
+      );
+    } catch {
+      console.info(`[NBLOG_AVATAR][${traceId}][${stage}]`, payload);
+    }
+  };
 
   if (!user || !user.picture) {
+    log("avatar.missing_picture", {
+      hasUser: Boolean(user),
+      hasPicture: Boolean(String(user?.picture || "").trim()),
+    });
     throw createError({
       statusCode: 404,
-      statusMessage: "未找到头像",
+      statusMessage: "AvatarNotFound",
+      message: "未找到头像",
     });
   }
 
-  // If no access token in session, we can't proxy protected resource
   if (!user.access_token) {
+    log("avatar.missing_token", { hasUser: true, hasAccessToken: false });
     throw createError({
       statusCode: 401,
-      statusMessage: "缺少访问令牌，请重新登录",
+      statusMessage: "Unauthorized",
+      message: "缺少访问令牌，请重新登录",
     });
   }
 
   if (!baseUrl) {
     throw createError({
       statusCode: 500,
-      statusMessage: "头像服务地址未配置",
+      statusMessage: "AvatarUpstreamConfigMissing",
+      message: "头像服务地址未配置",
     });
   }
 
@@ -48,7 +74,6 @@ export default defineEventHandler(async (event) => {
       : `${cleanBaseUrl}/${pictureRaw}`;
   }
 
-  // 确保URL中包含 inline=true 参数
   if (targetUrl.includes("?")) {
     if (!targetUrl.includes("inline=true")) {
       targetUrl += "&inline=true";
@@ -56,9 +81,14 @@ export default defineEventHandler(async (event) => {
   } else {
     targetUrl += "?inline=true";
   }
+  log("avatar.upstream_request", {
+    baseUrl: cleanBaseUrl,
+    targetUrl,
+    pictureRaw,
+    hasAccessToken: true,
+  });
 
   try {
-    // Proxy request with Authorization header
     const response = await $fetch.raw(targetUrl, {
       headers: {
         Authorization: `Bearer ${user.access_token}`,
@@ -68,51 +98,56 @@ export default defineEventHandler(async (event) => {
     });
 
     if (!response.ok) {
-      console.error(
-        "Avatar fetch failed:",
-        response.status,
-        response.statusText,
-      );
-      // 尝试解析错误信息
-      const errorText = new TextDecoder().decode(response._data as ArrayBuffer);
-      console.error("Error body:", errorText);
+      let errorText = "";
+      try {
+        errorText = new TextDecoder().decode(response._data as ArrayBuffer);
+      } catch {
+        errorText = "";
+      }
+      log("avatar.upstream_error", {
+        statusCode: response.status,
+        statusText: response.statusText,
+        errorText: errorText.slice(0, 500),
+      });
 
       throw createError({
         statusCode: response.status,
-        statusMessage: "上游服务返回异常",
+        statusMessage: `AvatarUpstream_${response.status}`,
+        message: errorText || "上游服务返回异常",
       });
     }
 
-    // Forward content type
     const contentType = response.headers.get("content-type");
     if (contentType) {
       setHeader(event, "Content-Type", contentType);
     } else {
-      // 如果后端没有返回 Content-Type，我们尝试猜测或者是默认图片
-      // 通常图片应该是 image/jpeg, image/png 等
       setHeader(event, "Content-Type", "image/jpeg");
     }
 
-    // 强制设置 Content-Length (如果能获取到)
     const contentLength = response.headers.get("content-length");
     if (contentLength) {
       setHeader(event, "Content-Length", Number(contentLength));
     }
 
-    // 禁用缓存，防止调试时看到旧的错误图片
-    // setHeader(event, 'Cache-Control', 'private, max-age=3600')
     setHeader(event, "Cache-Control", "no-cache, no-store, must-revalidate");
-
-    // 直接返回 Buffer 数据，而不是 response._data
-    // $fetch.raw 的 response._data 在 arrayBuffer 模式下应该就是 ArrayBuffer
-    // 但是为了保险，我们将其转换为 Node.js Buffer
+    log("avatar.upstream_ok", {
+      statusCode: response.status,
+      contentType: contentType || "image/jpeg",
+      contentLength: contentLength || "",
+    });
     return Buffer.from(response._data as ArrayBuffer);
   } catch (error) {
-    console.error("Avatar proxy error:", error);
-    // Fallback to a default avatar or error
+    const current = error as any;
+    if (current?.statusCode) {
+      throw current;
+    }
+    log("avatar.proxy_exception", {
+      message: String(current?.message || ""),
+    });
     throw createError({
       statusCode: 500,
-      statusMessage: "获取头像失败",
+      statusMessage: "AvatarProxyFailed",
+      message: "获取头像失败",
     });
   }
 });

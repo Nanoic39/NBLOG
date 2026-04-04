@@ -57,6 +57,7 @@ export default defineNuxtConfig({
     oauthClientSecret: process.env.NUXT_OAUTH_CLIENT_SECRET,
     sessionSecret: process.env.NUXT_SESSION_SECRET,
     adminEmail: process.env.NUXT_ADMIN_EMAIL,
+    debugProxyLog: process.env.NUXT_DEBUG_PROXY_LOG,
 
     // Public keys that are exposed to the client
     public: {
@@ -65,6 +66,8 @@ export default defineNuxtConfig({
       oauthRedirectUri: process.env.NUXT_OAUTH_REDIRECT_URI,
       oauthAuthBaseUrl: process.env.NUXT_OAUTH_AUTH_BASE_URL,
       oauthApiBaseUrl: process.env.NUXT_OAUTH_API_BASE_URL,
+      yunaCoreApiBaseUrl: process.env.NUXT_PUBLIC_YUNA_CORE_API_BASE_URL,
+      debugProxyLog: process.env.NUXT_PUBLIC_DEBUG_PROXY_LOG,
     },
   },
   devtools: { enabled: true },
