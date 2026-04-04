@@ -52,7 +52,13 @@ export const requireAdmin = (event: H3Event): SessionUser => {
     });
   }
 
-  if (user.role !== "admin") {
+  const userRole = String(user.role || "").trim().toLowerCase();
+  const userEmail = String(user.email || "").trim().toLowerCase();
+  const adminEmail = String(useRuntimeConfig().adminEmail || "")
+    .trim()
+    .toLowerCase();
+
+  if (userRole !== "admin" && (!adminEmail || userEmail !== adminEmail)) {
     throw createError({
       statusCode: 403,
       statusMessage: "无权限访问该资源",

@@ -73,7 +73,13 @@ export default defineEventHandler(async (event) => {
     
     const adminEmail = String(config.adminEmail || '').trim().toLowerCase()
     const currentEmail = String(userInfo.email || '').trim().toLowerCase()
-    const isAdmin = Boolean(adminEmail) && currentEmail === adminEmail
+    const upstreamRole = String(
+      userInfo.role ??
+      userInfo.userRole ??
+      userInfo.roles?.[0] ??
+      ''
+    ).trim().toLowerCase()
+    const isAdmin = upstreamRole === 'admin' || (Boolean(adminEmail) && currentEmail === adminEmail)
     const sessionObj = {
       i: userInfo.id ?? userInfo.userId ?? userInfo.uid ?? '',
       n: userInfo.name ?? userInfo.nickname ?? userInfo.username ?? '',

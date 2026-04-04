@@ -40,9 +40,6 @@ export default defineEventHandler(async (event) => {
     targetUrl = `${apiOrigin}${pictureUrl.pathname}${pictureUrl.search}`;
   } else if (pictureRaw.startsWith("/file/")) {
     targetUrl = `${cleanBaseUrl}/api${pictureRaw}`;
-    if (pictureRaw.startsWith("/file/download/")) {
-      targetUrl = `${cleanBaseUrl}/api/file${pictureRaw}`;
-    }
   } else if (pictureRaw.startsWith("/api/file/")) {
     targetUrl = `${cleanBaseUrl}${pictureRaw}`;
   } else {
