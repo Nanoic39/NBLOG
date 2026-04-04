@@ -36,7 +36,11 @@
         <input v-model="noticeForm.title" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="通知标题" />
         <textarea v-model="noticeForm.content" rows="4" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="通知内容"></textarea>
         <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-          <input v-model="noticeForm.active" type="checkbox" />
+          <input
+            v-model="noticeForm.active"
+            type="checkbox"
+            class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-2 focus:ring-sky-500/35 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-sky-500 dark:checked:border-sky-500"
+          />
           启用通知展示
         </label>
         <button

@@ -46,9 +46,10 @@
             :to="item.to"
             :title="isCollapsed ? item.label : ''"
             class="group relative flex items-center rounded-xl text-sm text-slate-700 dark:text-slate-200 transition-all duration-200"
-            :class="isCollapsed ? 'justify-center px-0 h-11' : 'gap-3 px-3 h-11'"
-            active-class="bg-sky-100/85 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 shadow-sm"
-            exact-active-class="bg-sky-100/85 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 shadow-sm"
+            :class="[
+              isCollapsed ? 'justify-center px-0 h-11' : 'gap-3 px-3 h-11',
+              isItemActive(item.to) ? 'bg-sky-100/85 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 shadow-sm' : '',
+            ]"
             @click="isMobileMenuOpen = false"
           >
             <span
@@ -137,6 +138,9 @@ const currentPageLabel = computed(() => {
 
 const isItemActive = (to: string) => {
   const path = String(route.path || "");
+  if (to === "/admin/dashboard") {
+    return path === "/admin/dashboard";
+  }
   return path === to || path.startsWith(`${to}/`);
 };
 

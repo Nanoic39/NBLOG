@@ -273,7 +273,11 @@
         </div>
 
         <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-          <input v-model="form.isPinned" type="checkbox" />
+          <input
+            v-model="form.isPinned"
+            type="checkbox"
+            class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-2 focus:ring-sky-500/35 dark:border-slate-600 dark:bg-slate-900 dark:checked:bg-sky-500 dark:checked:border-sky-500"
+          />
           设为置顶
         </label>
 
@@ -1130,6 +1134,17 @@ const handleEditorKeydown = (event: KeyboardEvent) => {
   }
 };
 
+const handlePageKeydown = (event: KeyboardEvent) => {
+  if (event.isComposing) return;
+  const isModifier = event.ctrlKey || event.metaKey;
+  if (!isModifier) return;
+  if (event.key.toLowerCase() !== "s") return;
+  event.preventDefault();
+  if (!isSaving.value) {
+    void savePost();
+  }
+};
+
 const loadPost = async () => {
   if (isCreateMode.value) {
     form.value = createDefaultForm();
@@ -1295,11 +1310,13 @@ onMounted(async () => {
   await Promise.all([loadTags(), loadMyImages()]);
   await loadPost();
   nextTick(updateEditorHeight);
+  window.addEventListener("keydown", handlePageKeydown);
   window.addEventListener("resize", handleWindowSelectionSync);
   window.addEventListener("scroll", handleWindowSelectionSync, true);
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handlePageKeydown);
   window.removeEventListener("resize", handleWindowSelectionSync);
   window.removeEventListener("scroll", handleWindowSelectionSync, true);
 });

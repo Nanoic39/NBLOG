@@ -94,6 +94,50 @@
       <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">柱高表示当天发布文章数量</p>
     </section>
 
+    <div class="grid xl:grid-cols-3 gap-4">
+      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">标签阅读偏好（Top 8）</h3>
+        <div class="mt-4 space-y-2.5">
+          <div v-for="item in tagPreference" :key="item.label" class="space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-600 dark:text-slate-300 truncate">#{{ item.label }}</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ item.value }}</span>
+            </div>
+            <div class="h-2 rounded-full bg-slate-200/70 dark:bg-slate-700/70 overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-400" :style="{ width: `${calcPreferenceWidth(item.value, maxTagPreference)}%` }"></div>
+            </div>
+          </div>
+          <p v-if="tagPreference.length === 0" class="text-sm text-slate-400">暂无标签偏好数据</p>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">阅读时长偏好</h3>
+        <div class="mt-4 h-44 flex items-end gap-3">
+          <div v-for="item in readTimePreference" :key="item.label" class="flex-1 min-w-0 text-center">
+            <div class="w-full rounded-t-lg bg-gradient-to-t from-indigo-500/85 to-violet-400/75 dark:from-indigo-500/70 dark:to-violet-400/55" :style="{ height: `${calcReadTimeHeight(item.value)}px` }"></div>
+            <p class="mt-2 text-xs text-slate-600 dark:text-slate-300">{{ item.label }}</p>
+            <p class="text-[11px] text-slate-400">{{ item.value }}</p>
+          </div>
+        </div>
+        <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">按文章字数估算阅读时长并累计浏览量</p>
+      </section>
+
+      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">星期阅读偏好</h3>
+        <div class="mt-4 space-y-2">
+          <div v-for="item in weekdayPreference" :key="item.label" class="flex items-center gap-2">
+            <span class="w-9 text-xs text-slate-500 dark:text-slate-400">{{ item.label }}</span>
+            <div class="flex-1 h-2 rounded-full bg-slate-200/70 dark:bg-slate-700/70 overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" :style="{ width: `${calcPreferenceWidth(item.value, maxWeekdayPreference)}%` }"></div>
+            </div>
+            <span class="w-10 text-right text-xs text-slate-500 dark:text-slate-400">{{ item.value }}</span>
+          </div>
+          <p v-if="weekdayPreference.length === 0" class="text-sm text-slate-400">暂无星期偏好数据</p>
+        </div>
+      </section>
+    </div>
+
     <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
       <div class="flex items-center justify-between">
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">最新评论（最多 20 条）</h3>
@@ -186,6 +230,21 @@ type LatestCommentItem = {
   postSlug?: string;
 };
 
+type AdminPostItem = {
+  id: string;
+  title: string;
+  slug: string;
+  tags: string[];
+  views: number;
+  wordCount: number;
+  pubDate: string;
+};
+
+type ChartItem = {
+  label: string;
+  value: number;
+};
+
 const isLoading = ref(false);
 const stats = ref<Stats>({
   postTotal: 0,
@@ -210,6 +269,21 @@ const notice = ref({
 const analysis30d = ref<TrendItem[]>([]);
 const hotPosts = ref<HotPostItem[]>([]);
 const latestComments = ref<LatestCommentItem[]>([]);
+const tagPreference = ref<ChartItem[]>([]);
+const readTimePreference = ref<ChartItem[]>([
+  { label: "短读（<3分钟）", value: 0 },
+  { label: "中读（3-8分钟）", value: 0 },
+  { label: "深读（>8分钟）", value: 0 },
+]);
+const weekdayPreference = ref<ChartItem[]>([
+  { label: "周一", value: 0 },
+  { label: "周二", value: 0 },
+  { label: "周三", value: 0 },
+  { label: "周四", value: 0 },
+  { label: "周五", value: 0 },
+  { label: "周六", value: 0 },
+  { label: "周日", value: 0 },
+]);
 const quickReplyMap = ref<Record<string, string>>({});
 const isReplySubmitting = ref(false);
 
@@ -217,6 +291,18 @@ const maxPostsInChart = computed(() => {
   const max = Math.max(...analysis30d.value.map((item) => item.posts), 0);
   return max > 0 ? max : 1;
 });
+
+const maxTagPreference = computed(() =>
+  Math.max(...tagPreference.value.map((item) => item.value), 0),
+);
+
+const maxReadTimePreference = computed(() =>
+  Math.max(...readTimePreference.value.map((item) => item.value), 0),
+);
+
+const maxWeekdayPreference = computed(() =>
+  Math.max(...weekdayPreference.value.map((item) => item.value), 0),
+);
 
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
@@ -234,6 +320,94 @@ const formatCommentTime = (timestamp: number) =>
 const calcBarHeight = (value: number) => {
   const ratio = Math.max(0, value) / maxPostsInChart.value;
   return Math.max(10, Math.round(ratio * 156));
+};
+
+const calcPreferenceWidth = (value: number, max: number) => {
+  if (value <= 0) return 0;
+  if (max <= 0) return 0;
+  return Math.max(6, Math.round((Math.max(0, value) / max) * 100));
+};
+
+const calcReadTimeHeight = (value: number) => {
+  const max = maxReadTimePreference.value;
+  if (max <= 0) return 10;
+  return Math.max(10, Math.round((Math.max(0, value) / max) * 156));
+};
+
+const parseTimestamp = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value < 1_000_000_000_000 ? value * 1000 : value;
+  }
+  if (typeof value === "string") {
+    const raw = value.trim();
+    if (!raw) return 0;
+    const numeric = Number(raw);
+    if (Number.isFinite(numeric)) {
+      return numeric < 1_000_000_000_000 ? numeric * 1000 : numeric;
+    }
+    const dateParsed = Date.parse(raw);
+    if (Number.isFinite(dateParsed)) return dateParsed;
+  }
+  return 0;
+};
+
+const buildPreferenceCharts = (rawPosts: any[]) => {
+  const posts = (Array.isArray(rawPosts) ? rawPosts : []).map((item) => ({
+    id: String(item?.id || ""),
+    title: String(item?.title || ""),
+    slug: String(item?.slug || ""),
+    tags: Array.isArray(item?.tags)
+      ? item.tags.map((tag: any) => String(tag || "").trim()).filter(Boolean)
+      : [],
+    views: Number(item?.views || 0),
+    wordCount: Number(item?.wordCount || 0),
+    pubDate: String(item?.pubDate || ""),
+  })) as AdminPostItem[];
+
+  const tagViews = new Map<string, number>();
+  const readBuckets: [ChartItem, ChartItem, ChartItem] = [
+    { label: "短读（<3分钟）", value: 0 },
+    { label: "中读（3-8分钟）", value: 0 },
+    { label: "深读（>8分钟）", value: 0 },
+  ];
+  const weekdayViews: number[] = [0, 0, 0, 0, 0, 0, 0];
+
+  for (const post of posts) {
+    const views = Math.max(0, Number(post.views || 0));
+    const tags = post.tags.length > 0 ? post.tags : ["未分类"];
+    for (const tag of tags) {
+      tagViews.set(tag, (tagViews.get(tag) || 0) + views);
+    }
+
+    const words = Math.max(0, Number(post.wordCount || 0));
+    const minutes = words / 300;
+    if (minutes < 3) readBuckets[0].value += views;
+    else if (minutes <= 8) readBuckets[1].value += views;
+    else readBuckets[2].value += views;
+
+    const time = parseTimestamp(post.pubDate);
+    if (time > 0) {
+      const day = new Date(time).getDay();
+      const index = day === 0 ? 6 : day - 1;
+      weekdayViews[index] = (weekdayViews[index] || 0) + views;
+    }
+  }
+
+  tagPreference.value = Array.from(tagViews.entries())
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
+
+  readTimePreference.value = readBuckets;
+  weekdayPreference.value = [
+    { label: "周一", value: weekdayViews[0] || 0 },
+    { label: "周二", value: weekdayViews[1] || 0 },
+    { label: "周三", value: weekdayViews[2] || 0 },
+    { label: "周四", value: weekdayViews[3] || 0 },
+    { label: "周五", value: weekdayViews[4] || 0 },
+    { label: "周六", value: weekdayViews[5] || 0 },
+    { label: "周日", value: weekdayViews[6] || 0 },
+  ];
 };
 
 const submitQuickReply = async (comment: LatestCommentItem) => {
@@ -261,9 +435,14 @@ const submitQuickReply = async (comment: LatestCommentItem) => {
 const loadOverview = async () => {
   isLoading.value = true;
   try {
-    const result = (await $fetch("/api/admin/overview", {
-      credentials: "include",
-    })) as any;
+    const [result, postsResult] = (await Promise.all([
+      $fetch("/api/admin/overview", {
+        credentials: "include",
+      }),
+      $fetch("/api/admin/posts", {
+        credentials: "include",
+      }),
+    ])) as [any, any];
     stats.value = {
       postTotal: Number(result?.stats?.postTotal || 0),
       pinnedTotal: Number(result?.stats?.pinnedTotal || 0),
@@ -289,6 +468,7 @@ const loadOverview = async () => {
     latestComments.value = Array.isArray(result?.latestComments)
       ? result.latestComments
       : [];
+    buildPreferenceCharts(Array.isArray(postsResult?.posts) ? postsResult.posts : []);
   } catch (error: any) {
     alert(parseError(error));
   } finally {

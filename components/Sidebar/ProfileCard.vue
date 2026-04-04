@@ -27,7 +27,7 @@
       </p>
 
       <!-- 通知区域 -->
-      <div v-if="notice" class="hidden lg:block w-full mb-6 text-left relative rounded-lg" :class="[
+      <div v-if="hasNotice" class="hidden lg:block w-full mb-6 text-left relative rounded-lg" :class="[
         notice.theme === 'rainbow' ? 'p-[2px] rainbow-border-wrapper' : '',
         notice.theme === 'info' ? 'border border-blue-100/50 dark:border-blue-800/30' : '',
         notice.theme === 'warning' ? 'border border-yellow-200/50 dark:border-yellow-800/30' : '',
@@ -178,6 +178,14 @@ const notice = computed(() => {
   }
   if (raw.active === false) return null;
   return raw;
+});
+
+const hasNotice = computed(() => {
+  const current = notice.value as any;
+  if (!current || current.active === false) return false;
+  const title = String(current.title || "").trim();
+  const content = String(current.content || "").trim();
+  return Boolean(title || content);
 });
 
 const noticeContentHtml = computed(() => {
