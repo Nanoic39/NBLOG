@@ -9,7 +9,9 @@ const props = defineProps<{
 
 const { user, login } = useAuth();
 const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const apiBaseUrl = String(config.public.backendBaseUrl || "")
+  .trim()
+  .replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
@@ -230,7 +232,9 @@ const removeImage = (url: string, isReply: boolean) => {
     replyImages.value = replyImages.value.filter((item) => item !== url);
     return;
   }
-  newCommentImages.value = newCommentImages.value.filter((item) => item !== url);
+  newCommentImages.value = newCommentImages.value.filter(
+    (item) => item !== url,
+  );
 };
 
 const openUploadPicker = (isReply: boolean = false) => {
@@ -296,7 +300,11 @@ const handleImageSelected = async (event: Event, isReply: boolean) => {
       }
     }
   } catch (error: any) {
-    alert(error?.data?.message || error?.statusMessage || "图片上传失败，请稍后重试");
+    alert(
+      error?.data?.message ||
+        error?.statusMessage ||
+        "图片上传失败，请稍后重试",
+    );
   } finally {
     isUploadingImage.value = false;
   }
@@ -428,7 +436,11 @@ const handleTextareaInput = (e: Event) => {
             :key="img"
             class="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
           >
-            <img :src="img" class="w-full h-20 object-cover" alt="uploaded-image" />
+            <img
+              :src="img"
+              class="w-full h-20 object-cover"
+              alt="uploaded-image"
+            />
             <button
               @click="removeImage(img, false)"
               class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs leading-none"
@@ -532,7 +544,11 @@ const handleTextareaInput = (e: Event) => {
                 rel="noopener noreferrer"
                 class="block rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
               >
-                <img :src="img" class="w-full h-28 object-cover" alt="comment-image" />
+                <img
+                  :src="img"
+                  class="w-full h-28 object-cover"
+                  alt="comment-image"
+                />
               </a>
             </div>
             <div class="mt-2">
@@ -604,7 +620,11 @@ const handleTextareaInput = (e: Event) => {
                 :key="img"
                 class="relative rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
               >
-                <img :src="img" class="w-full h-16 object-cover" alt="reply-image" />
+                <img
+                  :src="img"
+                  class="w-full h-16 object-cover"
+                  alt="reply-image"
+                />
                 <button
                   @click="removeImage(img, true)"
                   class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-xs leading-none"
@@ -709,7 +729,11 @@ const handleTextareaInput = (e: Event) => {
                     rel="noopener noreferrer"
                     class="block rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700"
                   >
-                    <img :src="img" class="w-full h-24 object-cover" alt="reply-image" />
+                    <img
+                      :src="img"
+                      class="w-full h-24 object-cover"
+                      alt="reply-image"
+                    />
                   </a>
                 </div>
                 <div class="mt-1.5">

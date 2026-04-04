@@ -246,11 +246,9 @@ type ChartItem = {
 };
 
 const isLoading = ref(false);
-const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+  return normalizedPath;
 };
 const stats = ref<Stats>({
   postTotal: 0,

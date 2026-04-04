@@ -1,16 +1,36 @@
 <template>
   <section class="space-y-6">
     <div>
-      <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">系统管理</h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">维护正在做什么与全局通知</p>
+      <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+        系统管理
+      </h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        维护正在做什么与全局通知
+      </p>
     </div>
 
     <div class="grid xl:grid-cols-2 gap-6">
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 space-y-3 shadow-sm">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">正在做什么</h3>
-        <input v-model="doingForm.action" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="动作 action" />
-        <input v-model="doingForm.target" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="目标 target" />
-        <input v-model="doingForm.type" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="类型 type" />
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 space-y-3 shadow-sm"
+      >
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          正在做什么
+        </h3>
+        <input
+          v-model="doingForm.action"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          placeholder="动作 action"
+        />
+        <input
+          v-model="doingForm.target"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          placeholder="目标 target"
+        />
+        <input
+          v-model="doingForm.type"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          placeholder="类型 type"
+        />
         <input
           v-model="startTimeInput"
           type="datetime-local"
@@ -25,25 +45,55 @@
         </button>
       </section>
 
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 space-y-3 shadow-sm">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">全局通知</h3>
-        <select v-model="noticeForm.theme" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40">
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 space-y-3 shadow-sm"
+      >
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          全局通知
+        </h3>
+        <select
+          v-model="noticeForm.theme"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+        >
           <option value="info">info</option>
           <option value="warning">warning</option>
           <option value="feature">feature</option>
           <option value="rainbow">rainbow</option>
         </select>
-        <input v-model="noticeForm.title" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="通知标题" />
-        <textarea v-model="noticeForm.content" rows="4" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="通知内容"></textarea>
-        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-          <span class="relative inline-flex h-5 w-5 items-center justify-center">
+        <input
+          v-model="noticeForm.title"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          placeholder="通知标题"
+        />
+        <textarea
+          v-model="noticeForm.content"
+          rows="4"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          placeholder="通知内容"
+        ></textarea>
+        <label
+          class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none"
+        >
+          <span
+            class="relative inline-flex h-5 w-5 items-center justify-center"
+          >
             <input
               v-model="noticeForm.active"
               type="checkbox"
               class="peer absolute inset-0 h-full w-full appearance-none rounded-md border border-slate-300 bg-white/90 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/35 checked:border-sky-500 checked:bg-sky-500 dark:border-slate-600 dark:bg-slate-900/80 dark:checked:border-sky-500 dark:checked:bg-sky-500"
             />
-            <svg class="pointer-events-none h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100" viewBox="0 0 20 20" fill="none">
-              <path d="M5 10.5L8.2 13.5L15 6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            <svg
+              class="pointer-events-none h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M5 10.5L8.2 13.5L15 6.8"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </span>
           启用通知展示
@@ -84,11 +134,9 @@ const noticeForm = ref({
   content: "",
   active: true,
 });
-const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+  return normalizedPath;
 };
 
 const parseError = (error: any) =>
@@ -132,7 +180,9 @@ const loadData = async () => {
       action: String(result?.doing?.action || ""),
       target: String(result?.doing?.target || ""),
       type: String(result?.doing?.type || ""),
-      startTime: String(normalizeTimestamp(result?.doing?.startTime || Date.now())),
+      startTime: String(
+        normalizeTimestamp(result?.doing?.startTime || Date.now()),
+      ),
     };
     startTimeInput.value = toLocalDatetimeValue(doingForm.value.startTime);
     noticeForm.value = {

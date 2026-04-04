@@ -3,8 +3,12 @@
   <section v-else class="space-y-6">
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">文章管理</h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">内容编辑与元数据管理</p>
+        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          文章管理
+        </h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          内容编辑与元数据管理
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <NuxtLink
@@ -23,10 +27,14 @@
       </div>
     </div>
 
-    <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 overflow-auto shadow-sm">
+    <section
+      class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 overflow-auto shadow-sm"
+    >
       <table class="w-full text-sm">
         <thead>
-          <tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+          <tr
+            class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700"
+          >
             <th class="py-2 pr-3">标题</th>
             <th class="py-2 pr-3">slug</th>
             <th class="py-2 pr-3">标签</th>
@@ -49,20 +57,36 @@
             <td class="py-2 pr-3">{{ post.views || 0 }}</td>
             <td class="py-2 pr-3">
               {{ post.publishStatus === "draft" ? "草稿" : "发布" }}
-              <span class="text-xs text-slate-400 ml-1">· {{ post.isPinned ? "置顶" : "普通" }}</span>
+              <span class="text-xs text-slate-400 ml-1"
+                >· {{ post.isPinned ? "置顶" : "普通" }}</span
+              >
             </td>
             <td class="py-2 pr-3">
               <div class="flex items-center gap-2">
-                <NuxtLink :to="`/admin/dashboard/posts/${post.id}`" class="text-sky-600 dark:text-sky-300 hover:underline">内容编辑</NuxtLink>
-                <button @click="togglePin(post)" class="text-amber-600 hover:underline">
+                <NuxtLink
+                  :to="`/admin/dashboard/posts/${post.id}`"
+                  class="text-sky-600 dark:text-sky-300 hover:underline"
+                  >内容编辑</NuxtLink
+                >
+                <button
+                  @click="togglePin(post)"
+                  class="text-amber-600 hover:underline"
+                >
                   {{ post.isPinned ? "取消置顶" : "置顶" }}
                 </button>
-                <button @click="removePost(post.id)" class="text-red-500 hover:underline">删除</button>
+                <button
+                  @click="removePost(post.id)"
+                  class="text-red-500 hover:underline"
+                >
+                  删除
+                </button>
               </div>
             </td>
           </tr>
           <tr v-if="posts.length === 0">
-            <td colspan="7" class="py-6 text-center text-slate-400">暂无文章</td>
+            <td colspan="7" class="py-6 text-center text-slate-400">
+              暂无文章
+            </td>
           </tr>
         </tbody>
       </table>
@@ -97,11 +121,9 @@ type PostItem = {
 const isLoading = ref(false);
 const posts = ref<PostItem[]>([]);
 const route = useRoute();
-const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+  return normalizedPath;
 };
 const showChildEditor = computed(() =>
   String(route.path || "").startsWith("/admin/dashboard/posts/"),
@@ -111,7 +133,9 @@ const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
 
 const normalizePublishStatus = (post: any): PostItem["publishStatus"] => {
-  const rawStatus = String(post?.status ?? post?.publishStatus ?? "").toLowerCase();
+  const rawStatus = String(
+    post?.status ?? post?.publishStatus ?? "",
+  ).toLowerCase();
   if (rawStatus.includes("draft")) return "draft";
   if (rawStatus.includes("publish")) return "published";
   if (post?.isDraft === true) return "draft";

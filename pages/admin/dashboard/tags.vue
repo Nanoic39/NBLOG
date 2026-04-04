@@ -70,11 +70,9 @@ type TagItem = {
 const isLoading = ref(false);
 const tags = ref<TagItem[]>([]);
 const renameMap = ref<Record<string, string>>({});
-const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+  return normalizedPath;
 };
 
 const parseError = (error: any) =>

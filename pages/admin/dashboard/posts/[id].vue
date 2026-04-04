@@ -452,11 +452,9 @@ type ToolbarKey =
 
 const route = useRoute();
 const router = useRouter();
-const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+  return normalizedPath;
 };
 const postId = computed(() => String(route.params.id || ""));
 const isCreateMode = computed(() => postId.value === "new");
