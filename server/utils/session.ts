@@ -7,19 +7,38 @@ export type SessionUser = {
   [key: string]: any;
 };
 
+const decodeSessionCookie = (sessionCookie: string): SessionUser | null => {
+  try {
+    const normalized = sessionCookie.replace(/-/g, "+").replace(/_/g, "/");
+    const sessionData = Buffer.from(normalized, "base64").toString("utf-8");
+    const parsed = JSON.parse(sessionData) as Record<string, any>;
+    if (!parsed || typeof parsed !== "object") return null;
+    if ("access_token" in parsed || "role" in parsed || "email" in parsed) {
+      return parsed as SessionUser;
+    }
+    if ("t" in parsed || "r" in parsed || "e" in parsed) {
+      return {
+        id: parsed.i ?? "",
+        name: parsed.n ?? "",
+        username: parsed.u ?? "",
+        email: parsed.e ?? "",
+        picture: parsed.p ?? "",
+        access_token: parsed.t ?? "",
+        role: parsed.r ?? "user",
+      };
+    }
+    return parsed as SessionUser;
+  } catch {
+    return null;
+  }
+};
+
 export const getSessionUser = (event: H3Event): SessionUser | null => {
   const sessionCookie = getCookie(event, "user_session");
   if (!sessionCookie) {
     return null;
   }
-
-  try {
-    const sessionData = Buffer.from(sessionCookie, "base64").toString("utf-8");
-    const user = JSON.parse(sessionData) as SessionUser;
-    return user;
-  } catch {
-    return null;
-  }
+  return decodeSessionCookie(sessionCookie);
 };
 
 export const requireAdmin = (event: H3Event): SessionUser => {

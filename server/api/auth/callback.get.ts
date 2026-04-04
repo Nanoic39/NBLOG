@@ -71,20 +71,30 @@ export default defineEventHandler(async (event) => {
     }) as Record<string, any>
     const userInfo = unwrap<Record<string, any>>(userInfoResponse) || {}
     
-    // Set user session cookie
-    // Simple base64 encoding for now. In production, use encryption.
-    const isAdmin = config.adminEmail && userInfo.email === config.adminEmail
+    const adminEmail = String(config.adminEmail || '').trim().toLowerCase()
+    const currentEmail = String(userInfo.email || '').trim().toLowerCase()
+    const isAdmin = Boolean(adminEmail) && currentEmail === adminEmail
     const sessionObj = {
-      id: userInfo.id ?? userInfo.userId ?? userInfo.uid ?? '',
-      name: userInfo.name ?? userInfo.nickname ?? userInfo.username ?? '',
-      username: userInfo.username ?? userInfo.name ?? '',
-      email: userInfo.email ?? '',
-      picture: userInfo.picture ?? userInfo.avatar ?? userInfo.headImg ?? '',
-      access_token,
-      role: isAdmin ? 'admin' : 'user'
+      i: userInfo.id ?? userInfo.userId ?? userInfo.uid ?? '',
+      n: userInfo.name ?? userInfo.nickname ?? userInfo.username ?? '',
+      u: userInfo.username ?? userInfo.name ?? '',
+      e: userInfo.email ?? '',
+      p: userInfo.picture ?? userInfo.avatar ?? userInfo.headImg ?? '',
+      t: access_token,
+      r: isAdmin ? 'admin' : 'user'
     }
     const sessionData = JSON.stringify(sessionObj)
-    const sessionCookie = Buffer.from(sessionData).toString('base64')
+    const sessionCookie = Buffer.from(sessionData)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/g, '')
+    if (sessionCookie.length > 3800) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: '登录会话超长，请联系管理员调整认证字段'
+      })
+    }
     
     setCookie(event, 'user_session', sessionCookie, {
       httpOnly: true,
