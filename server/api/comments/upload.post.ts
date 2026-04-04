@@ -65,7 +65,7 @@ const toAbsoluteUrl = (apiBaseUrl: string, raw: string): string => {
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const apiBaseUrl = String(config.public.oauthApiBaseUrl || "")
+  const apiBaseUrl = String(config.public.backendBaseUrl || "")
     .trim()
     .replace(/\/+$/, "");
   if (!apiBaseUrl) {

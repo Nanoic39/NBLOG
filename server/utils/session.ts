@@ -10,7 +10,9 @@ export type SessionUser = {
 const decodeSessionCookie = (sessionCookie: string): SessionUser | null => {
   try {
     const normalized = sessionCookie.replace(/-/g, "+").replace(/_/g, "/");
-    const sessionData = Buffer.from(normalized, "base64").toString("utf-8");
+    const padLength = (4 - (normalized.length % 4)) % 4;
+    const padded = normalized + "=".repeat(padLength);
+    const sessionData = Buffer.from(padded, "base64").toString("utf-8");
     const parsed = JSON.parse(sessionData) as Record<string, any>;
     if (!parsed || typeof parsed !== "object") return null;
     if ("access_token" in parsed || "role" in parsed || "email" in parsed) {
@@ -92,9 +94,7 @@ export const unwrapApiData = <T>(response: unknown): T => {
 
 const getUpstreamApiBaseUrl = () => {
   const config = useRuntimeConfig();
-  const baseUrl = String(
-    config.public.backendBaseUrl || config.public.oauthApiBaseUrl || "",
-  )
+  const baseUrl = String(config.public.backendBaseUrl || "")
     .trim()
     .replace(/\/+$/, "");
   if (!baseUrl) {

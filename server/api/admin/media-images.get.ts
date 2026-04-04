@@ -56,7 +56,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig();
-  const apiBaseUrl = String(config.public.oauthApiBaseUrl || "").trim().replace(/\/+$/, "");
+  const apiBaseUrl = String(config.public.backendBaseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
   if (!apiBaseUrl) {
     return { data: [] };
   }
