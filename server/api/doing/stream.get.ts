@@ -3,7 +3,7 @@ import { getSessionUser } from "../../utils/session";
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
-  const baseUrl = String(config.public.oauthApiBaseUrl || "")
+  const baseUrl = String(config.public.backendBaseUrl || config.public.oauthApiBaseUrl || "")
     .trim()
     .replace(/\/+$/, "");
   if (!baseUrl) {

@@ -61,7 +61,11 @@ export const unwrapApiData = <T>(response: unknown): T => {
   ) {
     return (response as { data: T }).data;
   }
-  if (response && typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+  if (
+    response &&
+    typeof response === "object" &&
+    "data" in (response as Record<string, unknown>)
+  ) {
     return (response as { data: T }).data;
   }
   return response as T;
@@ -69,7 +73,9 @@ export const unwrapApiData = <T>(response: unknown): T => {
 
 const getUpstreamApiBaseUrl = () => {
   const config = useRuntimeConfig();
-  const baseUrl = String(config.public.oauthApiBaseUrl || "")
+  const baseUrl = String(
+    config.public.backendBaseUrl || config.public.oauthApiBaseUrl || "",
+  )
     .trim()
     .replace(/\/+$/, "");
   if (!baseUrl) {
