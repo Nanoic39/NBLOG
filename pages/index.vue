@@ -770,10 +770,7 @@ const goToTag = (tag: string) => {
   });
 };
 
-onMounted(() => {
-  if (initialData.value?.total) {
-    totalPosts.value = initialData.value.total;
-  }
+const restoreReturnScroll = () => {
   if (
     import.meta.client &&
     postListShouldRestore.value &&
@@ -788,6 +785,17 @@ onMounted(() => {
       });
     });
   }
+};
+
+onMounted(() => {
+  if (initialData.value?.total) {
+    totalPosts.value = initialData.value.total;
+  }
+  restoreReturnScroll();
+});
+
+onActivated(() => {
+  restoreReturnScroll();
 });
 
 // 获取所有标签
