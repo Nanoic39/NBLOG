@@ -2,8 +2,12 @@
   <section class="space-y-6">
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">控制台概览</h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">查看当前站点核心运营数据</p>
+        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          控制台概览
+        </h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          查看当前站点核心运营数据
+        </p>
       </div>
       <button
         @click="loadOverview"
@@ -15,60 +19,122 @@
     </div>
 
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm">
+      <div
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm"
+      >
         <p class="text-xs text-slate-500 dark:text-slate-400">文章总数</p>
-        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.postTotal }}</p>
+        <p
+          class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100"
+        >
+          {{ stats.postTotal }}
+        </p>
       </div>
-      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm">
+      <div
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm"
+      >
         <p class="text-xs text-slate-500 dark:text-slate-400">置顶文章</p>
-        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.pinnedTotal }}</p>
+        <p
+          class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100"
+        >
+          {{ stats.pinnedTotal }}
+        </p>
       </div>
-      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm">
+      <div
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm"
+      >
         <p class="text-xs text-slate-500 dark:text-slate-400">普通文章</p>
-        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.regularTotal }}</p>
+        <p
+          class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100"
+        >
+          {{ stats.regularTotal }}
+        </p>
       </div>
-      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm">
+      <div
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm"
+      >
         <p class="text-xs text-slate-500 dark:text-slate-400">标签数</p>
-        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.tagTotal }}</p>
+        <p
+          class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100"
+        >
+          {{ stats.tagTotal }}
+        </p>
       </div>
-      <div class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm col-span-2 lg:col-span-1">
+      <div
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm col-span-2 lg:col-span-1"
+      >
         <p class="text-xs text-slate-500 dark:text-slate-400">总浏览量</p>
-        <p class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ stats.totalViews }}</p>
+        <p
+          class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100"
+        >
+          {{ stats.totalViews }}
+        </p>
       </div>
     </div>
 
     <div class="grid lg:grid-cols-3 gap-4">
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">正在做什么</h3>
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+      >
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          正在做什么
+        </h3>
         <div class="mt-3 space-y-2 text-sm">
-          <p class="text-slate-600 dark:text-slate-300">动作：{{ doing.action || "-" }}</p>
-          <p class="text-slate-600 dark:text-slate-300">目标：{{ doing.target || "-" }}</p>
-          <p class="text-slate-600 dark:text-slate-300">类型：{{ doing.type || "-" }}</p>
-          <p class="text-slate-600 dark:text-slate-300">开始时间：{{ formatTime(doing.startTime) }}</p>
+          <p class="text-slate-600 dark:text-slate-300">
+            动作：{{ doing.action || "-" }}
+          </p>
+          <p class="text-slate-600 dark:text-slate-300">
+            目标：{{ doing.target || "-" }}
+          </p>
+          <p class="text-slate-600 dark:text-slate-300">
+            类型：{{ doing.type || "-" }}
+          </p>
+          <p class="text-slate-600 dark:text-slate-300">
+            开始时间：{{ formatTime(doing.startTime) }}
+          </p>
         </div>
       </section>
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">全局通知</h3>
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+      >
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          全局通知
+        </h3>
         <div class="mt-3 space-y-2 text-sm">
-          <p class="text-slate-600 dark:text-slate-300">启用：{{ notice.active ? "是" : "否" }}</p>
-          <p class="text-slate-600 dark:text-slate-300">主题：{{ notice.theme || "-" }}</p>
-          <p class="text-slate-600 dark:text-slate-300">标题：{{ notice.title || "-" }}</p>
-          <p class="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{{ notice.content || "-" }}</p>
+          <p class="text-slate-600 dark:text-slate-300">
+            启用：{{ notice.active ? "是" : "否" }}
+          </p>
+          <p class="text-slate-600 dark:text-slate-300">
+            主题：{{ notice.theme || "-" }}
+          </p>
+          <p class="text-slate-600 dark:text-slate-300">
+            标题：{{ notice.title || "-" }}
+          </p>
+          <p class="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
+            {{ notice.content || "-" }}
+          </p>
         </div>
       </section>
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">最热文章</h3>
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+      >
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          最热文章
+        </h3>
         <div class="mt-3 space-y-2 text-sm max-h-52 overflow-auto pr-1">
           <div
             v-for="post in hotPosts"
             :key="post.id"
             class="rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-2.5 bg-white/70 dark:bg-slate-900/40"
           >
-            <NuxtLink :to="`/posts/${post.slug}`" class="font-medium text-slate-800 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-300">
+            <NuxtLink
+              :to="`/posts/${post.slug}`"
+              class="font-medium text-slate-800 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-300"
+            >
               {{ post.title }}
             </NuxtLink>
             <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              浏览 {{ post.views }} · 字数 {{ post.wordCount }} · {{ post.isPinned ? "置顶" : "普通" }}
+              浏览 {{ post.views }} · 字数 {{ post.wordCount }} ·
+              {{ post.isPinned ? "置顶" : "普通" }}
             </p>
           </div>
           <p v-if="hotPosts.length === 0" class="text-slate-400">暂无数据</p>
@@ -76,8 +142,12 @@
       </section>
     </div>
 
-    <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
-      <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">近 30 天文章趋势</h3>
+    <section
+      class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+    >
+      <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+        近 30 天文章趋势
+      </h3>
       <div class="mt-4 h-44 flex items-end gap-1">
         <div
           v-for="item in analysis30d"
@@ -88,60 +158,133 @@
             class="w-full rounded-t-sm bg-gradient-to-t from-sky-500/85 to-sky-300/80 dark:from-sky-500/65 dark:to-sky-300/45 transition-all"
             :style="{ height: `${calcBarHeight(item.posts)}px` }"
           ></div>
-          <div class="mt-1 text-[10px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">{{ item.label }}</div>
+          <div
+            class="mt-1 text-[10px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+          >
+            {{ item.label }}
+          </div>
         </div>
       </div>
-      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">柱高表示当天发布文章数量</p>
+      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        柱高表示当天发布文章数量
+      </p>
     </section>
 
     <div class="grid xl:grid-cols-3 gap-4">
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">标签阅读偏好（Top 8）</h3>
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+      >
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          标签阅读偏好（Top 8）
+        </h3>
         <div class="mt-4 space-y-2.5">
-          <div v-for="item in tagPreference" :key="item.label" class="space-y-1">
+          <div
+            v-for="item in tagPreference"
+            :key="item.label"
+            class="space-y-1"
+          >
             <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-600 dark:text-slate-300 truncate">#{{ item.label }}</span>
-              <span class="text-slate-500 dark:text-slate-400">{{ item.value }}</span>
+              <span class="text-slate-600 dark:text-slate-300 truncate"
+                >#{{ item.label }}</span
+              >
+              <span class="text-slate-500 dark:text-slate-400">{{
+                item.value
+              }}</span>
             </div>
-            <div class="h-2 rounded-full bg-slate-200/70 dark:bg-slate-700/70 overflow-hidden">
-              <div class="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-400" :style="{ width: `${calcPreferenceWidth(item.value, maxTagPreference)}%` }"></div>
+            <div
+              class="h-2 rounded-full bg-slate-200/70 dark:bg-slate-700/70 overflow-hidden"
+            >
+              <div
+                class="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-400"
+                :style="{
+                  width: `${calcPreferenceWidth(item.value, maxTagPreference)}%`,
+                }"
+              ></div>
             </div>
           </div>
-          <p v-if="tagPreference.length === 0" class="text-sm text-slate-400">暂无标签偏好数据</p>
+          <p v-if="tagPreference.length === 0" class="text-sm text-slate-400">
+            暂无标签偏好数据
+          </p>
         </div>
       </section>
 
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">阅读时长偏好</h3>
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+      >
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          阅读时长偏好
+        </h3>
         <div class="mt-4 h-44 flex items-end gap-3">
-          <div v-for="item in readTimePreference" :key="item.label" class="flex-1 min-w-0 text-center">
-            <div class="w-full rounded-t-lg bg-gradient-to-t from-indigo-500/85 to-violet-400/75 dark:from-indigo-500/70 dark:to-violet-400/55" :style="{ height: `${calcReadTimeHeight(item.value)}px` }"></div>
-            <p class="mt-2 text-xs text-slate-600 dark:text-slate-300">{{ item.label }}</p>
+          <div
+            v-for="item in readTimePreference"
+            :key="item.label"
+            class="flex-1 min-w-0 text-center"
+          >
+            <div
+              class="w-full rounded-t-lg bg-gradient-to-t from-indigo-500/85 to-violet-400/75 dark:from-indigo-500/70 dark:to-violet-400/55"
+              :style="{ height: `${calcReadTimeHeight(item.value)}px` }"
+            ></div>
+            <p class="mt-2 text-xs text-slate-600 dark:text-slate-300">
+              {{ item.label }}
+            </p>
             <p class="text-[11px] text-slate-400">{{ item.value }}</p>
           </div>
         </div>
-        <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">按文章字数估算阅读时长并累计浏览量</p>
+        <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+          按文章字数估算阅读时长并累计浏览量
+        </p>
       </section>
 
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">星期阅读偏好</h3>
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+      >
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          星期阅读偏好
+        </h3>
         <div class="mt-4 space-y-2">
-          <div v-for="item in weekdayPreference" :key="item.label" class="flex items-center gap-2">
-            <span class="w-9 text-xs text-slate-500 dark:text-slate-400">{{ item.label }}</span>
-            <div class="flex-1 h-2 rounded-full bg-slate-200/70 dark:bg-slate-700/70 overflow-hidden">
-              <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" :style="{ width: `${calcPreferenceWidth(item.value, maxWeekdayPreference)}%` }"></div>
+          <div
+            v-for="item in weekdayPreference"
+            :key="item.label"
+            class="flex items-center gap-2"
+          >
+            <span class="w-9 text-xs text-slate-500 dark:text-slate-400">{{
+              item.label
+            }}</span>
+            <div
+              class="flex-1 h-2 rounded-full bg-slate-200/70 dark:bg-slate-700/70 overflow-hidden"
+            >
+              <div
+                class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
+                :style="{
+                  width: `${calcPreferenceWidth(item.value, maxWeekdayPreference)}%`,
+                }"
+              ></div>
             </div>
-            <span class="w-10 text-right text-xs text-slate-500 dark:text-slate-400">{{ item.value }}</span>
+            <span
+              class="w-10 text-right text-xs text-slate-500 dark:text-slate-400"
+              >{{ item.value }}</span
+            >
           </div>
-          <p v-if="weekdayPreference.length === 0" class="text-sm text-slate-400">暂无星期偏好数据</p>
+          <p
+            v-if="weekdayPreference.length === 0"
+            class="text-sm text-slate-400"
+          >
+            暂无星期偏好数据
+          </p>
         </div>
       </section>
     </div>
 
-    <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm">
+    <section
+      class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+    >
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">最新评论（最多 20 条）</h3>
-        <span class="text-xs text-slate-500 dark:text-slate-400">共 {{ latestComments.length }} 条</span>
+        <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
+          最新评论（最多 20 条）
+        </h3>
+        <span class="text-xs text-slate-500 dark:text-slate-400"
+          >共 {{ latestComments.length }} 条</span
+        >
       </div>
       <div class="mt-3 space-y-3 max-h-[560px] overflow-auto pr-1">
         <div
@@ -150,10 +293,18 @@
           class="rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 bg-white/70 dark:bg-slate-900/40"
         >
           <div class="flex items-center justify-between gap-2">
-            <p class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ comment.author }}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatCommentTime(comment.createdAt) }}</p>
+            <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
+              {{ comment.author }}
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              {{ formatCommentTime(comment.createdAt) }}
+            </p>
           </div>
-          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{{ comment.content || "-" }}</p>
+          <p
+            class="mt-1 text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap"
+          >
+            {{ comment.content || "-" }}
+          </p>
           <div class="mt-2 flex items-center gap-3 text-xs">
             <NuxtLink
               v-if="comment.postSlug"
@@ -162,7 +313,9 @@
             >
               查看文章：{{ comment.postTitle || comment.postSlug }}
             </NuxtLink>
-            <span v-else class="text-slate-400">文章ID：{{ comment.articleId || "-" }}</span>
+            <span v-else class="text-slate-400"
+              >文章ID：{{ comment.articleId || "-" }}</span
+            >
           </div>
           <div class="mt-2 flex items-center gap-2">
             <input
@@ -179,7 +332,9 @@
             </button>
           </div>
         </div>
-        <p v-if="latestComments.length === 0" class="text-slate-400">暂无评论数据</p>
+        <p v-if="latestComments.length === 0" class="text-slate-400">
+          暂无评论数据
+        </p>
       </div>
     </section>
   </section>
@@ -314,9 +469,12 @@ const parseError = (error: any) =>
 const parseBoolean = (value: unknown, defaultValue = true) => {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;
-  const normalized = String(value ?? "").trim().toLowerCase();
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
   if (!normalized) return defaultValue;
-  if (["false", "0", "off", "no", "disabled"].includes(normalized)) return false;
+  if (["false", "0", "off", "no", "disabled"].includes(normalized))
+    return false;
   if (["true", "1", "on", "yes", "enabled"].includes(normalized)) return true;
   return defaultValue;
 };
@@ -340,7 +498,9 @@ const formatTime = (timestamp: string) => {
 };
 
 const formatCommentTime = (timestamp: number) =>
-  new Date(Number(timestamp || Date.now())).toLocaleString("zh-CN", { hour12: false });
+  new Date(Number(timestamp || Date.now())).toLocaleString("zh-CN", {
+    hour12: false,
+  });
 
 const calcBarHeight = (value: number) => {
   const ratio = Math.max(0, value) / maxPostsInChart.value;
@@ -489,12 +649,16 @@ const loadOverview = async () => {
       content: String(result?.notice?.content || ""),
       active: parseBoolean(result?.notice?.active, true),
     };
-    analysis30d.value = Array.isArray(result?.analysis30d) ? result.analysis30d : [];
+    analysis30d.value = Array.isArray(result?.analysis30d)
+      ? result.analysis30d
+      : [];
     hotPosts.value = Array.isArray(result?.hotPosts) ? result.hotPosts : [];
     latestComments.value = Array.isArray(result?.latestComments)
       ? result.latestComments
       : [];
-    buildPreferenceCharts(Array.isArray(postsResult?.posts) ? postsResult.posts : []);
+    buildPreferenceCharts(
+      Array.isArray(postsResult?.posts) ? postsResult.posts : [],
+    );
   } catch (error: any) {
     logClientError("admin.load_overview", error);
     alert(parseError(error));

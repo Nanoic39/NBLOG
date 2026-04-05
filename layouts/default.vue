@@ -138,12 +138,14 @@ const menuItems = [
                   </p>
                 </div>
 
-                <NuxtLink
-                  to="/admin/dashboard"
+                <a
+                  href="/admin/dashboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#0284C7] dark:hover:text-[#38bdf8]"
                 >
                   控制台
-                </NuxtLink>
+                </a>
 
                 <button
                   @click="logout"
@@ -234,13 +236,15 @@ const menuItems = [
             </div>
           </div>
 
-          <NuxtLink
-            to="/admin/dashboard"
+          <a
+            href="/admin/dashboard"
+            target="_blank"
+            rel="noopener noreferrer"
             class="block py-2 text-[#2A2E33] dark:text-[#e0e0e0] hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors text-base"
             @click="isMobileMenuOpen = false"
           >
             控制台
-          </NuxtLink>
+          </a>
 
           <button
             @click="logout"

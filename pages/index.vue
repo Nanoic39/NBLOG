@@ -315,7 +315,7 @@
               >
                 <div class="flex items-center gap-3">
                   <span class="text-xs opacity-75 font-mono">{{
-                    formatDate(post.pubDate)
+                    formatDate(post.createdAt)
                   }}</span>
                 </div>
                 <div class="flex items-center gap-4">

@@ -79,9 +79,7 @@
               :src="displayCoverImage"
               :alt="article?.title || cachedPost?.title"
               class="w-full h-full object-cover"
-              :style="
-                getTransitionStyle('article-cover', transitionIdentity)
-              "
+              :style="getTransitionStyle('article-cover', transitionIdentity)"
             />
           </div>
 
@@ -91,12 +89,7 @@
           >
             <h1
               class="text-3xl md:text-4xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] mb-8 leading-tight"
-              :style="
-                getTransitionStyle(
-                  'article-title',
-                  transitionIdentity,
-                )
-              "
+              :style="getTransitionStyle('article-title', transitionIdentity)"
             >
               {{ article?.title || cachedPost?.title }}
             </h1>
@@ -134,8 +127,34 @@
                   作者
                 </span>
                 <span
-                  class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate w-full text-center"
-                  >{{ article.author }}</span
+                  class="text-sm font-medium text-gray-800 dark:text-gray-200 w-full text-center flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
+                >
+                  <template
+                    v-for="(authorItem, index) in articleAuthors"
+                    :key="`${authorItem.name}-${index}`"
+                  >
+                    <a
+                      v-if="authorItem.socialUrl"
+                      :href="authorItem.socialUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="hover:text-[#0284C7] dark:hover:text-[#38bdf8] hover:underline break-all"
+                    >
+                      {{ authorItem.name }}
+                    </a>
+                    <span v-else class="break-all">{{ authorItem.name }}</span>
+                    <span
+                      v-if="index < articleAuthors.length - 1"
+                      class="text-gray-400 dark:text-gray-500"
+                      >/</span
+                    >
+                  </template>
+                  <span
+                    v-if="articleAuthors.length === 0"
+                    class="text-gray-400 dark:text-gray-500"
+                    >-</span
+                  >
+                </span>
                 >
               </div>
 
@@ -162,7 +181,7 @@
                 </span>
                 <span
                   class="text-sm font-medium text-gray-800 dark:text-gray-200"
-                  >{{ formatDate(article.pubDate) }}</span
+                  >{{ formatDate(publishedAt) }}</span
                 >
               </div>
 
@@ -442,7 +461,10 @@
         </article>
 
         <!-- 评论区 (位于文章卡片外部) -->
-        <CommentSection v-if="article?.id !== undefined" :articleId="article.id" />
+        <CommentSection
+          v-if="article?.id !== undefined"
+          :articleId="article.id"
+        />
       </main>
 
       <!-- 右侧：摘要/目录 (跟随页面滚动，宽屏可见) -->
@@ -1082,12 +1104,22 @@ type ArticleLicense = {
   icon?: string[];
 };
 
+type ArticleAuthor = {
+  name?: string;
+  socialUrl?: string;
+  social?: string;
+  url?: string;
+  link?: string;
+};
+
 type ArticleDetail = {
   id?: string | number;
   slug?: string;
   title?: string;
   author?: string;
+  authors?: ArticleAuthor[];
   pubDate?: string | number;
+  createdAt?: string | number;
   editDate?: string | number;
   wordCount?: number;
   views?: number;
@@ -1109,7 +1141,9 @@ type ArticleDetail = {
 const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const apiBaseUrl = String(config.public.backendBaseUrl || "")
+  .trim()
+  .replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
@@ -1133,15 +1167,14 @@ const postCache = useState<Record<string, any>>("postCache", () => ({}));
 const activePostTransition = useState<string>("activePostTransition", () => "");
 const postListReturnPath = useState<string>("postListReturnPath", () => "/");
 const cachedPost = computed(() => postCache.value[articleSlug]);
-const transitionIdentity = computed(
-  () =>
-    String(
-      cachedPost.value?.transitionKey ||
-        article.value?.transitionKey ||
-        article.value?.id ||
-        cachedPost.value?.id ||
-        articleSlug,
-    ),
+const transitionIdentity = computed(() =>
+  String(
+    cachedPost.value?.transitionKey ||
+      article.value?.transitionKey ||
+      article.value?.id ||
+      cachedPost.value?.id ||
+      articleSlug,
+  ),
 );
 
 const goBackToList = async () => {
@@ -1180,16 +1213,68 @@ const {
   query: { slug: articleSlug },
 });
 
-const { data: latestPostsData } = await useFetch(withApiBase(`/api/posts/latest`), {
-  credentials: "include",
-  transform: (response) => unwrapApiData(response),
-  query: { page: 1, size: 12 },
+const { data: latestPostsData } = await useFetch(
+  withApiBase(`/api/posts/latest`),
+  {
+    credentials: "include",
+    transform: (response) => unwrapApiData(response),
+    query: { page: 1, size: 12 },
+  },
+);
+
+const normalizeTimestamp = (timestamp?: string | number) => {
+  if (timestamp === undefined || timestamp === null || timestamp === "")
+    return null;
+  if (typeof timestamp === "number" && Number.isFinite(timestamp)) {
+    return timestamp < 1e12 ? timestamp * 1000 : timestamp;
+  }
+  const raw = String(timestamp).trim();
+  if (!raw) return null;
+  const numeric = Number(raw);
+  if (Number.isFinite(numeric)) {
+    return numeric < 1e12 ? numeric * 1000 : numeric;
+  }
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const normalizeSocialUrl = (value: unknown) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith("//")) return `https:${raw}`;
+  return `https://${raw}`;
+};
+
+const articleAuthors = computed(() => {
+  const payload = article.value as ArticleDetail | null | undefined;
+  const authorList = Array.isArray(payload?.authors) ? payload.authors : [];
+  const normalizedList = authorList
+    .map((item) => ({
+      name: String(item?.name || "").trim(),
+      socialUrl: normalizeSocialUrl(
+        item?.socialUrl || item?.social || item?.url || item?.link || "",
+      ),
+    }))
+    .filter((item) => item.name);
+  if (normalizedList.length > 0) return normalizedList;
+  return String(payload?.author || "")
+    .split("/")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((name) => ({ name, socialUrl: "" }));
+});
+
+const publishedAt = computed(() => {
+  const payload = article.value as ArticleDetail | null | undefined;
+  return payload?.createdAt ?? payload?.pubDate ?? "";
 });
 
 // Format date helper
 const formatDate = (timestamp?: string | number) => {
-  if (!timestamp) return "";
-  const date = new Date(Number(timestamp));
+  const normalized = normalizeTimestamp(timestamp);
+  if (!normalized) return "";
+  const date = new Date(normalized);
   return date.toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "long",
@@ -1216,7 +1301,8 @@ const articleTypeLabel = computed(() => {
   ).toLowerCase();
 
   if (["original", "原创"].includes(raw)) return "原创";
-  if (["co-original", "cooriginal", "原创合作"].includes(raw)) return "原创合作";
+  if (["co-original", "cooriginal", "原创合作"].includes(raw))
+    return "原创合作";
   if (["translation", "translate", "翻译"].includes(raw)) return "翻译";
   if (["repost", "转载", "reprint"].includes(raw)) return "转载";
   return "原创";
@@ -1304,7 +1390,9 @@ const showRecommendations = computed(() => {
 // Calculate days since last update
 const daysSinceUpdate = computed(() => {
   if (!article.value?.editDate) return 0;
-  const editDate = new Date(Number(article.value.editDate));
+  const normalized = normalizeTimestamp(article.value.editDate);
+  if (!normalized) return 0;
+  const editDate = new Date(normalized);
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - editDate.getTime());
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
