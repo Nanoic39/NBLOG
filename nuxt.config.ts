@@ -32,8 +32,6 @@ export default defineNuxtConfig({
     host: "0.0.0.0",
   },
   app: {
-    pageTransition: { name: "page", mode: "out-in" },
-    layoutTransition: { name: "layout", mode: "out-in" },
     head: {
       title: "NBLOG",
       htmlAttrs: {
