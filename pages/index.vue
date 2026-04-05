@@ -608,6 +608,11 @@ const totalPosts = ref(0);
 const totalPages = computed(() => Math.ceil(totalPosts.value / size));
 const activePostTransition = useState<string>("activePostTransition", () => "");
 const postListReturnPath = useState<string>("postListReturnPath", () => "/");
+const postListReturnScrollY = useState<number>("postListReturnScrollY", () => 0);
+const postListShouldRestore = useState<boolean>(
+  "postListShouldRestore",
+  () => false,
+);
 const selectedTag = computed(() => {
   const raw = route.query.tag;
   if (Array.isArray(raw)) return String(raw[0] || "").trim();
@@ -721,6 +726,11 @@ const openPost = async (
   event.preventDefault();
   const startViewTransition = (document as any).startViewTransition;
   postListReturnPath.value = String(route.fullPath || "/");
+  postListReturnScrollY.value = Math.max(
+    0,
+    Math.floor(globalThis.window?.scrollY || globalThis.window?.pageYOffset || 0),
+  );
+  postListShouldRestore.value = true;
   activePostTransition.value = String(transitionId);
   await nextTick();
   if (typeof startViewTransition !== "function") {
@@ -763,6 +773,20 @@ const goToTag = (tag: string) => {
 onMounted(() => {
   if (initialData.value?.total) {
     totalPosts.value = initialData.value.total;
+  }
+  if (
+    import.meta.client &&
+    postListShouldRestore.value &&
+    String(route.fullPath || "/") === String(postListReturnPath.value || "/")
+  ) {
+    const targetTop = Math.max(0, Number(postListReturnScrollY.value || 0));
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: targetTop, left: 0, behavior: "auto" });
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: targetTop, left: 0, behavior: "auto" });
+        postListShouldRestore.value = false;
+      });
+    });
   }
 });
 
