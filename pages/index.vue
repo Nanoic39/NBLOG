@@ -712,10 +712,17 @@ const openPost = async (
     return;
   }
   const to = `/posts/${encodeURIComponent(String(slug || ""))}`;
-  const transition = (document as any).startViewTransition;
-  if (typeof transition !== "function") return;
   event.preventDefault();
-  await transition(() => router.push(to));
+  const startViewTransition = (document as any).startViewTransition;
+  if (typeof startViewTransition !== "function") {
+    await router.push(to);
+    return;
+  }
+  try {
+    await (document as any).startViewTransition(() => router.push(to));
+  } catch {
+    await router.push(to);
+  }
 };
 
 // 切换页面
