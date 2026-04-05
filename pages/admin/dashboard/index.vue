@@ -311,6 +311,16 @@ const maxWeekdayPreference = computed(() =>
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
 
+const parseBoolean = (value: unknown, defaultValue = true) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) return defaultValue;
+  if (["false", "0", "off", "no", "disabled"].includes(normalized)) return false;
+  if (["true", "1", "on", "yes", "enabled"].includes(normalized)) return true;
+  return defaultValue;
+};
+
 const logClientError = (scene: string, error: any) => {
   const payload = {
     scene,
@@ -477,7 +487,7 @@ const loadOverview = async () => {
       theme: String(result?.notice?.theme || ""),
       title: String(result?.notice?.title || ""),
       content: String(result?.notice?.content || ""),
-      active: result?.notice?.active !== false,
+      active: parseBoolean(result?.notice?.active, true),
     };
     analysis30d.value = Array.isArray(result?.analysis30d) ? result.analysis30d : [];
     hotPosts.value = Array.isArray(result?.hotPosts) ? result.hotPosts : [];

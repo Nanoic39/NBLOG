@@ -30,7 +30,14 @@ export const useAuth = () => {
   }
   
   const isAdmin = computed(() => {
-    return user.value?.role === 'admin'
+    const roleCandidates = [
+      (user.value as any)?.role,
+      (user.value as any)?.userRole,
+      Array.isArray((user.value as any)?.roles) ? (user.value as any).roles[0] : undefined,
+    ]
+      .map((item: any) => String(item || '').trim().toLowerCase())
+      .filter(Boolean)
+    return roleCandidates.some((role: string) => role.includes('admin'))
   })
 
   return {

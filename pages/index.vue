@@ -595,6 +595,16 @@ const unwrapApiData = <T,>(
   return response as T;
 };
 
+const parseBoolean = (value: unknown, defaultValue = true) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) return defaultValue;
+  if (["false", "0", "off", "no", "disabled"].includes(normalized)) return false;
+  if (["true", "1", "on", "yes", "enabled"].includes(normalized)) return true;
+  return defaultValue;
+};
+
 // 初始化分页状态
 const page = ref(parseInt(route.query.page as string) || 1);
 const size = 7;
@@ -631,7 +641,7 @@ const noticeData = computed(() => {
     type: String(raw.type || first?.type || ""),
     title: String(raw.title || first?.title || ""),
     content: String(raw.content || first?.content || ""),
-    active: raw.active !== false && first?.active !== false,
+    active: parseBoolean(raw.active, true) && parseBoolean(first?.active, true),
   };
 });
 

@@ -142,6 +142,16 @@ const withApiBase = (path: string) => {
 const parseError = (error: any) =>
   error?.data?.message || error?.statusMessage || "请求失败，请稍后重试";
 
+const parseBoolean = (value: unknown, defaultValue = true) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (!normalized) return defaultValue;
+  if (["false", "0", "off", "no", "disabled"].includes(normalized)) return false;
+  if (["true", "1", "on", "yes", "enabled"].includes(normalized)) return true;
+  return defaultValue;
+};
+
 const normalizeTimestamp = (value: unknown) => {
   const parsed =
     typeof value === "number"
@@ -189,7 +199,7 @@ const loadData = async () => {
       theme: String(result?.notice?.theme || "info"),
       title: String(result?.notice?.title || ""),
       content: String(result?.notice?.content || ""),
-      active: result?.notice?.active !== false,
+      active: parseBoolean(result?.notice?.active, true),
     };
   } catch (error: any) {
     alert(parseError(error));
