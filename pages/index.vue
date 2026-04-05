@@ -811,8 +811,25 @@ const allTags = computed(() => {
 });
 
 // 日期格式化
-const formatDate = (timestamp: string) => {
-  const date = new Date(parseInt(timestamp) * 1000);
+const normalizeTimestamp = (timestamp?: string | number) => {
+  if (timestamp === undefined || timestamp === null || timestamp === "")
+    return null;
+  if (typeof timestamp === "number" && Number.isFinite(timestamp)) {
+    return timestamp < 1e12 ? timestamp * 1000 : timestamp;
+  }
+  const raw = String(timestamp).trim();
+  if (!raw) return null;
+  const numeric = Number(raw);
+  if (Number.isFinite(numeric)) {
+    return numeric < 1e12 ? numeric * 1000 : numeric;
+  }
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+const formatDate = (timestamp?: string | number) => {
+  const normalized = normalizeTimestamp(timestamp);
+  if (!normalized) return "";
+  const date = new Date(normalized);
   return date.toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "long",
