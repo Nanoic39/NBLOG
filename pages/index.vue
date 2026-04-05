@@ -607,6 +607,7 @@ const isLoading = ref(false);
 const totalPosts = ref(0);
 const totalPages = computed(() => Math.ceil(totalPosts.value / size));
 const activePostTransition = useState<string>("activePostTransition", () => "");
+const postListReturnPath = useState<string>("postListReturnPath", () => "/");
 const selectedTag = computed(() => {
   const raw = route.query.tag;
   if (Array.isArray(raw)) return String(raw[0] || "").trim();
@@ -676,7 +677,7 @@ watchEffect(() => {
       const coverUrl =
         post.coverImage ||
         `https://www.loliapi.com/acg/?id=${encodeURIComponent(String(post.id || post.slug || "post"))}`;
-      const transitionKey = `p${page.value}-${index + 1}`;
+      const transitionKey = String(post?.id || post?.slug || `post-${index + 1}`);
       postCache.value[post.slug] = {
         id: post.id,
         title: post.title,
@@ -719,6 +720,7 @@ const openPost = async (
   const transitionId = getPostTransitionId(post);
   event.preventDefault();
   const startViewTransition = (document as any).startViewTransition;
+  postListReturnPath.value = String(route.fullPath || "/");
   activePostTransition.value = String(transitionId);
   await nextTick();
   if (typeof startViewTransition !== "function") {

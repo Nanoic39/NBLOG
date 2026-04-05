@@ -30,7 +30,7 @@
       >
         <div class="z-20">
           <button
-            @click="router.back()"
+            @click="goBackToList"
             class="w-12 h-12 flex items-center justify-center bg-white/80 dark:bg-[#242424]/80 hover:bg-white dark:hover:bg-[#333] text-gray-600 dark:text-gray-300 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-gray-100/80 dark:border-gray-700/80 transition-all hover:scale-110"
             title="返回上一页"
           >
@@ -1131,6 +1131,7 @@ const unwrapApiData = <T,>(
 // 从缓存中获取文章基础信息（用于加载时的占位和动画过渡）
 const postCache = useState<Record<string, any>>("postCache", () => ({}));
 const activePostTransition = useState<string>("activePostTransition", () => "");
+const postListReturnPath = useState<string>("postListReturnPath", () => "/");
 const cachedPost = computed(() => postCache.value[articleSlug]);
 const transitionIdentity = computed(
   () =>
@@ -1142,6 +1143,23 @@ const transitionIdentity = computed(
         articleSlug,
     ),
 );
+
+const goBackToList = async () => {
+  if (!import.meta.client) return;
+  const targetPath = String(postListReturnPath.value || "/");
+  const startViewTransition = (document as any).startViewTransition;
+  activePostTransition.value = String(transitionIdentity.value || "");
+  await nextTick();
+  if (typeof startViewTransition !== "function") {
+    await router.push(targetPath);
+    return;
+  }
+  try {
+    await (document as any).startViewTransition(() => router.push(targetPath));
+  } catch {
+    await router.push(targetPath);
+  }
+};
 
 const displayCoverImage = computed(() => {
   return (
