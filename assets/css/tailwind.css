@@ -12,31 +12,16 @@
 }
 
 /* 保证图片过渡时不被拉伸，维持容器原比例，去除不必要的交叉淡入淡出引起的拖影 */
-::view-transition-group(article-cover) {
+::view-transition-group(article-cover),
+::view-transition-group(article-title) {
   overflow: hidden;
-  border-radius: 0.5rem; /* 确保过渡时边角也能自然缩放 */
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 ::view-transition-old(article-cover),
 ::view-transition-new(article-cover) {
-  /* 使用确切的对象匹配以防止图片拉伸，保持比例平滑过渡 */
-  object-fit: cover;
-  height: 100%;
-  width: 100%;
-  object-position: center;
-}
-
-/* 禁用旧视图的淡出和新视图的淡入，完全依赖物理形变，消除交叉拖影 */
-::view-transition-old(article-cover),
-::view-transition-old(article-title) {
-  animation: none;
-  opacity: 0;
-  display: none;
-}
-
-::view-transition-new(article-cover),
-::view-transition-new(article-title) {
-  animation: none;
+  mix-blend-mode: normal;
 }
 
 /* === 主题切换过渡动画 === */

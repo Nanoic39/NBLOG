@@ -243,9 +243,6 @@
             <div class="w-full md:w-2/5 p-3 shrink-0 h-56 md:h-auto">
               <div
                 class="relative w-full h-full rounded-lg overflow-hidden"
-                :style="
-                  getTransitionStyle('article-cover', getPostTransitionId(post))
-                "
               >
                 <img
                   :src="
@@ -254,6 +251,9 @@
                   "
                   :alt="post.title"
                   class="w-full h-full object-cover transition-transform duration-700"
+                  :style="
+                    getTransitionStyle('article-cover', getPostTransitionId(post))
+                  "
                 />
                 <div
                   class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"

@@ -29,15 +29,14 @@ export default defineEventHandler(async (event) => {
     }
   };
 
-  if (!user || !user.picture) {
-    log("avatar.missing_picture", {
-      hasUser: Boolean(user),
-      hasPicture: Boolean(String(user?.picture || "").trim()),
+  if (!user) {
+    log("avatar.missing_user", {
+      hasUser: false,
     });
     throw createError({
-      statusCode: 404,
-      statusMessage: "AvatarNotFound",
-      message: "未找到头像",
+      statusCode: 401,
+      statusMessage: "Unauthorized",
+      message: "未登录",
     });
   }
 
@@ -101,6 +100,19 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  if (!pictureRaw) {
+    log("avatar.missing_picture", {
+      hasUser: Boolean(user),
+      hasPicture: false,
+      hasYunaBase: Boolean(yunaBase),
+    });
+    throw createError({
+      statusCode: 404,
+      statusMessage: "AvatarNotFound",
+      message: "未找到头像",
+    });
+  }
+
   if (pictureRaw.startsWith("http://") || pictureRaw.startsWith("https://")) {
     const apiOrigin = new URL(cleanBaseUrl).origin;
     const pictureUrl = new URL(pictureRaw);
@@ -132,28 +144,25 @@ export default defineEventHandler(async (event) => {
   });
 
   try {
-    const response = await $fetch.raw(targetUrl, {
+    const response = await fetch(targetUrl, {
       headers: {
         Authorization: `Bearer ${user.access_token}`,
         access_token: String(user.access_token),
         "X-Access-Token": String(user.access_token),
         ...(incomingCookie ? { Cookie: incomingCookie } : {}),
+        Accept: "image/*,*/*;q=0.8",
       },
-      responseType: "arrayBuffer",
-      ignoreResponseError: true,
     });
 
+    const bytes = Buffer.from(await response.arrayBuffer());
+
     if (!response.ok) {
-      let errorText = "";
-      try {
-        errorText = new TextDecoder().decode(response._data as ArrayBuffer);
-      } catch {
-        errorText = "";
-      }
+      const errorText = bytes.toString("utf-8");
       log("avatar.upstream_error", {
         statusCode: response.status,
-        statusText: response.statusText,
+        statusText: response.statusText || "",
         errorText: errorText.slice(0, 500),
+        bytes: bytes.length,
       });
 
       throw createError({
@@ -170,18 +179,15 @@ export default defineEventHandler(async (event) => {
       setHeader(event, "Content-Type", "image/jpeg");
     }
 
-    const contentLength = response.headers.get("content-length");
-    if (contentLength) {
-      setHeader(event, "Content-Length", Number(contentLength));
-    }
+    setHeader(event, "Content-Length", bytes.length);
 
     setHeader(event, "Cache-Control", "no-cache, no-store, must-revalidate");
     log("avatar.upstream_ok", {
       statusCode: response.status,
       contentType: contentType || "image/jpeg",
-      contentLength: contentLength || "",
+      contentLength: bytes.length,
     });
-    return Buffer.from(response._data as ArrayBuffer);
+    return bytes;
   } catch (error) {
     const current = error as any;
     if (current?.statusCode) {

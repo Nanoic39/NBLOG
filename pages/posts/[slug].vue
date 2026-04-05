@@ -74,14 +74,14 @@
           <!-- 封面图 -->
           <div
             class="w-full h-64 md:h-96 mb-8 rounded-xl overflow-hidden relative"
-            :style="
-              getTransitionStyle('article-cover', transitionIdentity)
-            "
           >
             <img
               :src="displayCoverImage"
               :alt="article?.title || cachedPost?.title"
               class="w-full h-full object-cover"
+              :style="
+                getTransitionStyle('article-cover', transitionIdentity)
+              "
             />
           </div>
 
