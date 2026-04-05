@@ -237,7 +237,7 @@
             :key="post.id"
             :href="`/posts/${encodeURIComponent(String(post.slug || ''))}`"
             class="group bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#0284C7]/20 hover:-translate-y-1 transition-all duration-500 border border-gray-100/50 dark:border-gray-700/50 flex flex-col md:flex-row h-auto md:h-72"
-            @click="openPost($event, post.slug)"
+            @click="openPost($event, post)"
           >
             <!-- 左侧图片 -->
             <div class="w-full md:w-2/5 p-3 shrink-0 h-56 md:h-auto">
@@ -512,14 +512,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { marked } from "marked";
 
-// 为卡片添加统一的动态 View Transition 名称
-const getTransitionStyle = (prefix: string, id: string | number) => {
-  // 只在客户端或特定的状态下返回，避免 SSR 渲染空 style
-  return import.meta.client ? { viewTransitionName: `${prefix}-${id}` } : {};
-};
 import ProfileCard from "~/components/Sidebar/ProfileCard.vue";
 import DoingSth from "~/components/Sidebar/DoingSth.vue";
 import TagsCloud from "~/components/Sidebar/TagsCloud.vue";
@@ -611,6 +606,7 @@ const size = 7;
 const isLoading = ref(false);
 const totalPosts = ref(0);
 const totalPages = computed(() => Math.ceil(totalPosts.value / size));
+const activePostTransition = useState<string>("activePostTransition", () => "");
 const selectedTag = computed(() => {
   const raw = route.query.tag;
   if (Array.isArray(raw)) return String(raw[0] || "").trim();
@@ -696,9 +692,16 @@ const getPostTransitionId = (post: any) => {
   return String(cached?.transitionKey || post?.id || post?.slug || "post");
 };
 
+const getTransitionStyle = (prefix: string, id: string | number) => {
+  if (!import.meta.client) return {};
+  if (!activePostTransition.value) return {};
+  if (String(id) !== activePostTransition.value) return {};
+  return { viewTransitionName: prefix };
+};
+
 const openPost = async (
   event: MouseEvent,
-  slug: string | number | undefined,
+  post: Partial<Post> | Record<string, any>,
 ) => {
   if (!import.meta.client) return;
   if (event.defaultPrevented) return;
@@ -711,9 +714,13 @@ const openPost = async (
   ) {
     return;
   }
-  const to = `/posts/${encodeURIComponent(String(slug || ""))}`;
+  const slug = String(post?.slug || "");
+  const to = `/posts/${encodeURIComponent(slug)}`;
+  const transitionId = getPostTransitionId(post);
   event.preventDefault();
   const startViewTransition = (document as any).startViewTransition;
+  activePostTransition.value = String(transitionId);
+  await nextTick();
   if (typeof startViewTransition !== "function") {
     await router.push(to);
     return;

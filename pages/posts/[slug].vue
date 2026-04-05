@@ -635,7 +635,9 @@ const getTransitionStyle = (
   id: string | number | undefined,
 ) => {
   if (!import.meta.client || !id) return {};
-  return { viewTransitionName: `${prefix}-${id}` };
+  if (!activePostTransition.value) return {};
+  if (String(id) !== activePostTransition.value) return {};
+  return { viewTransitionName: prefix };
 };
 import { marked } from "marked";
 import DOMPurify from "dompurify";
@@ -1128,6 +1130,7 @@ const unwrapApiData = <T,>(
 
 // 从缓存中获取文章基础信息（用于加载时的占位和动画过渡）
 const postCache = useState<Record<string, any>>("postCache", () => ({}));
+const activePostTransition = useState<string>("activePostTransition", () => "");
 const cachedPost = computed(() => postCache.value[articleSlug]);
 const transitionIdentity = computed(
   () =>
@@ -1519,6 +1522,9 @@ onMounted(() => {
     enhanceInternalLinkCovers();
     renderMathInProse();
   });
+  setTimeout(() => {
+    activePostTransition.value = "";
+  }, 700);
 });
 
 watch(
