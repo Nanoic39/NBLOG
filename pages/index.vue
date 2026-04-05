@@ -232,10 +232,10 @@
       <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 relative">
         <!-- Main Articles Area -->
         <div id="latest-posts" class="flex-1 min-w-0 w-full space-y-8">
-          <NuxtLink
+          <a
             v-for="post in filteredPosts"
             :key="post.id"
-            :to="`/posts/${post.slug}`"
+            :href="`/posts/${encodeURIComponent(String(post.slug || ''))}`"
             class="group bg-white/80 dark:bg-[#242424]/90 backdrop-blur-md rounded-xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-[#0284C7]/20 hover:-translate-y-1 transition-all duration-500 border border-gray-100/50 dark:border-gray-700/50 flex flex-col md:flex-row h-auto md:h-72"
             @click="openPost($event, post.slug)"
           >
@@ -358,7 +358,7 @@
                 </div>
               </div>
             </div>
-          </NuxtLink>
+          </a>
         </div>
 
         <!-- Sidebar -->
@@ -696,7 +696,10 @@ const getPostTransitionId = (post: any) => {
   return String(cached?.transitionKey || post?.id || post?.slug || "post");
 };
 
-const openPost = async (event: MouseEvent, slug: string) => {
+const openPost = async (
+  event: MouseEvent,
+  slug: string | number | undefined,
+) => {
   if (!import.meta.client) return;
   if (event.defaultPrevented) return;
   if (
@@ -708,7 +711,7 @@ const openPost = async (event: MouseEvent, slug: string) => {
   ) {
     return;
   }
-  const to = `/posts/${slug}`;
+  const to = `/posts/${encodeURIComponent(String(slug || ""))}`;
   const transition = (document as any).startViewTransition;
   if (typeof transition !== "function") return;
   event.preventDefault();
