@@ -5,7 +5,9 @@
         <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
           {{ isCreateMode ? "新建文章" : "编辑文章内容" }}
         </h2>
-        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">编辑与预览同步进行，元数据和评论在右侧维护</p>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          编辑与预览同步进行，元数据和评论在右侧维护
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <NuxtLink
@@ -32,8 +34,12 @@
     </p>
 
     <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-4">
-      <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-3">
-        <div class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-2.5">
+      <section
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-3"
+      >
+        <div
+          class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-2.5"
+        >
           <div class="flex flex-wrap gap-1.5">
             <button
               v-for="item in toolbarItems"
@@ -53,13 +59,20 @@
             </button>
           </div>
           <p class="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-            快捷键：Ctrl/⌘+S 保存，Ctrl/⌘+B 加粗，Ctrl/⌘+I 斜体，Ctrl/⌘+K 链接，Ctrl/⌘+Shift+X 删除线，Ctrl/⌘+Shift+L 布局菜单
+            快捷键：Ctrl/⌘+S 保存，Ctrl/⌘+B 加粗，Ctrl/⌘+I 斜体，Ctrl/⌘+K
+            链接，Ctrl/⌘+Shift+X 删除线，Ctrl/⌘+Shift+L 布局菜单
           </p>
         </div>
 
-        <div class="grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start">
-          <div class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3">
-            <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">Markdown 编辑区（回车即换行）</p>
+        <div
+          class="grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start"
+        >
+          <div
+            class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3"
+          >
+            <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
+              Markdown 编辑区（回车即换行）
+            </p>
             <textarea
               ref="editorRef"
               v-model="form.content"
@@ -76,21 +89,39 @@
             ></textarea>
           </div>
 
-          <div class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3 xl:sticky xl:top-24">
-            <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">实时预览</p>
+          <div
+            class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3 xl:sticky xl:top-24"
+          >
+            <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
+              实时预览
+            </p>
             <div
               class="min-h-[560px] overflow-auto rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-slate-100/50 dark:bg-slate-950/40 px-3 py-3"
               :style="{ maxHeight: 'calc(100vh - 11rem)' }"
             >
-              <article class="bg-white/90 dark:bg-[#242424]/90 backdrop-blur rounded-2xl p-5 md:p-7 border border-slate-200/80 dark:border-slate-700/70 shadow-sm">
-                <div class="w-full h-44 rounded-xl overflow-hidden mb-5 border border-slate-200/60 dark:border-slate-700/70">
-                  <img :src="coverPreviewUrl" :alt="form.title || '文章封面'" class="w-full h-full object-cover" />
+              <article
+                class="bg-white/90 dark:bg-[#242424]/90 backdrop-blur rounded-2xl p-5 md:p-7 border border-slate-200/80 dark:border-slate-700/70 shadow-sm"
+              >
+                <div
+                  class="w-full h-44 rounded-xl overflow-hidden mb-5 border border-slate-200/60 dark:border-slate-700/70"
+                >
+                  <img
+                    :src="coverPreviewUrl"
+                    :alt="form.title || '文章封面'"
+                    class="w-full h-full object-cover"
+                  />
                 </div>
-                <header class="border-b border-slate-200/80 dark:border-slate-700/70 pb-4 mb-5">
-                  <h1 class="text-2xl md:text-3xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] leading-tight">
+                <header
+                  class="border-b border-slate-200/80 dark:border-slate-700/70 pb-4 mb-5"
+                >
+                  <h1
+                    class="text-2xl md:text-3xl font-bold text-[#2A2E33] dark:text-[#e0e0e0] leading-tight"
+                  >
                     {{ form.title || "未命名文章" }}
                   </h1>
-                  <p class="mt-2 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                  <p
+                    class="mt-2 text-sm text-slate-500 dark:text-slate-400 line-clamp-2"
+                  >
                     {{ form.description || "这里会显示文章摘要。" }}
                   </p>
                 </header>
@@ -104,27 +135,64 @@
         </div>
       </section>
 
-      <aside class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-4 lg:sticky lg:top-20 h-fit max-h-[calc(100vh-6rem)] overflow-auto">
-        <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-white/70 dark:bg-slate-900/35">
-          <p class="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-400">基础信息</p>
-          <input v-model="form.title" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="标题" />
-          <select v-model="form.slugMode" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm">
+      <aside
+        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-4 lg:sticky lg:top-20 h-fit max-h-[calc(100vh-6rem)] overflow-auto"
+      >
+        <div
+          class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-white/70 dark:bg-slate-900/35"
+        >
+          <p
+            class="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-400"
+          >
+            基础信息
+          </p>
+          <input
+            v-model="form.title"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+            placeholder="标题"
+          />
+          <select
+            v-model="form.slugMode"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+          >
             <option value="id">slug 类型：使用 id（默认）</option>
             <option value="pinyin">slug 类型：英文+短横线（中文转拼音）</option>
             <option value="title">slug 类型：与标题一致</option>
           </select>
-          <input v-model="form.slug" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="slug（会随标题和类型自动更新）" />
-          <select v-model="form.publishStatus" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm">
+          <input
+            v-model="form.slug"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+            placeholder="slug（会随标题和类型自动更新）"
+          />
+          <select
+            v-model="form.publishStatus"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+          >
             <option value="draft">保存为草稿</option>
             <option value="published">发布</option>
           </select>
-          <textarea v-model="form.description" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40" placeholder="摘要"></textarea>
+          <textarea
+            v-model="form.description"
+            rows="3"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+            placeholder="摘要"
+          ></textarea>
         </div>
 
-        <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+        <div
+          class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3"
+        >
           <div class="flex items-center justify-between">
-            <p class="text-xs text-slate-500 dark:text-slate-400">作者（可多个，可排序）</p>
-            <button type="button" class="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600" @click="addAuthor">添加作者</button>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              作者（可多个，可排序）
+            </p>
+            <button
+              type="button"
+              class="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600"
+              @click="addAuthor"
+            >
+              添加作者
+            </button>
           </div>
           <div
             v-for="(item, index) in form.authors"
@@ -142,19 +210,43 @@
               placeholder="社交链接（可空）"
             />
             <div class="flex items-center gap-1">
-              <button type="button" class="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600" @click="moveAuthor(index, -1)">上移</button>
-              <button type="button" class="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600" @click="moveAuthor(index, 1)">下移</button>
-              <button type="button" class="text-xs px-2 py-1 rounded border border-rose-300 text-rose-600" @click="removeAuthor(index)">删除</button>
+              <button
+                type="button"
+                class="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600"
+                @click="moveAuthor(index, -1)"
+              >
+                上移
+              </button>
+              <button
+                type="button"
+                class="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600"
+                @click="moveAuthor(index, 1)"
+              >
+                下移
+              </button>
+              <button
+                type="button"
+                class="text-xs px-2 py-1 rounded border border-rose-300 text-rose-600"
+                @click="removeAuthor(index)"
+              >
+                删除
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+        <div
+          class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3"
+        >
           <div class="flex items-center justify-between gap-2">
-            <p class="text-xs text-slate-500 dark:text-slate-400">标签（可选已有 + 可输入新标签 + 拖动排序）</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              标签（可选已有 + 可输入新标签 + 拖动排序）
+            </p>
             <span class="text-[11px] text-slate-400">拖动标签胶囊可排序</span>
           </div>
-          <div class="rounded-xl border border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/45 px-2.5 py-2 flex flex-wrap gap-1.5 min-h-11">
+          <div
+            class="rounded-xl border border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/45 px-2.5 py-2 flex flex-wrap gap-1.5 min-h-11"
+          >
             <button
               v-for="tag in selectedTags"
               :key="tag"
@@ -180,15 +272,27 @@
             />
           </div>
           <div class="flex gap-2">
-            <button type="button" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm" @click="addTagFromInput">添加标签</button>
+            <button
+              type="button"
+              class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm"
+              @click="addTagFromInput"
+            >
+              添加标签
+            </button>
           </div>
-          <div class="max-h-28 overflow-auto flex flex-wrap gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 p-2">
+          <div
+            class="max-h-28 overflow-auto flex flex-wrap gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 p-2"
+          >
             <button
               v-for="tag in allTags"
               :key="tag"
               type="button"
               class="px-2 py-1 rounded-lg text-xs border"
-              :class="selectedTags.includes(tag) ? 'border-sky-500 text-sky-600 dark:text-sky-300' : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300'"
+              :class="
+                selectedTags.includes(tag)
+                  ? 'border-sky-500 text-sky-600 dark:text-sky-300'
+                  : 'border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300'
+              "
               @click="toggleTag(tag)"
             >
               {{ tag }}
@@ -196,47 +300,84 @@
           </div>
         </div>
 
-        <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+        <div
+          class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3"
+        >
           <p class="text-xs text-slate-500 dark:text-slate-400">原创类型</p>
-          <select v-model="form.articleType" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm">
+          <select
+            v-model="form.articleType"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+          >
             <option value="original">原创</option>
             <option value="co-original">原创合作</option>
             <option value="translation">翻译</option>
             <option value="repost">转载</option>
           </select>
           <input
-            v-if="form.articleType === 'translation' || form.articleType === 'repost'"
+            v-if="
+              form.articleType === 'translation' ||
+              form.articleType === 'repost'
+            "
             v-model="form.sourceUrl"
             class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
             placeholder="文章来源链接（可空）"
           />
         </div>
 
-        <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+        <div
+          class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3"
+        >
           <div class="flex items-center gap-2">
-            <p class="text-xs text-slate-500 dark:text-slate-400">CC 许可（可空）</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              CC 许可（可空）
+            </p>
             <div class="relative group">
-              <button type="button" class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 text-[10px] text-slate-500 dark:text-slate-300">?</button>
-              <div class="absolute z-20 hidden group-hover:block top-6 left-0 w-72 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-2.5 space-y-1.5">
+              <button
+                type="button"
+                class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 text-[10px] text-slate-500 dark:text-slate-300"
+              >
+                ?
+              </button>
+              <div
+                class="absolute z-20 hidden group-hover:block top-6 left-0 w-72 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-2.5 space-y-1.5"
+              >
                 <p
                   v-for="item in ccLicenseTips"
                   :key="item.value"
                   class="text-[11px] leading-5 text-slate-600 dark:text-slate-300"
                 >
-                  <span class="font-medium text-slate-800 dark:text-slate-200">{{ item.value }}：</span>{{ item.desc }}
+                  <span class="font-medium text-slate-800 dark:text-slate-200"
+                    >{{ item.value }}：</span
+                  >{{ item.desc }}
                 </p>
               </div>
             </div>
           </div>
-          <select v-model="form.licenseCc" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm">
+          <select
+            v-model="form.licenseCc"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+          >
             <option value="">不设置</option>
-            <option v-for="item in ccLicenseTips" :key="item.value" :value="item.value" :title="item.desc">{{ item.value }}</option>
+            <option
+              v-for="item in ccLicenseTips"
+              :key="item.value"
+              :value="item.value"
+              :title="item.desc"
+            >
+              {{ item.value }}
+            </option>
           </select>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ selectedCcDesc }}</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">
+            {{ selectedCcDesc }}
+          </p>
         </div>
 
-        <div class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-          <p class="text-xs text-slate-500 dark:text-slate-400">封面图（从 YunaNexusCore 文件系统选择 / 手输链接 / 上传）</p>
+        <div
+          class="space-y-2 rounded-xl border border-slate-200 dark:border-slate-700 p-3"
+        >
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            封面图（从 YunaNexusCore 文件系统选择 / 手输链接 / 上传）
+          </p>
           <div class="flex gap-2">
             <button
               type="button"
@@ -253,16 +394,29 @@
             >
               {{ isLoadingMedia ? "加载中..." : "刷新图库" }}
             </button>
-            <input type="file" accept="image/*" @change="uploadCoverImage" class="text-xs" />
+            <input
+              type="file"
+              accept="image/*"
+              @change="uploadCoverImage"
+              class="text-xs"
+            />
           </div>
-          <input v-model="form.coverImage" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm" placeholder="封面链接（空则默认）" />
+          <input
+            v-model="form.coverImage"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+            placeholder="封面链接（空则默认）"
+          />
           <div class="max-h-28 overflow-auto grid grid-cols-4 gap-2">
             <button
               v-for="url in mediaImages.slice(0, 8)"
               :key="url"
               type="button"
               class="rounded-lg overflow-hidden border"
-              :class="form.coverImage === url ? 'border-sky-500' : 'border-slate-300 dark:border-slate-700'"
+              :class="
+                form.coverImage === url
+                  ? 'border-sky-500'
+                  : 'border-slate-300 dark:border-slate-700'
+              "
               @click="form.coverImage = url"
             >
               <img :src="url" alt="media" class="w-full h-12 object-cover" />
@@ -270,40 +424,79 @@
           </div>
           <div class="space-y-2">
             <p class="text-xs text-slate-500 dark:text-slate-400">预览效果</p>
-            <div class="rounded-lg border border-slate-200 dark:border-slate-700 p-2">
+            <div
+              class="rounded-lg border border-slate-200 dark:border-slate-700 p-2"
+            >
               <p class="text-[11px] text-slate-500 mb-1">PC</p>
-              <img :src="coverPreviewUrl" alt="cover-pc" class="w-full h-24 object-cover rounded" />
+              <img
+                :src="coverPreviewUrl"
+                alt="cover-pc"
+                class="w-full h-24 object-cover rounded"
+              />
             </div>
-            <div class="rounded-lg border border-slate-200 dark:border-slate-700 p-2 max-w-[170px]">
+            <div
+              class="rounded-lg border border-slate-200 dark:border-slate-700 p-2 max-w-[170px]"
+            >
               <p class="text-[11px] text-slate-500 mb-1">移动端</p>
-              <img :src="coverPreviewUrl" alt="cover-mobile" class="w-full h-36 object-cover rounded" />
+              <img
+                :src="coverPreviewUrl"
+                alt="cover-mobile"
+                class="w-full h-36 object-cover rounded"
+              />
             </div>
           </div>
         </div>
 
-        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-          <span class="relative inline-flex h-5 w-5 items-center justify-center">
+        <label
+          class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none"
+        >
+          <span
+            class="relative inline-flex h-5 w-5 items-center justify-center"
+          >
             <input
               v-model="form.isPinned"
               type="checkbox"
               class="peer absolute inset-0 h-full w-full appearance-none rounded-md border border-slate-300 bg-white/90 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/35 checked:border-sky-500 checked:bg-sky-500 dark:border-slate-600 dark:bg-slate-900/80 dark:checked:border-sky-500 dark:checked:bg-sky-500"
             />
-            <svg class="pointer-events-none h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100" viewBox="0 0 20 20" fill="none">
-              <path d="M5 10.5L8.2 13.5L15 6.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+            <svg
+              class="pointer-events-none h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+              viewBox="0 0 20 20"
+              fill="none"
+            >
+              <path
+                d="M5 10.5L8.2 13.5L15 6.8"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </span>
           设为置顶
         </label>
 
-        <div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-sm space-y-1">
-          <p class="text-slate-600 dark:text-slate-300">自动字数：{{ estimatedWordCount }}</p>
-          <p class="text-slate-600 dark:text-slate-300">当前浏览：{{ form.views }}</p>
-          <p class="text-xs text-slate-500 dark:text-slate-400">字数由正文自动计算，浏览量由实际访问累加</p>
+        <div
+          class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-sm space-y-1"
+        >
+          <p class="text-slate-600 dark:text-slate-300">
+            自动字数：{{ estimatedWordCount }}
+          </p>
+          <p class="text-slate-600 dark:text-slate-300">
+            当前浏览：{{ form.views }}
+          </p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            字数由正文自动计算，浏览量由实际访问累加
+          </p>
         </div>
 
-        <div v-if="!isCreateMode" class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2">
+        <div
+          v-if="!isCreateMode"
+          class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2"
+        >
           <div class="flex items-center justify-between">
-            <p class="text-xs text-slate-500 dark:text-slate-400">文章评论（真实接口）</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              文章评论（真实接口）
+            </p>
             <button
               type="button"
               class="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600"
@@ -314,12 +507,30 @@
             </button>
           </div>
           <div class="max-h-64 overflow-auto space-y-2">
-            <div v-for="comment in editorComments" :key="comment.id" class="rounded-lg border border-slate-200 dark:border-slate-700 p-2">
-              <p class="text-xs text-slate-500 dark:text-slate-400">{{ comment.author }} · {{ formatCommentDate(comment.createdAt) }}</p>
-              <p class="mt-1 text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words">{{ comment.content }}</p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">回复 {{ comment.replyCount }}</p>
+            <div
+              v-for="comment in editorComments"
+              :key="comment.id"
+              class="rounded-lg border border-slate-200 dark:border-slate-700 p-2"
+            >
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ comment.author }} ·
+                {{ formatCommentDate(comment.createdAt) }}
+              </p>
+              <p
+                class="mt-1 text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words"
+              >
+                {{ comment.content }}
+              </p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                回复 {{ comment.replyCount }}
+              </p>
             </div>
-            <p v-if="editorComments.length === 0" class="text-xs text-slate-400">暂无评论</p>
+            <p
+              v-if="editorComments.length === 0"
+              class="text-xs text-slate-400"
+            >
+              暂无评论
+            </p>
           </div>
         </div>
       </aside>
@@ -328,14 +539,21 @@
     <div
       v-if="floatingToolbar.visible"
       class="fixed z-30 -translate-x-1/2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/95 dark:bg-slate-900/95 shadow-xl px-1.5 py-1 flex items-center gap-1"
-      :style="{ top: `${floatingToolbar.top}px`, left: `${floatingToolbar.left}px` }"
+      :style="{
+        top: `${floatingToolbar.top}px`,
+        left: `${floatingToolbar.left}px`,
+      }"
     >
       <button
         v-for="item in floatingItems"
         :key="item.key"
         type="button"
         class="px-2 py-1 rounded text-xs border transition-colors"
-        :class="isToolbarActive(item.key) ? 'border-sky-500 bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300' : 'border-transparent text-slate-700 dark:text-slate-200 hover:bg-sky-100/80 dark:hover:bg-sky-500/20'"
+        :class="
+          isToolbarActive(item.key)
+            ? 'border-sky-500 bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300'
+            : 'border-transparent text-slate-700 dark:text-slate-200 hover:bg-sky-100/80 dark:hover:bg-sky-500/20'
+        "
         @click="applyToolbar(item.key)"
       >
         {{ item.label }}
@@ -347,17 +565,36 @@
       class="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4"
       @click.self="showCoverPicker = false"
     >
-      <div class="w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl p-4">
+      <div
+        class="w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl p-4"
+      >
         <div class="flex items-center justify-between gap-3 mb-3">
           <div>
-            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">选择已有封面</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">来源：YunaNexusCore 当前用户文件系统图片</p>
+            <h3
+              class="text-lg font-semibold text-slate-900 dark:text-slate-100"
+            >
+              选择已有封面
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              来源：YunaNexusCore 当前用户文件系统图片
+            </p>
           </div>
           <div class="flex items-center gap-2">
-            <button type="button" class="px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600" :disabled="isLoadingMedia" @click="loadMyImages">
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600"
+              :disabled="isLoadingMedia"
+              @click="loadMyImages"
+            >
               {{ isLoadingMedia ? "刷新中..." : "刷新列表" }}
             </button>
-            <button type="button" class="px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600" @click="showCoverPicker = false">关闭</button>
+            <button
+              type="button"
+              class="px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600"
+              @click="showCoverPicker = false"
+            >
+              关闭
+            </button>
           </div>
         </div>
         <input
@@ -365,19 +602,36 @@
           class="w-full mb-3 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
           placeholder="输入关键词过滤图片地址"
         />
-        <div class="max-h-[62vh] overflow-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pr-1">
+        <div
+          class="max-h-[62vh] overflow-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pr-1"
+        >
           <button
             v-for="url in filteredMediaImages"
             :key="url"
             type="button"
             class="rounded-xl overflow-hidden border text-left"
-            :class="form.coverImage === url ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-500/30' : 'border-slate-300 dark:border-slate-700'"
+            :class="
+              form.coverImage === url
+                ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-500/30'
+                : 'border-slate-300 dark:border-slate-700'
+            "
             @click="selectCoverImage(url)"
           >
-            <img :src="url" alt="cover-option" class="w-full h-28 object-cover" />
-            <p class="px-2 py-1 text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ url }}</p>
+            <img
+              :src="url"
+              alt="cover-option"
+              class="w-full h-28 object-cover"
+            />
+            <p
+              class="px-2 py-1 text-[10px] text-slate-500 dark:text-slate-400 truncate"
+            >
+              {{ url }}
+            </p>
           </button>
-          <p v-if="!isLoadingMedia && filteredMediaImages.length === 0" class="col-span-full text-center text-sm text-slate-400 py-8">
+          <p
+            v-if="!isLoadingMedia && filteredMediaImages.length === 0"
+            class="col-span-full text-center text-sm text-slate-400 py-8"
+          >
             暂无可选图片
           </p>
         </div>
@@ -390,7 +644,14 @@
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { pinyin } from "pinyin-pro";
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 
 definePageMeta({
   middleware: "admin",
@@ -598,7 +859,9 @@ const applyAutoSlug = () => {
 };
 
 const normalizePublishStatus = (post: any): PostForm["publishStatus"] => {
-  const rawStatus = String(post?.status ?? post?.publishStatus ?? "").toLowerCase();
+  const rawStatus = String(
+    post?.status ?? post?.publishStatus ?? "",
+  ).toLowerCase();
   if (rawStatus.includes("draft")) return "draft";
   if (rawStatus.includes("publish")) return "published";
   if (post?.isDraft === true) return "draft";
@@ -606,7 +869,11 @@ const normalizePublishStatus = (post: any): PostForm["publishStatus"] => {
   return "published";
 };
 
-const inferSlugMode = (slug: string, title: string, id: string): PostForm["slugMode"] => {
+const inferSlugMode = (
+  slug: string,
+  title: string,
+  id: string,
+): PostForm["slugMode"] => {
   const currentSlug = String(slug || "").trim();
   if (!currentSlug) return "id";
   if (currentSlug === String(id || "").trim()) return "id";
@@ -616,7 +883,9 @@ const inferSlugMode = (slug: string, title: string, id: string): PostForm["slugM
 };
 
 const estimatedWordCount = computed(() => computeWordCount(form.value.content));
-const hasSelection = computed(() => selectionState.value.end > selectionState.value.start);
+const hasSelection = computed(
+  () => selectionState.value.end > selectionState.value.start,
+);
 
 const getDefaultCoverUrl = (id: string) =>
   `https://www.loliapi.com/acg/?id=${encodeURIComponent(String(id || "post"))}`;
@@ -639,18 +908,30 @@ const ccLicenseTips = [
 const selectedCcDesc = computed(() => {
   const current = String(form.value.licenseCc || "").trim();
   if (!current) return "未设置许可。";
-  return ccLicenseTips.find((item) => item.value === current)?.desc || "该许可暂无说明。";
+  return (
+    ccLicenseTips.find((item) => item.value === current)?.desc ||
+    "该许可暂无说明。"
+  );
 });
 
 const filteredMediaImages = computed(() => {
-  const keyword = String(coverKeyword.value || "").trim().toLowerCase();
+  const keyword = String(coverKeyword.value || "")
+    .trim()
+    .toLowerCase();
   if (!keyword) return mediaImages.value;
-  return mediaImages.value.filter((url) => String(url || "").toLowerCase().includes(keyword));
+  return mediaImages.value.filter((url) =>
+    String(url || "")
+      .toLowerCase()
+      .includes(keyword),
+  );
 });
 
 const wrapPreviewTables = (html: string) =>
   html
-    .replace(/<table>/g, '<div class="table-container"><div class="table-wrapper"><table>')
+    .replace(
+      /<table>/g,
+      '<div class="table-container"><div class="table-wrapper"><table>',
+    )
     .replace(/<\/table>/g, "</table></div></div>");
 
 const enhanceSitePreviewHtml = (html: string) =>
@@ -771,7 +1052,9 @@ const loadTags = async () => {
       credentials: "include",
     })) as any;
     const tags = Array.isArray(result?.tags)
-      ? result.tags.map((item: any) => String(item?.name || "").trim()).filter(Boolean)
+      ? result.tags
+          .map((item: any) => String(item?.name || "").trim())
+          .filter(Boolean)
       : [];
     allTags.value = tags;
   } catch {}
@@ -784,7 +1067,9 @@ const loadMyImages = async () => {
       credentials: "include",
     })) as any;
     mediaImages.value = Array.isArray(result?.data)
-      ? result.data.map((item: any) => String(item || "").trim()).filter(Boolean)
+      ? result.data
+          .map((item: any) => String(item || "").trim())
+          .filter(Boolean)
       : [];
   } catch {
     mediaImages.value = [];
@@ -849,7 +1134,9 @@ const loadEditorComments = async () => {
       id: String(item?.id || item?._id || Date.now()),
       author: String(item?.author || item?.authorName || "用户"),
       content: String(item?.content || ""),
-      createdAt: normalizeCommentTime(item?.createdAt || item?.createTime || item?.created_at),
+      createdAt: normalizeCommentTime(
+        item?.createdAt || item?.createTime || item?.created_at,
+      ),
       replyCount: Array.isArray(item?.replies) ? item.replies.length : 0,
     }));
   } catch {
@@ -923,7 +1210,8 @@ const createMirrorPosition = (editor: HTMLTextAreaElement, index: number) => {
   document.body.removeChild(mirror);
   const editorRect = editor.getBoundingClientRect();
   return {
-    left: editorRect.left + markerRect.left - mirrorRect.left - editor.scrollLeft,
+    left:
+      editorRect.left + markerRect.left - mirrorRect.left - editor.scrollLeft,
     top: editorRect.top + markerRect.top - mirrorRect.top - editor.scrollTop,
   };
 };
@@ -938,7 +1226,10 @@ const syncFloatingToolbar = () => {
   }
   const point = createMirrorPosition(editor, selectionState.value.end);
   const nextLeft = Math.min(Math.max(point.left, 48), window.innerWidth - 48);
-  const nextTop = Math.min(Math.max(point.top - 48, 16), window.innerHeight - 56);
+  const nextTop = Math.min(
+    Math.max(point.top - 48, 16),
+    window.innerHeight - 56,
+  );
   floatingToolbar.value = {
     visible: true,
     left: nextLeft,
@@ -1021,8 +1312,12 @@ const buildImageGridLayout = (count: 2 | 3) => {
           "https://example.com/image-2.png",
           "https://example.com/image-3.png",
         ];
-  const finalUrls = Array.from({ length: count }, (_, index) => urls[index] || fallbackUrls[index]);
-  const columns = count === 2 ? "repeat(2,minmax(0,1fr))" : "repeat(3,minmax(0,1fr))";
+  const finalUrls = Array.from(
+    { length: count },
+    (_, index) => urls[index] || fallbackUrls[index],
+  );
+  const columns =
+    count === 2 ? "repeat(2,minmax(0,1fr))" : "repeat(3,minmax(0,1fr))";
   return `\n<div class="image-layout image-layout-${count}" style="display:grid;grid-template-columns:${columns};gap:12px;align-items:start;">\n${finalUrls
     .map(
       (url, index) =>
@@ -1100,7 +1395,10 @@ const toggleLinePrefix = (prefix: string) => {
     .join("\n");
   form.value.content = `${value.slice(0, lineStart)}${transformed}${value.slice(lineEnd)}`;
   const delta = transformed.length - block.length;
-  focusEditorSelection(start + (allPrefixed ? -prefix.length : prefix.length), end + delta);
+  focusEditorSelection(
+    start + (allPrefixed ? -prefix.length : prefix.length),
+    end + delta,
+  );
 };
 
 const isToolbarActive = (key: ToolbarKey) => {
@@ -1135,23 +1433,34 @@ const applyToolbar = (key: ToolbarKey) => {
   if (key === "underline") return toggleSelectionWrap("<u>", "</u>");
   if (key === "strike") return toggleSelectionWrap("~~");
   if (key === "quote") return toggleLinePrefix("> ");
-  if (key === "heimu") return toggleSelectionWrap('<span class="heimu">', "</span>");
+  if (key === "heimu")
+    return toggleSelectionWrap('<span class="heimu">', "</span>");
   if (key === "ul") return toggleLinePrefix("- ");
-  if (key === "code") return toggleSelectionWrap("\n```markdown\n", "\n```\n", "代码内容");
+  if (key === "code")
+    return toggleSelectionWrap("\n```markdown\n", "\n```\n", "代码内容");
   if (key === "image") {
     const url = import.meta.client ? window.prompt("输入图片地址") || "" : "";
-    return insertAtSelection(`![图片说明](${url || "https://example.com/image.png"})`);
+    return insertAtSelection(
+      `![图片说明](${url || "https://example.com/image.png"})`,
+    );
   }
   if (key === "link") {
     const url = import.meta.client ? window.prompt("输入链接地址") || "" : "";
-    return toggleSelectionWrap("[", `](${url || "https://example.com"})`, "链接文本");
+    return toggleSelectionWrap(
+      "[",
+      `](${url || "https://example.com"})`,
+      "链接文本",
+    );
   }
   if (key === "math") return insertAtSelection("\n$$\na^2+b^2=c^2\n$$\n");
   if (key === "custom") return insertAtSelection("\n:::info\n提示内容\n:::\n");
   if (key === "divider") return insertAtSelection("\n---\n");
   if (key === "layoutMenu") {
     const raw = import.meta.client
-      ? window.prompt("输入布局类型：left / center / right / grid2 / grid3", "center") || ""
+      ? window.prompt(
+          "输入布局类型：left / center / right / grid2 / grid3",
+          "center",
+        ) || ""
       : "";
     const mode = raw.trim().toLowerCase();
     if (mode === "left") return applyToolbar("alignLeft");
@@ -1164,15 +1473,19 @@ const applyToolbar = (key: ToolbarKey) => {
     return replaceSelection('<div style="text-align:left;">{{content}}</div>');
   }
   if (key === "alignCenter") {
-    return replaceSelection('<div style="text-align:center;">{{content}}</div>');
+    return replaceSelection(
+      '<div style="text-align:center;">{{content}}</div>',
+    );
   }
   if (key === "alignRight") {
     return replaceSelection('<div style="text-align:right;">{{content}}</div>');
   }
   if (key === "imageGrid2") return insertAtSelection(buildImageGridLayout(2));
   if (key === "imageGrid3") return insertAtSelection(buildImageGridLayout(3));
-  if (key === "imageCenter") return toggleSelectionWrap('<div class="text-center">', "</div>");
-  if (key === "imageCaption") return insertAtSelection("\n<figcaption>图片说明</figcaption>\n");
+  if (key === "imageCenter")
+    return toggleSelectionWrap('<div class="text-center">', "</div>");
+  if (key === "imageCaption")
+    return insertAtSelection("\n<figcaption>图片说明</figcaption>\n");
 };
 
 const handleEditorKeydown = (event: KeyboardEvent) => {
@@ -1239,9 +1552,12 @@ const loadPost = async () => {
     return;
   }
   try {
-    const result = (await $fetch(withApiBase(`/api/admin/posts/${postId.value}`), {
-      credentials: "include",
-    })) as any;
+    const result = (await $fetch(
+      withApiBase(`/api/admin/posts/${postId.value}`),
+      {
+        credentials: "include",
+      },
+    )) as any;
     const post = result?.data || result || {};
     const authorsRaw = Array.isArray(post.authors)
       ? post.authors
@@ -1253,7 +1569,11 @@ const loadPost = async () => {
     form.value = {
       title: String(post.title || ""),
       slug: String(post.slug || ""),
-      slugMode: inferSlugMode(String(post.slug || ""), String(post.title || ""), String(post.id || postId.value)),
+      slugMode: inferSlugMode(
+        String(post.slug || ""),
+        String(post.title || ""),
+        String(post.id || postId.value),
+      ),
       publishStatus: normalizePublishStatus(post),
       description: String(post.description || ""),
       authors:
@@ -1267,7 +1587,8 @@ const loadPost = async () => {
       content: String(post.content || ""),
       views: Number(post.views || 0),
       isPinned: Boolean(post.isPinned),
-      articleType: (String(post.articleType || "original") as any) || "original",
+      articleType:
+        (String(post.articleType || "original") as any) || "original",
       sourceUrl: String(post.sourceUrl || ""),
       licenseCc: String(post.license?.cc || ""),
     };
@@ -1331,7 +1652,9 @@ const savePost = async () => {
       socialUrl: String(item.socialUrl || "").trim(),
     }))
     .filter((item) => item.name);
-  const finalAuthors = authors.length ? authors : [{ name: "nanoic39", socialUrl: "" }];
+  const finalAuthors = authors.length
+    ? authors
+    : [{ name: "nanoic39", socialUrl: "" }];
   const payload: Record<string, any> = {
     title: form.value.title,
     slug: form.value.slug,
@@ -1348,7 +1671,8 @@ const savePost = async () => {
     isPinned: form.value.isPinned,
     articleType: form.value.articleType,
     sourceUrl:
-      form.value.articleType === "translation" || form.value.articleType === "repost"
+      form.value.articleType === "translation" ||
+      form.value.articleType === "repost"
         ? form.value.sourceUrl
         : "",
     license: form.value.licenseCc
@@ -1425,7 +1749,12 @@ onBeforeUnmount(() => {
 });
 
 watch(
-  () => [form.value.title, form.value.slugMode, postId.value, isCreateMode.value],
+  () => [
+    form.value.title,
+    form.value.slugMode,
+    postId.value,
+    isCreateMode.value,
+  ],
   () => {
     applyAutoSlug();
   },

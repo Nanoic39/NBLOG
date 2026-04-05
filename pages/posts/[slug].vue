@@ -630,12 +630,11 @@ import { useRoute, useRouter } from "vue-router";
 // ... (保留其它 import)
 
 // 为卡片添加统一的动态 View Transition 名称
-const transitionReady = ref(false);
 const getTransitionStyle = (
   prefix: string,
   id: string | number | undefined,
 ) => {
-  if (!transitionReady.value || !id) return {};
+  if (!import.meta.client || !id) return {};
   return { viewTransitionName: `${prefix}-${id}` };
 };
 import { marked } from "marked";
@@ -1076,6 +1075,35 @@ marked.use({
   },
 });
 
+type ArticleLicense = {
+  cc?: string;
+  icon?: string[];
+};
+
+type ArticleDetail = {
+  id?: string | number;
+  slug?: string;
+  title?: string;
+  author?: string;
+  pubDate?: string | number;
+  editDate?: string | number;
+  wordCount?: number;
+  views?: number;
+  tags?: string[];
+  description?: string;
+  content?: string;
+  coverImage?: string;
+  transitionKey?: string | number;
+  type?: string;
+  articleType?: string;
+  postType?: string;
+  sourceUrl?: string;
+  sourceLink?: string;
+  originalUrl?: string;
+  originalLink?: string;
+  license?: ArticleLicense;
+};
+
 const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
@@ -1112,10 +1140,6 @@ const transitionIdentity = computed(
     ),
 );
 
-onMounted(() => {
-  transitionReady.value = true;
-});
-
 const displayCoverImage = computed(() => {
   return (
     cachedPost.value?.coverImage ||
@@ -1129,9 +1153,9 @@ const {
   data: article,
   pending,
   error,
-} = await useFetch(withApiBase(`/api/article/detail`), {
+} = await useFetch<ArticleDetail | null>(withApiBase(`/api/article/detail`), {
   credentials: "include",
-  transform: (response) => unwrapApiData(response),
+  transform: (response) => unwrapApiData<ArticleDetail>(response),
   query: { slug: articleSlug },
 });
 

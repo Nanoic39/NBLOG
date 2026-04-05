@@ -7,7 +7,9 @@ export default defineEventHandler(async (event) => {
   const baseUrl = String(config.public.backendBaseUrl || "")
     .trim()
     .replace(/\/+$/, "");
-  const debugRaw = String((config as any).debugProxyLog || "").trim().toLowerCase();
+  const debugRaw = String((config as any).debugProxyLog || "")
+    .trim()
+    .toLowerCase();
   const debugEnabled =
     ["1", "true", "on", "yes"].includes(debugRaw) ||
     ["1", "true", "on", "yes"].includes(
@@ -58,8 +60,46 @@ export default defineEventHandler(async (event) => {
 
   const cleanBaseUrl = baseUrl;
   let targetUrl = "";
-  const pictureRaw = String(user.picture || "").trim();
+  let pictureRaw = String(user.picture || "").trim();
   const incomingCookie = String(getRequestHeader(event, "cookie") || "").trim();
+  const yunaBase = String(
+    (config.public as any).yunaCoreApiBaseUrl || config.public.oauthApiBaseUrl || "",
+  )
+    .trim()
+    .replace(/\/+$/, "");
+
+  if (yunaBase) {
+    try {
+      const upstream: unknown = await $fetch(`${yunaBase}/api/user/oauth2/userinfo`, {
+        headers: {
+          Authorization: `Bearer ${user.access_token}`,
+        },
+      });
+      const payload: Record<string, any> =
+        upstream &&
+        typeof upstream === "object" &&
+        "data" in (upstream as Record<string, unknown>)
+          ? ((upstream as { data?: Record<string, any> }).data ?? {})
+          : ((upstream as Record<string, any>) ?? {});
+      const latestPicture = String(
+        payload?.picture ?? payload?.avatar ?? payload?.headImg ?? "",
+      ).trim();
+      if (latestPicture) {
+        pictureRaw = latestPicture;
+      }
+      log("avatar.picture_refresh", {
+        yunaBase,
+        hasLatestPicture: Boolean(latestPicture),
+      });
+    } catch (error) {
+      const current = error as any;
+      log("avatar.picture_refresh_failed", {
+        yunaBase,
+        statusCode: Number(current?.statusCode || 0),
+        message: String(current?.message || ""),
+      });
+    }
+  }
 
   if (pictureRaw.startsWith("http://") || pictureRaw.startsWith("https://")) {
     const apiOrigin = new URL(cleanBaseUrl).origin;
