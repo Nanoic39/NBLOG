@@ -36,6 +36,47 @@ const normalizeAccessToken = (raw: unknown): string => {
   return token;
 };
 
+const getTokenMeta = (token: string) => {
+  const normalized = normalizeAccessToken(token);
+  const parts = normalized.split(".");
+  if (parts.length !== 3) {
+    return {
+      isJwt: false,
+      exp: 0,
+      iat: 0,
+      expired: false,
+      expiresInSeconds: 0,
+    };
+  }
+  try {
+    const payloadPart = String(parts[1] || "");
+    const payloadBase64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const padLength = (4 - (payloadBase64.length % 4)) % 4;
+    const padded = payloadBase64 + "=".repeat(padLength);
+    const raw = Buffer.from(padded, "base64").toString("utf-8");
+    const payload = JSON.parse(raw) as Record<string, any>;
+    const exp = Number(payload.exp || 0);
+    const iat = Number(payload.iat || 0);
+    const now = Math.floor(Date.now() / 1000);
+    const expiresInSeconds = exp > 0 ? exp - now : 0;
+    return {
+      isJwt: true,
+      exp,
+      iat,
+      expired: exp > 0 ? exp <= now : false,
+      expiresInSeconds,
+    };
+  } catch {
+    return {
+      isJwt: true,
+      exp: 0,
+      iat: 0,
+      expired: false,
+      expiresInSeconds: 0,
+    };
+  }
+};
+
 const decodeSessionCookie = (sessionCookie: string): SessionUser | null => {
   try {
     const raw = String(sessionCookie || "").trim();
@@ -256,8 +297,17 @@ export const requestUpstream = async <T = any>(
   }
   const token = getAccessToken(event, auth);
   const headers: Record<string, string> = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    headers.access_token = token;
+    headers["X-Access-Token"] = token;
+  }
+  const incomingCookie = String(getRequestHeader(event, "cookie") || "").trim();
+  if (incomingCookie) {
+    headers.Cookie = incomingCookie;
+  }
   const bearerToken = String(headers.Authorization || "").replace(/^Bearer\s+/i, "");
+  const tokenMeta = getTokenMeta(bearerToken);
   debugProxyLog(event, "upstream.request", {
     traceId,
     method,
@@ -265,8 +315,12 @@ export const requestUpstream = async <T = any>(
     path,
     baseUrl,
     hasAuthorization: Boolean(headers.Authorization),
+    hasCookieForwarded: Boolean(headers.Cookie),
+    cookieLength: incomingCookie.length,
     tokenLength: bearerToken.length,
     tokenLooksJwt: bearerToken.split(".").length === 3,
+    tokenExpired: tokenMeta.expired,
+    tokenExpiresInSeconds: tokenMeta.expiresInSeconds,
     queryKeys: Object.keys(options.query || {}),
     hasBody: options.body !== undefined,
   });
@@ -298,8 +352,12 @@ export const requestUpstream = async <T = any>(
         method,
         auth,
         hasAuthorization: Boolean(headers.Authorization),
+        hasCookieForwarded: Boolean(headers.Cookie),
+        cookieLength: incomingCookie.length,
         tokenLength: bearerToken.length,
         tokenLooksJwt: bearerToken.split(".").length === 3,
+        tokenExpired: tokenMeta.expired,
+        tokenExpiresInSeconds: tokenMeta.expiresInSeconds,
       },
     });
   }

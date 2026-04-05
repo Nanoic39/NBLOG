@@ -1,4 +1,4 @@
-import { defineEventHandler, createError } from "h3";
+import { defineEventHandler, createError, getRequestHeader } from "h3";
 import { getSessionUser } from "../../utils/session";
 
 export default defineEventHandler(async (event) => {
@@ -59,6 +59,7 @@ export default defineEventHandler(async (event) => {
   const cleanBaseUrl = baseUrl;
   let targetUrl = "";
   const pictureRaw = String(user.picture || "").trim();
+  const incomingCookie = String(getRequestHeader(event, "cookie") || "").trim();
 
   if (pictureRaw.startsWith("http://") || pictureRaw.startsWith("https://")) {
     const apiOrigin = new URL(cleanBaseUrl).origin;
@@ -86,12 +87,17 @@ export default defineEventHandler(async (event) => {
     targetUrl,
     pictureRaw,
     hasAccessToken: true,
+    hasCookieForwarded: Boolean(incomingCookie),
+    cookieLength: incomingCookie.length,
   });
 
   try {
     const response = await $fetch.raw(targetUrl, {
       headers: {
         Authorization: `Bearer ${user.access_token}`,
+        access_token: String(user.access_token),
+        "X-Access-Token": String(user.access_token),
+        ...(incomingCookie ? { Cookie: incomingCookie } : {}),
       },
       responseType: "arrayBuffer",
       ignoreResponseError: true,
