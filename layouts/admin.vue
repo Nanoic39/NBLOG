@@ -70,8 +70,7 @@
       <main class="flex-1 min-w-0">
         <header
           :class="[
-            'fixed top-0 right-0 left-0 h-16 px-4 lg:px-7 border-b border-slate-200/80 dark:border-slate-800/90 bg-white/85 dark:bg-[#0f172a]/85 backdrop-blur-xl flex items-center justify-between z-20 transition-[left] duration-300',
-            isCollapsed ? 'lg:left-[92px]' : 'lg:left-[286px]',
+            'sticky top-0 h-16 px-4 lg:px-7 border-b border-slate-200/80 dark:border-slate-800/90 bg-white/85 dark:bg-[#0f172a]/85 backdrop-blur-xl flex items-center justify-between z-20',
           ]"
         >
           <div class="flex items-center gap-2">
@@ -95,7 +94,7 @@
             返回站点
           </NuxtLink>
         </header>
-        <div class="p-4 lg:p-7 pt-20">
+        <div class="p-4 lg:p-7">
           <slot />
         </div>
       </main>

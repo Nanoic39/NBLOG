@@ -2,7 +2,9 @@
   <section class="space-y-6">
     <div class="flex items-center justify-between gap-3">
       <div>
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+        <h2
+          class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight"
+        >
           评论管理
         </h2>
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -21,12 +23,17 @@
     <section
       class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 overflow-auto shadow-sm"
     >
-      <div v-if="rows.length === 0" class="text-sm text-slate-500 dark:text-slate-400">
+      <div
+        v-if="rows.length === 0"
+        class="text-sm text-slate-500 dark:text-slate-400"
+      >
         暂无评论数据
       </div>
       <table v-else class="w-full text-sm min-w-[980px]">
         <thead>
-          <tr class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+          <tr
+            class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700"
+          >
             <th class="py-2.5 pr-3">作者</th>
             <th class="py-2.5 pr-3">评论内容</th>
             <th class="py-2.5 pr-3">来源文章</th>
@@ -166,7 +173,9 @@ const loadComments = async () => {
         credentials: "include",
       }),
     ])) as [any, any];
-    const comments = Array.isArray(commentsResult?.data) ? commentsResult.data : [];
+    const comments = Array.isArray(commentsResult?.data)
+      ? commentsResult.data
+      : [];
     const posts = Array.isArray(postsResult?.posts) ? postsResult.posts : [];
     const postTitleMap = new Map<string, string>();
     for (const post of posts) {

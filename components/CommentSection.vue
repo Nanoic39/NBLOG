@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useHeadImage } from "~/composables/useHeadImage";
 const adminAvatarImg = useHeadImage();
 
@@ -9,12 +9,9 @@ const props = defineProps<{
 
 const { user, login } = useAuth();
 const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "")
-  .trim()
-  .replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
+  return normalizedPath;
 };
 const yunaApiBaseUrl = String(config.public.oauthApiBaseUrl || "").replace(
   /\/+$/,
@@ -167,14 +164,12 @@ const normalizeComment = (raw: any): Comment => ({
     : [],
 });
 
-// Load mock comments
 const fetchComments = async () => {
   try {
-    const { data } = await useFetch<Comment[]>(withApiBase("/api/comments"), {
+    const payload = await $fetch<any>(withApiBase("/api/comments"), {
       credentials: "include",
       query: { articleId: props.articleId },
     });
-    const payload = data.value as any;
     if (Array.isArray(payload)) {
       comments.value = payload.map((item) => normalizeComment(item));
       return;
@@ -198,6 +193,13 @@ const fetchComments = async () => {
 onMounted(() => {
   fetchComments();
 });
+
+watch(
+  () => props.articleId,
+  () => {
+    fetchComments();
+  },
+);
 
 const formatDate = (timestamp: number) => {
   return new Date(timestamp).toLocaleString("zh-CN", {
@@ -318,10 +320,6 @@ const submitComment = async (
   const images = isReply ? replyImages.value : newCommentImages.value;
 
   if (!content.trim() && images.length === 0) return;
-  if (!user.value) {
-    alert("请先登录后再评论。");
-    return;
-  }
 
   isSubmitting.value = true;
   try {
@@ -330,7 +328,9 @@ const submitComment = async (
       const targetReply = parentComment?.replies?.find(
         (r) => r.author === replyTargetAuthor.value,
       );
-      const replyToUserId = targetReply?.authorId || parentComment?.authorId;
+      const replyToUserId = String(
+        targetReply?.authorId || parentComment?.authorId || "",
+      ).trim();
 
       const replyApi = withApiBase(`/api/comments/${parentId}/reply`) as string;
       await $fetch(replyApi, {
@@ -338,7 +338,7 @@ const submitComment = async (
         credentials: "include",
         body: {
           content: content.trim(),
-          replyToUserId,
+          replyToUserId: replyToUserId || undefined,
           images,
         },
       });
@@ -408,7 +408,7 @@ const handleTextareaInput = (e: Event) => {
         v-if="!user"
         class="mb-4 rounded-lg border border-yellow-200/70 bg-yellow-50/70 px-4 py-2 text-sm text-yellow-700 dark:border-yellow-900/60 dark:bg-yellow-900/20 dark:text-yellow-300"
       >
-        当前接口要求登录后评论，请先登录账号。
+        当前支持匿名评论，登录后可自动带出昵称与头像。
       </div>
 
       <div class="relative">
@@ -466,10 +466,10 @@ const handleTextareaInput = (e: Event) => {
               身份评论
             </span>
             <span v-else class="flex items-center gap-2">
+              匿名身份评论
               <button @click="login" class="text-[#0284C7] hover:underline">
-                登录
+                去登录
               </button>
-              后评论体验更好
             </span>
           </div>
 
@@ -485,8 +485,7 @@ const handleTextareaInput = (e: Event) => {
               @click="submitComment(false)"
               :disabled="
                 isSubmitting ||
-                (!newCommentContent.trim() && newCommentImages.length === 0) ||
-                !user
+                (!newCommentContent.trim() && newCommentImages.length === 0)
               "
               class="px-6 py-2 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
             >

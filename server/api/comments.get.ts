@@ -16,12 +16,23 @@ export default defineEventHandler(async (event) => {
         : Array.isArray(payload?.list)
           ? payload.list
           : [];
+  const articleId = String(
+    query.articleId || query.article_id || query.postId || "",
+  ).trim();
+  const normalizedData = articleId
+    ? data.filter((item: any) => {
+        const sourceArticleId = String(
+          item?.articleId || item?.article_id || item?.postId || "",
+        ).trim();
+        return sourceArticleId === articleId;
+      })
+    : data;
   const total = Number(payload?.total ?? payload?.count ?? data.length) || data.length;
   const page = Number(query.page || payload?.page || 1) || 1;
   const size = Number(query.size || payload?.size || data.length || 20) || 20;
   return {
-    data,
-    total,
+    data: normalizedData,
+    total: articleId ? normalizedData.length : total,
     page,
     size,
   };
