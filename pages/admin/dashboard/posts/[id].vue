@@ -90,7 +90,7 @@
           </div>
 
           <div
-            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 xl:sticky xl:top-24"
+            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3"
           >
             <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
               实时预览
@@ -136,7 +136,7 @@
       </section>
 
       <aside
-        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-4 lg:sticky lg:top-20 h-fit max-h-[calc(100vh-6rem)] overflow-auto"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-4 h-fit max-h-[calc(100vh-6rem)] overflow-auto"
       >
         <div
           class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-slate-50 dark:bg-slate-800/60"

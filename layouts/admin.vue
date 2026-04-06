@@ -68,7 +68,12 @@
         </nav>
       </aside>
       <main class="flex-1 min-w-0">
-        <header class="h-16 px-4 lg:px-7 border-b border-slate-200/80 dark:border-slate-800/90 bg-white/85 dark:bg-[#0f172a]/85 backdrop-blur-xl flex items-center justify-between">
+        <header
+          :class="[
+            'fixed top-0 right-0 left-0 h-16 px-4 lg:px-7 border-b border-slate-200/80 dark:border-slate-800/90 bg-white/85 dark:bg-[#0f172a]/85 backdrop-blur-xl flex items-center justify-between z-20 transition-[left] duration-300',
+            isCollapsed ? 'lg:left-[92px]' : 'lg:left-[286px]',
+          ]"
+        >
           <div class="flex items-center gap-2">
             <button
               class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -90,7 +95,7 @@
             返回站点
           </NuxtLink>
         </header>
-        <div class="p-4 lg:p-7">
+        <div class="p-4 lg:p-7 pt-20">
           <slot />
         </div>
       </main>
@@ -128,6 +133,16 @@ const menuItems = [
     label: "标签管理",
     to: "/admin/dashboard/tags",
     icon: "🏷️",
+  },
+  {
+    label: "评论管理",
+    to: "/admin/dashboard/comments",
+    icon: "💬",
+  },
+  {
+    label: "碎碎念管理",
+    to: "/admin/dashboard/moments",
+    icon: "🗒️",
   },
 ];
 

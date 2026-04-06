@@ -401,14 +401,21 @@
                     {{ ccLicenseName }}
                   </div>
                   <div class="flex items-center gap-2">
-                    <img
+                    <a
                       v-for="icon in ccLicenseIcons"
                       :key="icon"
-                      :src="icon"
-                      alt=""
-                      class="w-5 h-5 opacity-90 dark:opacity-80"
-                      loading="lazy"
-                    />
+                      :href="ccLicenseUrl || icon"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex"
+                    >
+                      <img
+                        :src="icon"
+                        alt=""
+                        class="w-5 h-5 opacity-90 dark:opacity-80"
+                        loading="lazy"
+                      />
+                    </a>
                   </div>
                 </div>
               </div>
@@ -1329,7 +1336,18 @@ const ccLicenseName = computed(() => {
 const ccLicenseIcons = computed(() => {
   const icons = (article.value as any)?.license?.icon;
   if (!Array.isArray(icons)) return [];
-  return icons.filter((x: any) => typeof x === "string" && x.length > 0);
+  return icons
+    .map((x: any) => String(x || "").trim())
+    .filter(Boolean)
+    .map((icon) => {
+      if (/^https?:\/\//i.test(icon) || icon.startsWith("data:")) return icon;
+      const normalized = icon.replace(/^\/+/, "");
+      const maybeName = normalized
+        .replace(/^icons?\//i, "")
+        .replace(/^cc\//i, "")
+        .replace(/^license\//i, "");
+      return `https://mirrors.creativecommons.org/presskit/icons/${maybeName}`;
+    });
 });
 
 const ccLicenseUrl = computed(() => {
@@ -1346,7 +1364,8 @@ const ccLicenseUrl = computed(() => {
   const version = versionMatch?.[1] || "4.0";
 
   if (normalized.includes("cc0") || normalized.includes("zero")) {
-    const v = normalized.match(/(\d\.\d|\d)/)?.[1] || "1.0";
+    const versionMatched = normalized.match(/\b(\d(?:\.\d)?)\b/)?.[1] || "1.0";
+    const v = versionMatched.includes(".") ? versionMatched : `${versionMatched}.0`;
     return `https://creativecommons.org/publicdomain/zero/${v}/`;
   }
 

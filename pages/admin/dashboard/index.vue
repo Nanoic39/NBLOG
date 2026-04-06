@@ -621,14 +621,20 @@ const submitQuickReply = async (comment: LatestCommentItem) => {
 const loadOverview = async () => {
   isLoading.value = true;
   try {
-    const [result, postsResult] = (await Promise.all([
+    const [result, postsResult, trendResult, weekdayResult] = (await Promise.all([
       $fetch(withApiBase("/api/admin/overview"), {
         credentials: "include",
       }),
       $fetch(withApiBase("/api/admin/posts"), {
         credentials: "include",
       }),
-    ])) as [any, any];
+      $fetch(withApiBase("/api/admin/analytics/posts-30d"), {
+        credentials: "include",
+      }),
+      $fetch(withApiBase("/api/admin/analytics/weekday-preference"), {
+        credentials: "include",
+      }),
+    ])) as [any, any, any, any];
     stats.value = {
       postTotal: Number(result?.stats?.postTotal || 0),
       pinnedTotal: Number(result?.stats?.pinnedTotal || 0),
@@ -649,16 +655,24 @@ const loadOverview = async () => {
       content: String(result?.notice?.content || ""),
       active: parseBoolean(result?.notice?.active, true),
     };
-    analysis30d.value = Array.isArray(result?.analysis30d)
-      ? result.analysis30d
-      : [];
+    analysis30d.value = Array.isArray(trendResult?.analysis30d)
+      ? trendResult.analysis30d
+      : Array.isArray(result?.analysis30d)
+        ? result.analysis30d
+        : [];
     hotPosts.value = Array.isArray(result?.hotPosts) ? result.hotPosts : [];
     latestComments.value = Array.isArray(result?.latestComments)
       ? result.latestComments
       : [];
-    buildPreferenceCharts(
-      Array.isArray(postsResult?.posts) ? postsResult.posts : [],
-    );
+    buildPreferenceCharts(Array.isArray(postsResult?.posts) ? postsResult.posts : []);
+    if (Array.isArray(weekdayResult?.weekdayPreference)) {
+      weekdayPreference.value = weekdayResult.weekdayPreference
+        .map((item: any) => ({
+          label: String(item?.label || ""),
+          value: Number(item?.value || 0),
+        }))
+        .filter((item: any) => item.label);
+    }
   } catch (error: any) {
     logClientError("admin.load_overview", error);
     alert(parseError(error));

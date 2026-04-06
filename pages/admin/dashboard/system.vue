@@ -1,7 +1,9 @@
 <template>
   <section class="space-y-6">
     <div>
-      <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+      <h2
+        class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight"
+      >
         系统管理
       </h2>
       <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -98,6 +100,7 @@
           </span>
           启用通知展示
         </label>
+        <br />
         <button
           @click="saveNotice"
           :disabled="isSavingNotice"
@@ -145,9 +148,12 @@ const parseError = (error: any) =>
 const parseBoolean = (value: unknown, defaultValue = true) => {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;
-  const normalized = String(value ?? "").trim().toLowerCase();
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
   if (!normalized) return defaultValue;
-  if (["false", "0", "off", "no", "disabled"].includes(normalized)) return false;
+  if (["false", "0", "off", "no", "disabled"].includes(normalized))
+    return false;
   if (["true", "1", "on", "yes", "enabled"].includes(normalized)) return true;
   return defaultValue;
 };

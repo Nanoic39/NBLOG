@@ -93,22 +93,29 @@ type HotPost = {
   pubDate: string;
 };
 const config = useRuntimeConfig();
-const apiBaseUrl = String(config.public.backendBaseUrl || "").trim().replace(/\/+$/, "");
+const apiBaseUrl = String(config.public.backendBaseUrl || "")
+  .trim()
+  .replace(/\/+$/, "");
 const withApiBase = (path: string) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
 };
 
-const unwrapApiData = <T>(response: T | { data?: T } | null | undefined): T | null => {
+const unwrapApiData = <T,>(
+  response: T | { data?: T } | null | undefined,
+): T | null => {
   if (!response) return null;
-  if (typeof response === "object" && "data" in (response as Record<string, unknown>)) {
+  if (
+    typeof response === "object" &&
+    "data" in (response as Record<string, unknown>)
+  ) {
     return ((response as { data?: T }).data ?? null) as T | null;
   }
   return response as T;
 };
 
 const { data: hotPosts } = await useFetch(withApiBase("/api/posts/hot"), {
-  credentials: 'include',
+  credentials: "include",
   transform: (response) => unwrapApiData(response),
   query: { page: 1, size: 3 },
 });
@@ -121,10 +128,9 @@ const hotList = computed<HotPost[]>(() => {
 });
 
 const formatDate = (timestamp: string) => {
-  const date = new Date(parseInt(timestamp) * 1000);
-  return date.toLocaleDateString("zh-CN", {
-    month: "numeric",
-    day: "numeric",
-  });
+  const value = Number(timestamp || 0);
+  if (!Number.isFinite(value) || value <= 0) return "-";
+  const normalized = value < 1_000_000_000_000 ? value * 1000 : value;
+  return new Date(normalized).toLocaleString("zh-CN", { hour12: false });
 };
 </script>

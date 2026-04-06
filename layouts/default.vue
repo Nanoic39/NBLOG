@@ -46,6 +46,7 @@ const getAvatarUrl = (picture: string) => {
 
 const menuItems = [
   { name: "首页", path: "/" },
+  { name: "碎碎念", path: "/moments" },
   { name: "归档", path: "/archive" },
   { name: "关于", path: "/about" },
 ];

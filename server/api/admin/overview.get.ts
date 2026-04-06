@@ -43,8 +43,14 @@ export default defineEventHandler(async (event) => {
     active: parseBoolean(noticeRaw?.active, true),
   };
 
+  const {
+    analysis30d: _analysis30d,
+    weekdayPreference: _weekdayPreference,
+    ...restPayload
+  } = payload || {};
+
   return {
-    ...payload,
+    ...restPayload,
     doing,
     notice,
   };
