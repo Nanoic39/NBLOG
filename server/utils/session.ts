@@ -1,9 +1,10 @@
-import { createError, getCookie, getRequestHeader, type H3Event } from "h3";
+import { createError, getCookie, getRequestHeader, setCookie, type H3Event } from "h3";
 
 export type SessionUser = {
   role?: string;
   email?: string;
   access_token?: string;
+  refresh_token?: string;
   [key: string]: any;
 };
 
@@ -34,6 +35,24 @@ const normalizeAccessToken = (raw: unknown): string => {
   if (!token) return "";
   if (/^(undefined|null|nan)$/i.test(token)) return "";
   return token;
+};
+
+const encodeSessionCookie = (user: SessionUser) => {
+  const compact = {
+    i: user.id ?? user.userId ?? user.uid ?? "",
+    n: user.name ?? user.nickname ?? "",
+    u: user.username ?? "",
+    e: user.email ?? "",
+    p: user.picture ?? user.avatar ?? "",
+    t: normalizeAccessToken(user.access_token),
+    f: normalizeAccessToken(user.refresh_token),
+    r: user.role ?? "user",
+  };
+  return Buffer.from(JSON.stringify(compact))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
 };
 
 const getTokenMeta = (token: string) => {
@@ -94,9 +113,12 @@ const decodeSessionCookie = (sessionCookie: string): SessionUser | null => {
     if (!parsed || typeof parsed !== "object") return null;
     if ("access_token" in parsed || "role" in parsed || "email" in parsed) {
       parsed.access_token = normalizeAccessToken(parsed.access_token);
+      parsed.refresh_token = normalizeAccessToken(
+        parsed.refresh_token ?? parsed.refreshToken ?? parsed.f,
+      );
       return parsed as SessionUser;
     }
-    if ("t" in parsed || "r" in parsed || "e" in parsed) {
+    if ("t" in parsed || "f" in parsed || "r" in parsed || "e" in parsed) {
       return {
         id: parsed.i ?? "",
         name: parsed.n ?? "",
@@ -104,10 +126,14 @@ const decodeSessionCookie = (sessionCookie: string): SessionUser | null => {
         email: parsed.e ?? "",
         picture: parsed.p ?? "",
         access_token: normalizeAccessToken(parsed.t),
+        refresh_token: normalizeAccessToken(parsed.f),
         role: parsed.r ?? "user",
       };
     }
     parsed.access_token = normalizeAccessToken(parsed.access_token ?? parsed.t);
+    parsed.refresh_token = normalizeAccessToken(
+      parsed.refresh_token ?? parsed.refreshToken ?? parsed.f,
+    );
     return parsed as SessionUser;
   } catch {
     return null;
@@ -245,8 +271,77 @@ const getUpstreamApiBaseUrl = () => {
   return baseUrl;
 };
 
-const getAccessToken = (event: H3Event, auth: UpstreamAuthMode) => {
-  if (auth === "none") return "";
+const refreshSessionToken = async (
+  event: H3Event,
+  user: SessionUser,
+): Promise<string> => {
+  const refreshToken = normalizeAccessToken(user?.refresh_token);
+  if (!refreshToken) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Unauthorized",
+      message: "登录已过期，请重新登录",
+    });
+  }
+  const config = useRuntimeConfig();
+  const oauthApiBaseUrl = String(config.public.oauthApiBaseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
+  if (!oauthApiBaseUrl) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "OAuthConfigMissing",
+      message: "认证服务地址未配置",
+    });
+  }
+  const tokenRaw = await $fetch<any>(`${oauthApiBaseUrl}/api/user/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      client_id: String(config.public.oauthClientId || ""),
+      client_secret: String(config.oauthClientSecret || ""),
+    }).toString(),
+  });
+  const tokenPayload = unwrapApiData<Record<string, any>>(tokenRaw) || {};
+  const nextAccessToken = normalizeAccessToken(
+    tokenPayload.access_token || tokenPayload.accessToken || tokenPayload.token,
+  );
+  if (!nextAccessToken) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: "Unauthorized",
+      message: "登录已过期，请重新登录",
+    });
+  }
+  const nextRefreshToken = normalizeAccessToken(
+    tokenPayload.refresh_token ||
+      tokenPayload.refreshToken ||
+      tokenPayload.r_token ||
+      refreshToken,
+  );
+  user.access_token = nextAccessToken;
+  user.refresh_token = nextRefreshToken;
+  const cookieValue = encodeSessionCookie(user);
+  setCookie(event, "user_session", cookieValue, {
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+    sameSite: "lax",
+  });
+  return nextAccessToken;
+};
+
+const getAccessContext = (event: H3Event, auth: UpstreamAuthMode) => {
+  if (auth === "none") {
+    return {
+      user: null as SessionUser | null,
+      token: "",
+    };
+  }
   const user = auth === "admin" ? requireAdmin(event) : getSessionUser(event);
   if (!user) {
     throw createError({
@@ -264,7 +359,10 @@ const getAccessToken = (event: H3Event, auth: UpstreamAuthMode) => {
       message: "缺少访问令牌，请重新登录",
     });
   }
-  return normalizedToken;
+  return {
+    user,
+    token: normalizedToken,
+  };
 };
 
 const pickErrorMessage = (raw: any, fallback: string) => {
@@ -295,17 +393,21 @@ export const requestUpstream = async <T = any>(
       message: "上游路径格式无效",
     });
   }
-  const token = getAccessToken(event, auth);
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-    headers.access_token = token;
-    headers["X-Access-Token"] = token;
-  }
+  const authContext = getAccessContext(event, auth);
   const incomingCookie = String(getRequestHeader(event, "cookie") || "").trim();
-  if (incomingCookie) {
-    headers.Cookie = incomingCookie;
-  }
+  const createHeaders = (token: string) => {
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+      headers.access_token = token;
+      headers["X-Access-Token"] = token;
+    }
+    if (incomingCookie) {
+      headers.Cookie = incomingCookie;
+    }
+    return headers;
+  };
+  let headers = createHeaders(authContext.token);
   const bearerToken = String(headers.Authorization || "").replace(/^Bearer\s+/i, "");
   const tokenMeta = getTokenMeta(bearerToken);
   debugProxyLog(event, "upstream.request", {
@@ -325,7 +427,7 @@ export const requestUpstream = async <T = any>(
     hasBody: options.body !== undefined,
   });
 
-  const response = await $fetch.raw(`${baseUrl}${path}`, {
+  let response = await $fetch.raw(`${baseUrl}${path}`, {
     method,
     headers,
     query: options.query,
@@ -333,7 +435,45 @@ export const requestUpstream = async <T = any>(
     ignoreResponseError: true,
   });
 
+  if (
+    !response.ok &&
+    (response.status === 401 || response.status === 403) &&
+    auth !== "none" &&
+    authContext.user
+  ) {
+    try {
+      const nextToken = await refreshSessionToken(event, authContext.user);
+      headers = createHeaders(nextToken);
+      response = await $fetch.raw(`${baseUrl}${path}`, {
+        method,
+        headers,
+        query: options.query,
+        body: options.body,
+        ignoreResponseError: true,
+      });
+      debugProxyLog(event, "upstream.retry_with_refreshed_token", {
+        traceId,
+        method,
+        path,
+        statusCode: response.status,
+      });
+    } catch (refreshError: any) {
+      debugProxyLog(event, "upstream.refresh_failed", {
+        traceId,
+        method,
+        path,
+        statusCode: Number(refreshError?.statusCode || 500),
+        message: String(refreshError?.message || ""),
+      });
+    }
+  }
+
   if (!response.ok) {
+    const currentBearerToken = String(headers.Authorization || "").replace(
+      /^Bearer\s+/i,
+      "",
+    );
+    const currentTokenMeta = getTokenMeta(currentBearerToken);
     const message = pickErrorMessage(response._data, "上游服务返回异常");
     debugProxyLog(event, "upstream.response_error", {
       traceId,
@@ -354,10 +494,10 @@ export const requestUpstream = async <T = any>(
         hasAuthorization: Boolean(headers.Authorization),
         hasCookieForwarded: Boolean(headers.Cookie),
         cookieLength: incomingCookie.length,
-        tokenLength: bearerToken.length,
-        tokenLooksJwt: bearerToken.split(".").length === 3,
-        tokenExpired: tokenMeta.expired,
-        tokenExpiresInSeconds: tokenMeta.expiresInSeconds,
+        tokenLength: currentBearerToken.length,
+        tokenLooksJwt: currentBearerToken.split(".").length === 3,
+        tokenExpired: currentTokenMeta.expired,
+        tokenExpiresInSeconds: currentTokenMeta.expiresInSeconds,
       },
     });
   }

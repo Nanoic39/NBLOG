@@ -1171,6 +1171,7 @@ const transitionIdentity = computed(() =>
     cachedPost.value?.transitionKey ||
       article.value?.transitionKey ||
       article.value?.id ||
+      activePostTransition.value ||
       cachedPost.value?.id ||
       articleSlug,
   ),
