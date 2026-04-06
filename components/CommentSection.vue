@@ -19,6 +19,29 @@ const yunaApiBaseUrl = String(config.public.oauthApiBaseUrl || "").replace(
 );
 const fileApiBaseUrl = "http://103.39.66.148:8000/api/file";
 
+const resolveFileUuid = (value?: string) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const withoutQuery = raw.split("?")[0]?.split("#")[0] || "";
+  const normalized = withoutQuery
+    .replace(/^\/+/, "")
+    .replace(/^api\/file\/file\/download\/?/i, "")
+    .replace(/^file\/download\/?/i, "")
+    .replace(/^api\/file\/?/i, "")
+    .replace(/^file\/?/i, "")
+    .replace(/^\/+|\/+$/g, "");
+  if (!normalized) return "";
+  if (!normalized.includes("/")) return normalized;
+  const parts = normalized.split("/").filter(Boolean);
+  return parts[parts.length - 1] || "";
+};
+
+const resolveFileDownloadUrl = (value?: string) => {
+  const uuid = resolveFileUuid(value);
+  if (!uuid) return "";
+  return `${fileApiBaseUrl}/file/download/${encodeURIComponent(uuid)}?inline=true`;
+};
+
 interface Reply {
   id: string;
   authorId?: string;
@@ -79,23 +102,8 @@ const resolveCommentAvatar = (avatar?: string) => {
   if (raw.startsWith("/api/auth/avatar")) {
     return raw;
   }
-  if (raw.startsWith("/api/file/")) {
-    const suffix = raw.replace(/^\/api\/file\/?/, "");
-    return `${fileApiBaseUrl}/${suffix}`;
-  }
-  if (raw.startsWith("/file/")) {
-    const suffix = raw.replace(/^\/file\/?/, "");
-    return `${fileApiBaseUrl}/${suffix}`;
-  }
-  if (raw.startsWith("/")) {
-    const suffix = raw.replace(/^\/+/, "");
-    return `${fileApiBaseUrl}/${suffix}`;
-  }
-  const normalized = raw.replace(/^api\/file\/?/, "").replace(/^file\/?/, "");
-  if (normalized.includes("/")) {
-    return `${fileApiBaseUrl}/${normalized}`;
-  }
-  return `${fileApiBaseUrl}/${normalized}`;
+  const downloadUrl = resolveFileDownloadUrl(raw);
+  return downloadUrl || getAvatarUrl("user");
 };
 
 const resolveCurrentUserAvatar = () => {
@@ -122,6 +130,8 @@ const resolveAssetUrl = (url?: string) => {
   ) {
     return raw;
   }
+  const downloadUrl = resolveFileDownloadUrl(raw);
+  if (downloadUrl) return downloadUrl;
   if (raw.startsWith("/api/file/")) {
     return yunaApiBaseUrl ? `${yunaApiBaseUrl}${raw}` : raw;
   }
