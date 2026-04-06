@@ -1,8 +1,8 @@
 <template>
-  <section class="space-y-4">
+  <section class="space-y-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
           {{ isCreateMode ? "新建文章" : "编辑文章内容" }}
         </h2>
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -12,14 +12,14 @@
       <div class="flex items-center gap-2">
         <NuxtLink
           to="/admin/dashboard/posts"
-          class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-900/40"
+          class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900"
         >
           返回列表
         </NuxtLink>
         <button
           @click="savePost"
           :disabled="isSaving"
-          class="px-4 py-2 rounded-xl bg-sky-600 text-white text-sm hover:bg-sky-700 disabled:opacity-60"
+          class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm hover:from-sky-600 hover:to-blue-700 disabled:opacity-60 shadow-sm"
         >
           {{ isSaving ? "保存中..." : "保存文章" }}
         </button>
@@ -33,12 +33,12 @@
       {{ saveMessage }}
     </p>
 
-    <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-4">
+    <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-5">
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-3"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-3"
       >
         <div
-          class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-2.5"
+          class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2.5"
         >
           <div class="flex flex-wrap gap-1.5">
             <button
@@ -49,7 +49,7 @@
               :class="[
                 isToolbarActive(item.key)
                   ? 'border-sky-500 bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300'
-                  : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300',
+                  : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 bg-white dark:bg-slate-900',
                 item.requiresSelection && !hasSelection ? 'opacity-45' : '',
               ]"
               :disabled="item.requiresSelection && !hasSelection"
@@ -68,7 +68,7 @@
           class="grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start"
         >
           <div
-            class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3"
+            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3"
           >
             <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
               Markdown 编辑区（回车即换行）
@@ -77,7 +77,7 @@
               ref="editorRef"
               v-model="form.content"
               rows="1"
-              class="w-full min-h-[560px] resize-none overflow-hidden rounded-xl border border-slate-300 dark:border-slate-600 bg-white/90 dark:bg-slate-950/50 px-3 py-3 font-mono text-sm leading-7 outline-none focus:border-sky-500"
+              class="w-full min-h-[560px] resize-none overflow-hidden rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950 px-3 py-3 font-mono text-sm leading-7 outline-none focus:border-sky-500"
               :style="{ height: `${editorHeight}px` }"
               placeholder="在此输入 Markdown 正文内容"
               @input="handleEditorInteraction"
@@ -90,17 +90,17 @@
           </div>
 
           <div
-            class="rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/80 dark:bg-slate-900/50 p-3 xl:sticky xl:top-24"
+            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 xl:sticky xl:top-24"
           >
             <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
               实时预览
             </p>
             <div
-              class="min-h-[560px] overflow-auto rounded-xl border border-slate-200/90 dark:border-slate-700/90 bg-slate-100/50 dark:bg-slate-950/40 px-3 py-3"
+              class="min-h-[560px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-3"
               :style="{ maxHeight: 'calc(100vh - 11rem)' }"
             >
               <article
-                class="bg-white/90 dark:bg-[#242424]/90 backdrop-blur rounded-2xl p-5 md:p-7 border border-slate-200/80 dark:border-slate-700/70 shadow-sm"
+                class="bg-white dark:bg-[#242424] backdrop-blur rounded-2xl p-5 md:p-7 border border-slate-200 dark:border-slate-700 shadow-sm"
               >
                 <div
                   class="w-full h-44 rounded-xl overflow-hidden mb-5 border border-slate-200/60 dark:border-slate-700/70"
@@ -136,10 +136,10 @@
       </section>
 
       <aside
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm space-y-4 lg:sticky lg:top-20 h-fit max-h-[calc(100vh-6rem)] overflow-auto"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-4 lg:sticky lg:top-20 h-fit max-h-[calc(100vh-6rem)] overflow-auto"
       >
         <div
-          class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-white/70 dark:bg-slate-900/35"
+          class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-slate-50 dark:bg-slate-800/60"
         >
           <p
             class="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-400"
@@ -148,12 +148,12 @@
           </p>
           <input
             v-model="form.title"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
             placeholder="标题"
           />
           <select
             v-model="form.slugMode"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
           >
             <option value="id">slug 类型：使用 id（默认）</option>
             <option value="pinyin">slug 类型：英文+短横线（中文转拼音）</option>
@@ -161,12 +161,12 @@
           </select>
           <input
             v-model="form.slug"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
             placeholder="slug（会随标题和类型自动更新）"
           />
           <select
             v-model="form.publishStatus"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
           >
             <option value="draft">保存为草稿</option>
             <option value="published">发布</option>
@@ -174,7 +174,7 @@
           <textarea
             v-model="form.description"
             rows="3"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
             placeholder="摘要"
           ></textarea>
         </div>
@@ -201,12 +201,12 @@
           >
             <input
               v-model="item.name"
-              class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+              class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
               placeholder="作者名"
             />
             <input
               v-model="item.socialUrl"
-              class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+              class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
               placeholder="社交链接（可空）"
             />
             <div class="flex items-center gap-1">
@@ -306,7 +306,7 @@
           <p class="text-xs text-slate-500 dark:text-slate-400">原创类型</p>
           <select
             v-model="form.articleType"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
           >
             <option value="original">原创</option>
             <option value="co-original">原创合作</option>
@@ -319,7 +319,7 @@
               form.articleType === 'repost'
             "
             v-model="form.sourceUrl"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
             placeholder="文章来源链接（可空）"
           />
         </div>
@@ -355,7 +355,7 @@
           </div>
           <select
             v-model="form.licenseCc"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
           >
             <option value="">不设置</option>
             <option
@@ -403,7 +403,7 @@
           </div>
           <input
             v-model="form.coverImage"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
             placeholder="封面链接（空则默认）"
           />
           <div class="max-h-28 overflow-auto grid grid-cols-4 gap-2">
@@ -599,7 +599,7 @@
         </div>
         <input
           v-model="coverKeyword"
-          class="w-full mb-3 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+          class="w-full mb-3 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
           placeholder="输入关键词过滤图片地址"
         />
         <div

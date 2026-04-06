@@ -2,19 +2,19 @@
   <section class="space-y-6">
     <div class="flex items-center justify-between gap-3">
       <div>
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">标签管理</h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">统一维护文章标签命名与清理</p>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">标签管理</h2>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">统一维护文章标签命名与清理</p>
       </div>
       <button
         @click="loadTags"
         :disabled="isLoading"
-        class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 disabled:opacity-60 transition-colors bg-white/70 dark:bg-slate-900/40"
+        class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 disabled:opacity-60 transition-colors bg-white dark:bg-slate-900 shadow-sm"
       >
         {{ isLoading ? "刷新中..." : "刷新标签" }}
       </button>
     </div>
 
-    <section class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm space-y-4">
+    <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm space-y-4">
       <div v-if="tags.length === 0" class="text-sm text-slate-500 dark:text-slate-400">
         暂无标签
       </div>
@@ -22,7 +22,7 @@
         <div
           v-for="tag in tags"
           :key="tag.name"
-          class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-white/70 dark:bg-slate-900/40 space-y-2"
+          class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-800/60 space-y-2"
         >
           <div class="flex items-center justify-between gap-2">
             <p class="font-medium text-slate-900 dark:text-slate-100 break-all">#{{ tag.name }}</p>
@@ -31,12 +31,12 @@
           <div class="flex items-center gap-2">
             <input
               v-model="renameMap[tag.name]"
-              class="flex-1 px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40 text-sm"
+              class="flex-1 px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm"
               placeholder="新标签名"
             />
             <button
               @click="renameTag(tag.name)"
-              class="px-2 py-1.5 text-xs rounded-lg bg-sky-600 text-white hover:bg-sky-700"
+              class="px-2 py-1.5 text-xs rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-600 hover:to-blue-700"
             >
               重命名
             </button>

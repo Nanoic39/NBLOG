@@ -1,26 +1,26 @@
 <template>
   <NuxtPage v-if="showChildEditor" />
   <section v-else class="space-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-3">
       <div>
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
           文章管理
         </h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
           内容编辑与元数据管理
         </p>
       </div>
       <div class="flex items-center gap-2">
         <NuxtLink
           to="/admin/dashboard/posts/new"
-          class="px-4 py-2 rounded-xl bg-sky-600 text-white text-sm hover:bg-sky-700 transition-colors"
+          class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm hover:from-sky-600 hover:to-blue-700 transition-colors shadow-sm"
         >
           新建文章
         </NuxtLink>
         <button
           @click="loadPosts"
           :disabled="isLoading"
-          class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 disabled:opacity-60 transition-colors bg-white/70 dark:bg-slate-900/40"
+          class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 disabled:opacity-60 transition-colors bg-white dark:bg-slate-900 shadow-sm"
         >
           {{ isLoading ? "刷新中..." : "刷新文章" }}
         </button>
@@ -28,7 +28,7 @@
     </div>
 
     <section
-      class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 overflow-auto shadow-sm"
+      class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 overflow-auto shadow-sm"
     >
       <table class="w-full text-sm">
         <thead>
@@ -48,7 +48,7 @@
           <tr
             v-for="post in posts"
             :key="post.id"
-            class="border-b border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+            class="border-b border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
           >
             <td class="py-2 pr-3">{{ post.title }}</td>
             <td class="py-2 pr-3">{{ post.slug }}</td>
@@ -65,7 +65,7 @@
               <div class="flex items-center gap-2">
                 <NuxtLink
                   :to="`/admin/dashboard/posts/${post.id}`"
-                  class="text-sky-600 dark:text-sky-300 hover:underline"
+                  class="text-sky-600 dark:text-sky-300 hover:underline font-medium"
                   >内容编辑</NuxtLink
                 >
                 <button

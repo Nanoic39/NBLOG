@@ -1,18 +1,18 @@
 <template>
   <section class="space-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-3">
       <div>
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
           控制台概览
         </h2>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
           查看当前站点核心运营数据
         </p>
       </div>
       <button
         @click="loadOverview"
         :disabled="isLoading"
-        class="px-4 py-2 rounded-xl border border-slate-200/90 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 disabled:opacity-60 transition-colors bg-white/70 dark:bg-slate-900/40"
+        class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 disabled:opacity-60 transition-colors bg-white dark:bg-slate-900 shadow-sm"
       >
         {{ isLoading ? "刷新中..." : "刷新数据" }}
       </button>
@@ -20,27 +20,27 @@
 
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
       <div
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm"
+        class="rounded-2xl border border-sky-200/70 dark:border-sky-700/40 bg-gradient-to-br from-sky-500 to-cyan-500 text-white p-4 shadow-lg shadow-sky-500/25"
       >
-        <p class="text-xs text-slate-500 dark:text-slate-400">文章总数</p>
+        <p class="text-xs text-white/80">文章总数</p>
         <p
-          class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100"
+          class="mt-1 text-2xl font-bold"
         >
           {{ stats.postTotal }}
         </p>
       </div>
       <div
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm"
+        class="rounded-2xl border border-rose-200/80 dark:border-rose-700/40 bg-gradient-to-br from-rose-500 to-orange-500 text-white p-4 shadow-lg shadow-rose-500/25"
       >
-        <p class="text-xs text-slate-500 dark:text-slate-400">置顶文章</p>
+        <p class="text-xs text-white/80">置顶文章</p>
         <p
-          class="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100"
+          class="mt-1 text-2xl font-bold"
         >
           {{ stats.pinnedTotal }}
         </p>
       </div>
       <div
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm"
       >
         <p class="text-xs text-slate-500 dark:text-slate-400">普通文章</p>
         <p
@@ -50,7 +50,7 @@
         </p>
       </div>
       <div
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm"
       >
         <p class="text-xs text-slate-500 dark:text-slate-400">标签数</p>
         <p
@@ -60,7 +60,7 @@
         </p>
       </div>
       <div
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-4 shadow-sm col-span-2 lg:col-span-1"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm col-span-2 lg:col-span-1"
       >
         <p class="text-xs text-slate-500 dark:text-slate-400">总浏览量</p>
         <p
@@ -73,7 +73,7 @@
 
     <div class="grid lg:grid-cols-3 gap-4">
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm"
       >
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
           正在做什么
@@ -94,7 +94,7 @@
         </div>
       </section>
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm"
       >
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
           全局通知
@@ -115,7 +115,7 @@
         </div>
       </section>
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm"
       >
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
           最热文章
@@ -124,7 +124,7 @@
           <div
             v-for="post in hotPosts"
             :key="post.id"
-            class="rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-2.5 bg-white/70 dark:bg-slate-900/40"
+            class="rounded-xl border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-50 dark:bg-slate-800/60"
           >
             <NuxtLink
               :to="`/posts/${post.slug}`"
@@ -143,7 +143,7 @@
     </div>
 
     <section
-      class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+      class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm"
     >
       <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
         近 30 天文章趋势
@@ -172,7 +172,7 @@
 
     <div class="grid xl:grid-cols-3 gap-4">
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm"
       >
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
           标签阅读偏好（Top 8）
@@ -209,7 +209,7 @@
       </section>
 
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm"
       >
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
           阅读时长偏好
@@ -236,7 +236,7 @@
       </section>
 
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm"
       >
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
           星期阅读偏好
@@ -276,7 +276,7 @@
     </div>
 
     <section
-      class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 shadow-sm"
+      class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm"
     >
       <div class="flex items-center justify-between">
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
@@ -290,7 +290,7 @@
         <div
           v-for="comment in latestComments"
           :key="comment.id"
-          class="rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 bg-white/70 dark:bg-slate-900/40"
+          class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-800/60"
         >
           <div class="flex items-center justify-between gap-2">
             <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
@@ -320,7 +320,7 @@
           <div class="mt-2 flex items-center gap-2">
             <input
               v-model="quickReplyMap[comment.id]"
-              class="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/50 text-sm"
+              class="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950 text-sm"
               placeholder="快捷回复内容"
             />
             <button

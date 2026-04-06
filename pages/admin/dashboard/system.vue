@@ -1,59 +1,59 @@
 <template>
   <section class="space-y-6">
     <div>
-      <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
         系统管理
       </h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
         维护正在做什么与全局通知
       </p>
     </div>
 
     <div class="grid xl:grid-cols-2 gap-6">
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 space-y-3 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-sm"
       >
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
           正在做什么
         </h3>
         <input
           v-model="doingForm.action"
-          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
           placeholder="动作 action"
         />
         <input
           v-model="doingForm.target"
-          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
           placeholder="目标 target"
         />
         <input
           v-model="doingForm.type"
-          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
           placeholder="类型 type"
         />
         <input
           v-model="startTimeInput"
           type="datetime-local"
-          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
         />
         <button
           @click="saveDoing"
           :disabled="isSavingDoing"
-          class="px-4 py-2 rounded-xl bg-sky-600 text-white text-sm hover:bg-sky-700 disabled:opacity-60"
+          class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm hover:from-sky-600 hover:to-blue-700 disabled:opacity-60"
         >
           {{ isSavingDoing ? "保存中..." : "保存正在做什么" }}
         </button>
       </section>
 
       <section
-        class="rounded-2xl border border-white/80 dark:border-white/10 bg-white/75 dark:bg-slate-900/55 backdrop-blur-xl p-5 space-y-3 shadow-sm"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-sm"
       >
         <h3 class="text-base font-medium text-slate-900 dark:text-slate-100">
           全局通知
         </h3>
         <select
           v-model="noticeForm.theme"
-          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
         >
           <option value="info">info</option>
           <option value="warning">warning</option>
@@ -62,13 +62,13 @@
         </select>
         <input
           v-model="noticeForm.title"
-          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
           placeholder="通知标题"
         />
         <textarea
           v-model="noticeForm.content"
           rows="4"
-          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white/70 dark:bg-slate-900/40"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80"
           placeholder="通知内容"
         ></textarea>
         <label
@@ -101,7 +101,7 @@
         <button
           @click="saveNotice"
           :disabled="isSavingNotice"
-          class="px-4 py-2 rounded-xl bg-sky-600 text-white text-sm hover:bg-sky-700 disabled:opacity-60"
+          class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm hover:from-sky-600 hover:to-blue-700 disabled:opacity-60"
         >
           {{ isSavingNotice ? "保存中..." : "保存全局通知" }}
         </button>
