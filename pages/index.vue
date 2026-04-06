@@ -161,7 +161,7 @@
 
       <!-- 底部波浪过渡 -->
       <div
-        class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10"
+        class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-0"
       >
         <svg
           class="relative block w-[calc(100%+1.3px)] h-[60px] md:h-[100px]"
@@ -181,7 +181,7 @@
     <!-- Main Content Layout -->
     <div
       id="content"
-      class="relative z-10 container mx-auto px-6 max-w-screen-2xl py-24 min-h-screen bg-[#F9FAFB] dark:bg-[#1a1a1a] flex flex-col transition-colors duration-300"
+      class="relative z-20 container mx-auto px-6 max-w-screen-2xl py-24 min-h-screen bg-[#F9FAFB] dark:bg-[#1a1a1a] flex flex-col transition-colors duration-300"
     >
       <!-- Header Area -->
       <div>
