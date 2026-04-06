@@ -1,6 +1,6 @@
 <template>
   <NuxtPage v-if="showChildEditor" />
-  <section v-else class="space-y-6">
+  <section v-else class="h-full min-h-0 flex flex-col gap-6">
     <div class="flex items-center justify-between gap-3">
       <div>
         <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -28,10 +28,10 @@
     </div>
 
     <section
-      class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 overflow-auto shadow-sm"
+      class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 overflow-auto shadow-sm flex-1 min-h-0"
     >
       <table class="w-full text-sm">
-        <thead>
+        <thead class="sticky top-0 z-10 bg-white dark:bg-slate-900">
           <tr
             class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700"
           >

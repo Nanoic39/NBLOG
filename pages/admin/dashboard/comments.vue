@@ -1,5 +1,5 @@
 <template>
-  <section class="space-y-6">
+  <section class="h-full min-h-0 flex flex-col gap-6">
     <div class="flex items-center justify-between gap-3">
       <div>
         <h2
@@ -21,7 +21,7 @@
     </div>
 
     <section
-      class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 overflow-auto shadow-sm"
+      class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 overflow-auto shadow-sm flex-1 min-h-0"
     >
       <div
         v-if="rows.length === 0"
@@ -30,7 +30,7 @@
         暂无评论数据
       </div>
       <table v-else class="w-full text-sm min-w-[980px]">
-        <thead>
+        <thead class="sticky top-0 z-10 bg-white dark:bg-slate-900">
           <tr
             class="text-left text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700"
           >

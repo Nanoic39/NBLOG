@@ -27,13 +27,22 @@ export default defineEventHandler(async (event) => {
       "",
   ).trim();
   const userName = String(
-    user?.name || user?.nickname || user?.username || user?.email || "",
+    user?.name ||
+      user?.nickname ||
+      user?.username ||
+      user?.displayName ||
+      user?.email ||
+      "",
   ).trim();
   const finalAuthor = userName || bodyAuthor || "匿名用户";
-  const userId = String(user?.id || user?.userId || user?.uid || "").trim();
+  const userId = String(
+    user?.id || user?.userId || user?.uid || user?.sub || user?.openid || "",
+  ).trim();
   const bodyAuthorId = String(body?.authorId || body?.userId || "").trim();
   const finalAuthorId = userId || bodyAuthorId;
-  const userAvatar = String(user?.picture || user?.avatar || "").trim();
+  const userAvatar = String(
+    user?.picture || user?.avatar || user?.headImg || "",
+  ).trim();
   const bodyAvatar = String(body?.avatar || body?.authorAvatar || "").trim();
   const finalAvatar = userAvatar || bodyAvatar || getDefaultAvatar(finalAuthor);
   const replyToUserId = String(body?.replyToUserId || "").trim();

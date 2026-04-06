@@ -1,4 +1,4 @@
-import { createError } from "h3";
+import { createError, getRouterParam } from "h3";
 import { requestUpstream } from "../../utils/session";
 
 export default defineEventHandler(async (event) => {
@@ -12,6 +12,6 @@ export default defineEventHandler(async (event) => {
   return await requestUpstream(event, {
     path: `/api/comments/${encodeURIComponent(id)}`,
     method: "DELETE",
-    auth: "admin",
+    auth: "user",
   });
 });

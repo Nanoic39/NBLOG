@@ -1,5 +1,5 @@
 <template>
-  <section class="space-y-5">
+  <section class="h-full min-h-0 flex flex-col gap-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -33,12 +33,12 @@
       {{ saveMessage }}
     </p>
 
-    <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-5">
+    <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-5 flex-1 min-h-0">
       <section
-        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-3"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-3 overflow-auto min-h-0"
       >
         <div
-          class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2.5"
+          class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2.5 sticky top-0 z-10"
         >
           <div class="flex flex-wrap gap-1.5">
             <button
@@ -96,8 +96,7 @@
               实时预览
             </p>
             <div
-              class="min-h-[560px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-3"
-              :style="{ maxHeight: 'calc(100vh - 11rem)' }"
+              class="min-h-[560px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-3"
             >
               <article
                 class="bg-white dark:bg-[#242424] backdrop-blur rounded-2xl p-5 md:p-7 border border-slate-200 dark:border-slate-700 shadow-sm"
@@ -136,7 +135,7 @@
       </section>
 
       <aside
-        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-4 h-fit max-h-[calc(100vh-6rem)] overflow-auto"
+        class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-4 h-full min-h-0 overflow-auto"
       >
         <div
           class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 bg-slate-50 dark:bg-slate-800/60"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useHeadImage } from "~/composables/useHeadImage";
 const adminAvatarImg = useHeadImage();
 
@@ -17,6 +17,7 @@ const yunaApiBaseUrl = String(config.public.oauthApiBaseUrl || "").replace(
   /\/+$/,
   "",
 );
+const fileApiBaseUrl = "http://103.39.66.148:8000/api/file";
 
 interface Reply {
   id: string;
@@ -75,18 +76,40 @@ const resolveCommentAvatar = (avatar?: string) => {
   ) {
     return raw;
   }
-  if (raw.startsWith("/")) return raw;
-  return `/${raw}`;
+  if (raw.startsWith("/api/auth/avatar")) {
+    return raw;
+  }
+  if (raw.startsWith("/api/file/")) {
+    const suffix = raw.replace(/^\/api\/file\/?/, "");
+    return `${fileApiBaseUrl}/${suffix}`;
+  }
+  if (raw.startsWith("/file/")) {
+    const suffix = raw.replace(/^\/file\/?/, "");
+    return `${fileApiBaseUrl}/${suffix}`;
+  }
+  if (raw.startsWith("/")) {
+    const suffix = raw.replace(/^\/+/, "");
+    return `${fileApiBaseUrl}/${suffix}`;
+  }
+  const normalized = raw.replace(/^api\/file\/?/, "").replace(/^file\/?/, "");
+  if (normalized.includes("/")) {
+    return `${fileApiBaseUrl}/${normalized}`;
+  }
+  return `${fileApiBaseUrl}/${normalized}`;
 };
 
 const resolveCurrentUserAvatar = () => {
   const picture = String((user.value as any)?.picture || "").trim();
   if (!picture)
     return getAvatarUrl(String((user.value as any)?.name || "User"));
-  if (picture.startsWith("data:")) {
+  if (
+    picture.startsWith("data:") ||
+    picture.startsWith("http://") ||
+    picture.startsWith("https://")
+  ) {
     return picture;
   }
-  return "/api/auth/avatar";
+  return resolveCommentAvatar(picture);
 };
 
 const resolveAssetUrl = (url?: string) => {
@@ -163,6 +186,52 @@ const normalizeComment = (raw: any): Comment => ({
     ? raw.replies.map((reply: any) => normalizeReply(reply))
     : [],
 });
+
+const currentUserProfile = computed(() => {
+  const current = user.value as any;
+  if (!current) {
+    return {
+      id: "",
+      name: "",
+      avatar: "",
+    };
+  }
+  const id = String(
+    current?.id || current?.userId || current?.sub || current?.uid || "",
+  ).trim();
+  const name = String(
+    current?.name || current?.nickname || current?.username || "用户",
+  ).trim();
+  const avatar = String(current?.picture || current?.avatar || "").trim();
+  return { id, name, avatar };
+});
+
+const canDeleteComment = (comment: Comment) => {
+  if (comment.isAdmin) return true;
+  const me = currentUserProfile.value.id;
+  if (!me) return false;
+  const owner = String(comment.authorId || "").trim();
+  return owner !== "" && owner === me;
+};
+
+const isDeleting = ref(false);
+const removeComment = async (commentId: string) => {
+  if (isDeleting.value) return;
+  isDeleting.value = true;
+  try {
+    await $fetch(withApiBase(`/api/comments/${commentId}`) as string, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    await fetchComments();
+  } catch (error: any) {
+    alert(
+      error?.data?.message || error?.statusMessage || "删除失败，请稍后重试",
+    );
+  } finally {
+    isDeleting.value = false;
+  }
+};
 
 const fetchComments = async () => {
   try {
@@ -339,6 +408,12 @@ const submitComment = async (
         body: {
           content: content.trim(),
           replyToUserId: replyToUserId || undefined,
+          authorId: currentUserProfile.value.id || undefined,
+          userId: currentUserProfile.value.id || undefined,
+          author: currentUserProfile.value.name || undefined,
+          authorName: currentUserProfile.value.name || undefined,
+          avatar: currentUserProfile.value.avatar || undefined,
+          authorAvatar: currentUserProfile.value.avatar || undefined,
           images,
         },
       });
@@ -351,6 +426,12 @@ const submitComment = async (
         body: {
           articleId: String(props.articleId),
           content: content.trim(),
+          authorId: currentUserProfile.value.id || undefined,
+          userId: currentUserProfile.value.id || undefined,
+          author: currentUserProfile.value.name || undefined,
+          authorName: currentUserProfile.value.name || undefined,
+          avatar: currentUserProfile.value.avatar || undefined,
+          authorAvatar: currentUserProfile.value.avatar || undefined,
           images,
         },
       });
@@ -550,7 +631,7 @@ const handleTextareaInput = (e: Event) => {
                 />
               </a>
             </div>
-            <div class="mt-2">
+            <div class="mt-2 flex items-center gap-4">
               <button
                 @click="openReply(comment.id, comment.author)"
                 class="text-sm text-gray-500 hover:text-[#0284C7] dark:hover:text-[#38bdf8] transition-colors flex items-center gap-1"
@@ -569,6 +650,14 @@ const handleTextareaInput = (e: Event) => {
                   />
                 </svg>
                 回复
+              </button>
+              <button
+                v-if="canDeleteComment(comment)"
+                @click="removeComment(comment.id)"
+                :disabled="isDeleting"
+                class="text-sm text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+              >
+                删除
               </button>
             </div>
           </div>
@@ -594,13 +683,6 @@ const handleTextareaInput = (e: Event) => {
               >
                 取消
               </button>
-            </div>
-
-            <div
-              v-if="!user"
-              class="mb-3 rounded-lg border border-yellow-200/70 bg-yellow-50/70 px-3 py-2 text-xs text-yellow-700 dark:border-yellow-900/60 dark:bg-yellow-900/20 dark:text-yellow-300"
-            >
-              登录后可回复评论。
             </div>
 
             <textarea
@@ -645,8 +727,7 @@ const handleTextareaInput = (e: Event) => {
                 @click="submitComment(true, comment.id)"
                 :disabled="
                   isSubmitting ||
-                  (!replyContent.trim() && replyImages.length === 0) ||
-                  !user
+                  (!replyContent.trim() && replyImages.length === 0)
                 "
                 class="px-4 py-1.5 bg-[#0284C7] hover:bg-[#0369a1] disabled:bg-gray-400 text-white text-sm rounded-lg font-medium transition-colors"
               >

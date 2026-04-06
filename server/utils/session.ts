@@ -234,6 +234,7 @@ type RequestUpstreamOptions = {
   query?: Record<string, any>;
   body?: any;
   auth?: UpstreamAuthMode;
+  baseUrl?: string;
 };
 
 export const unwrapApiData = <T>(response: unknown): T => {
@@ -337,9 +338,11 @@ const refreshSessionToken = async (
 
 const getAccessContext = (event: H3Event, auth: UpstreamAuthMode) => {
   if (auth === "none") {
+    const user = getSessionUser(event);
+    const token = normalizeAccessToken(String(user?.access_token || ""));
     return {
-      user: null as SessionUser | null,
-      token: "",
+      user: user || null,
+      token,
     };
   }
   const user = auth === "admin" ? requireAdmin(event) : getSessionUser(event);
@@ -384,7 +387,7 @@ export const requestUpstream = async <T = any>(
   const traceId = getTraceId(event);
   const method = options.method || "GET";
   const auth = options.auth || "none";
-  const baseUrl = getUpstreamApiBaseUrl();
+  const baseUrl = String(options.baseUrl || "").trim().replace(/\/+$/, "") || getUpstreamApiBaseUrl();
   const path = String(options.path || "").trim();
   if (!path.startsWith("/")) {
     throw createError({

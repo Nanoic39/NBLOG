@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-[#f4f7fb] dark:bg-[#0b1220]">
+  <div class="h-screen overflow-hidden bg-[#f4f7fb] dark:bg-[#0b1220]">
     <div class="pointer-events-none fixed inset-0 opacity-40 bg-[radial-gradient(circle_at_8%_10%,rgba(56,189,248,0.16),transparent_40%),radial-gradient(circle_at_92%_4%,rgba(59,130,246,0.14),transparent_34%),radial-gradient(circle_at_60%_85%,rgba(99,102,241,0.12),transparent_42%)]"></div>
-    <div class="relative flex min-h-screen">
+    <div class="relative flex h-screen overflow-hidden">
       <div
         v-if="isMobileMenuOpen"
         class="fixed inset-0 z-30 bg-slate-900/45 backdrop-blur-sm lg:hidden"
@@ -67,7 +67,7 @@
           </NuxtLink>
         </nav>
       </aside>
-      <main class="flex-1 min-w-0">
+      <main class="flex-1 min-w-0 h-screen overflow-hidden flex flex-col">
         <header
           :class="[
             'sticky top-0 h-16 px-4 lg:px-7 border-b border-slate-200/80 dark:border-slate-800/90 bg-white/85 dark:bg-[#0f172a]/85 backdrop-blur-xl flex items-center justify-between z-20',
@@ -94,7 +94,7 @@
             返回站点
           </NuxtLink>
         </header>
-        <div class="p-4 lg:p-7">
+        <div class="flex-1 min-h-0 p-4 lg:p-7 overflow-hidden">
           <slot />
         </div>
       </main>

@@ -1,9 +1,18 @@
 import { createError, getRouterParam, readBody } from "h3";
-import { readMomentsStore, saveMomentsStore } from "../../../utils/moments-store";
-import { requireAdmin } from "../../../utils/session";
+import { requestUpstream, unwrapApiData } from "../../../utils/session";
+
+const resolveMomentsBaseUrl = () => {
+  const config = useRuntimeConfig();
+  return String(
+    (config.public as any).momentsApiBaseUrl ||
+      config.public.yunaCoreApiBaseUrl ||
+      "http://103.39.66.135:8080",
+  )
+    .trim()
+    .replace(/\/+$/, "");
+};
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event);
   const id = String(getRouterParam(event, "id") || "").trim();
   if (!id) {
     throw createError({
@@ -12,35 +21,34 @@ export default defineEventHandler(async (event) => {
     });
   }
   const body = await readBody(event);
-  const moments = await readMomentsStore();
-  const target = moments.find((item) => item.id === id);
-  if (!target) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "碎碎念不存在",
-    });
-  }
+  const payload: Record<string, any> = {};
   if (body?.content !== undefined) {
-    target.content = String(body.content || "").trim();
+    payload.content = String(body.content || "").trim();
   }
   if (body?.mood !== undefined) {
-    target.mood = String(body.mood || "").trim();
+    payload.mood = String(body.mood || "").trim();
   }
   if (body?.visibility !== undefined) {
-    target.visibility =
+    payload.visibility =
       String(body.visibility || "").trim().toLowerCase() === "private"
         ? "private"
         : "public";
   }
   if (Array.isArray(body?.images)) {
-    target.images = body.images
+    payload.images = body.images
       .map((x: any) => String(x || "").trim())
       .filter(Boolean);
   }
-  target.updatedAt = Date.now();
-  await saveMomentsStore(moments);
+  const upstream = await requestUpstream<any>(event, {
+    path: `/api/admin/moments/${encodeURIComponent(id)}`,
+    method: "PUT",
+    body: payload,
+    auth: "admin",
+    baseUrl: resolveMomentsBaseUrl(),
+  });
+  const data = unwrapApiData<any>(upstream);
   return {
     message: "更新成功",
-    data: target,
+    data,
   };
 });

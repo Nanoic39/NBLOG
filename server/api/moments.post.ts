@@ -1,9 +1,18 @@
 import { createError, readBody } from "h3";
-import { readMomentsStore, saveMomentsStore } from "../utils/moments-store";
-import { requireAdmin } from "../utils/session";
+import { requestUpstream, unwrapApiData } from "../utils/session";
+
+const resolveMomentsBaseUrl = () => {
+  const config = useRuntimeConfig();
+  return String(
+    (config.public as any).momentsApiBaseUrl ||
+      config.public.yunaCoreApiBaseUrl ||
+      "http://103.39.66.135:8080",
+  )
+    .trim()
+    .replace(/\/+$/, "");
+};
 
 export default defineEventHandler(async (event) => {
-  const user = requireAdmin(event);
   const body = await readBody(event);
   const content = String(body?.content || "").trim();
   if (!content) {
@@ -12,9 +21,7 @@ export default defineEventHandler(async (event) => {
       statusMessage: "内容不能为空",
     });
   }
-  const now = Date.now();
-  const nextItem = {
-    id: String(now),
+  const payload = {
     content,
     images: Array.isArray(body?.images)
       ? body.images.map((x: any) => String(x || "").trim()).filter(Boolean)
@@ -24,15 +31,17 @@ export default defineEventHandler(async (event) => {
       String(body?.visibility || "public").trim().toLowerCase() === "private"
         ? ("private" as const)
         : ("public" as const),
-    author: String(user.name || user.username || user.email || "admin"),
-    createdAt: now,
-    updatedAt: now,
   };
-  const moments = await readMomentsStore();
-  moments.unshift(nextItem);
-  await saveMomentsStore(moments);
+  const upstream = await requestUpstream<any>(event, {
+    path: "/api/moments",
+    method: "POST",
+    body: payload,
+    auth: "admin",
+    baseUrl: resolveMomentsBaseUrl(),
+  });
+  const data = unwrapApiData<any>(upstream);
   return {
     message: "发布成功",
-    data: nextItem,
+    data,
   };
 });

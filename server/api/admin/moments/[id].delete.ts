@@ -1,9 +1,18 @@
 import { createError, getRouterParam } from "h3";
-import { readMomentsStore, saveMomentsStore } from "../../../utils/moments-store";
-import { requireAdmin } from "../../../utils/session";
+import { requestUpstream } from "../../../utils/session";
+
+const resolveMomentsBaseUrl = () => {
+  const config = useRuntimeConfig();
+  return String(
+    (config.public as any).momentsApiBaseUrl ||
+      config.public.yunaCoreApiBaseUrl ||
+      "http://103.39.66.135:8080",
+  )
+    .trim()
+    .replace(/\/+$/, "");
+};
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event);
   const id = String(getRouterParam(event, "id") || "").trim();
   if (!id) {
     throw createError({
@@ -11,15 +20,12 @@ export default defineEventHandler(async (event) => {
       statusMessage: "缺少碎碎念 ID",
     });
   }
-  const moments = await readMomentsStore();
-  const nextMoments = moments.filter((item) => item.id !== id);
-  if (nextMoments.length === moments.length) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: "碎碎念不存在",
-    });
-  }
-  await saveMomentsStore(nextMoments);
+  await requestUpstream(event, {
+    path: `/api/admin/moments/${encodeURIComponent(id)}`,
+    method: "DELETE",
+    auth: "admin",
+    baseUrl: resolveMomentsBaseUrl(),
+  });
   return {
     message: "删除成功",
   };
