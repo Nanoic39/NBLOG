@@ -75,7 +75,7 @@
               {{ post.views || 0 }}
             </span>
             <span class="text-xs text-gray-400">
-              {{ formatDate(post.pubDate) }}
+              {{ formatDate(post.updatedAt) }}
             </span>
           </div>
         </div>
@@ -90,7 +90,7 @@ type HotPost = {
   slug: string;
   title: string;
   views?: number;
-  pubDate: string;
+  updatedAt: number;
 };
 const config = useRuntimeConfig();
 const apiBaseUrl = String(config.public.backendBaseUrl || "")
@@ -127,7 +127,7 @@ const hotList = computed<HotPost[]>(() => {
   return [];
 });
 
-const formatDate = (timestamp: string) => {
+const formatDate = (timestamp: number) => {
   const value = Number(timestamp || 0);
   if (!Number.isFinite(value) || value <= 0) return "-";
   const normalized = value < 1_000_000_000_000 ? value * 1000 : value;
