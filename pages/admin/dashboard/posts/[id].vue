@@ -32,6 +32,13 @@
     >
       {{ saveMessage }}
     </p>
+    <p
+      v-if="editorNotice.text"
+      class="rounded-xl px-3 py-2 text-sm"
+      :class="editorNoticeClass"
+    >
+      {{ editorNotice.text }}
+    </p>
 
     <div class="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-5 flex-1 min-h-0">
       <section
@@ -636,6 +643,68 @@
         </div>
       </div>
     </div>
+    <div
+      v-if="toolbarPrompt.visible"
+      class="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-4"
+      @click.self="closeToolbarPrompt"
+    >
+      <div
+        class="w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl p-4 space-y-3"
+      >
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">
+              {{ toolbarPrompt.title }}
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              {{ toolbarPrompt.hint }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600"
+            @click="closeToolbarPrompt"
+          >
+            关闭
+          </button>
+        </div>
+        <select
+          v-if="toolbarPrompt.mode === 'layoutMenu'"
+          v-model="toolbarPrompt.value"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
+        >
+          <option value="left">左对齐</option>
+          <option value="center">居中</option>
+          <option value="right">右对齐</option>
+          <option value="grid2">双图排版</option>
+          <option value="grid3">三图排版</option>
+        </select>
+        <input
+          v-else
+          ref="toolbarPromptInputRef"
+          v-model="toolbarPrompt.value"
+          class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950/80 text-sm"
+          :placeholder="toolbarPrompt.placeholder"
+          @keydown.enter.prevent="submitToolbarPrompt"
+        />
+        <div class="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs border border-slate-300 dark:border-slate-600"
+            @click="closeToolbarPrompt"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            class="px-3 py-1.5 rounded-lg text-xs bg-gradient-to-r from-sky-500 to-blue-600 text-white"
+            @click="submitToolbarPrompt"
+          >
+            确认插入
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -709,6 +778,7 @@ type ToolbarKey =
   | "imageGrid3"
   | "imageCenter"
   | "imageCaption";
+type ToolbarPromptMode = "image" | "link" | "layoutMenu";
 
 const route = useRoute();
 const router = useRouter();
@@ -742,6 +812,33 @@ const floatingToolbar = ref({
   visible: false,
   top: 0,
   left: 0,
+});
+const editorNotice = ref<{
+  type: "error" | "warning" | "success";
+  text: string;
+}>({
+  type: "error",
+  text: "",
+});
+const toolbarPromptInputRef = ref<HTMLInputElement | null>(null);
+const toolbarPromptSelection = ref({
+  start: 0,
+  end: 0,
+});
+const toolbarPrompt = ref<{
+  visible: boolean;
+  mode: ToolbarPromptMode;
+  title: string;
+  hint: string;
+  placeholder: string;
+  value: string;
+}>({
+  visible: false,
+  mode: "image",
+  title: "",
+  hint: "",
+  placeholder: "",
+  value: "",
 });
 
 const toolbarItems: Array<{
@@ -884,6 +981,13 @@ const inferSlugMode = (
 const estimatedWordCount = computed(() => computeWordCount(form.value.content));
 const hasSelection = computed(
   () => selectionState.value.end > selectionState.value.start,
+);
+const editorNoticeClass = computed(() =>
+  editorNotice.value.type === "success"
+    ? "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700/60 dark:bg-emerald-900/20 dark:text-emerald-300"
+    : editorNotice.value.type === "warning"
+      ? "border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-300"
+      : "border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-700/60 dark:bg-rose-900/20 dark:text-rose-300",
 );
 
 const getDefaultCoverUrl = (id: string) =>
@@ -1400,6 +1504,101 @@ const toggleLinePrefix = (prefix: string) => {
   );
 };
 
+const setEditorNotice = (
+  text: string,
+  type: "error" | "warning" | "success" = "error",
+) => {
+  editorNotice.value = {
+    text: String(text || "").trim(),
+    type,
+  };
+};
+
+const openToolbarPrompt = (mode: ToolbarPromptMode) => {
+  const editor = editorRef.value;
+  if (!editor) return;
+  toolbarPromptSelection.value = {
+    start: editor.selectionStart || 0,
+    end: editor.selectionEnd || 0,
+  };
+  if (mode === "image") {
+    toolbarPrompt.value = {
+      visible: true,
+      mode,
+      title: "插入图片",
+      hint: "输入图片地址后将生成 Markdown 图片语法。",
+      placeholder: "https://example.com/image.png",
+      value: "",
+    };
+  } else if (mode === "link") {
+    toolbarPrompt.value = {
+      visible: true,
+      mode,
+      title: "插入链接",
+      hint: "输入链接地址后将包裹当前选中文本。",
+      placeholder: "https://example.com",
+      value: "",
+    };
+  } else {
+    toolbarPrompt.value = {
+      visible: true,
+      mode,
+      title: "选择布局",
+      hint: "选择布局类型后会插入对应模板。",
+      placeholder: "",
+      value: "center",
+    };
+  }
+  nextTick(() => {
+    if (toolbarPrompt.value.mode !== "layoutMenu") {
+      toolbarPromptInputRef.value?.focus();
+      toolbarPromptInputRef.value?.select();
+    }
+  });
+};
+
+const closeToolbarPrompt = () => {
+  toolbarPrompt.value.visible = false;
+  toolbarPrompt.value.value = "";
+  nextTick(() => {
+    const editor = editorRef.value;
+    if (!editor) return;
+    const { start, end } = toolbarPromptSelection.value;
+    editor.focus();
+    editor.setSelectionRange(start, end);
+    syncFloatingToolbar();
+  });
+};
+
+const submitToolbarPrompt = () => {
+  const editor = editorRef.value;
+  if (!editor) return;
+  const { start, end } = toolbarPromptSelection.value;
+  editor.focus();
+  editor.setSelectionRange(start, end);
+  const mode = toolbarPrompt.value.mode;
+  const value = String(toolbarPrompt.value.value || "").trim();
+  closeToolbarPrompt();
+  if (mode === "image") {
+    insertAtSelection(`![图片说明](${value || "https://example.com/image.png"})`);
+    return;
+  }
+  if (mode === "link") {
+    toggleSelectionWrap("[", `](${value || "https://example.com"})`, "链接文本");
+    return;
+  }
+  if (mode === "layoutMenu") {
+    const normalized = value.toLowerCase();
+    if (normalized === "left") return applyToolbar("alignLeft");
+    if (normalized === "right") return applyToolbar("alignRight");
+    if (normalized === "grid2") return applyToolbar("imageGrid2");
+    if (normalized === "grid3") return applyToolbar("imageGrid3");
+    if (normalized === "center") return applyToolbar("alignCenter");
+    setEditorNotice("布局类型无效，已使用默认居中布局。", "warning");
+    return applyToolbar("alignCenter");
+  }
+};
+
 const isToolbarActive = (key: ToolbarKey) => {
   const editor = editorRef.value;
   if (!editor) return false;
@@ -1438,35 +1637,16 @@ const applyToolbar = (key: ToolbarKey) => {
   if (key === "code")
     return toggleSelectionWrap("\n```markdown\n", "\n```\n", "代码内容");
   if (key === "image") {
-    const url = import.meta.client ? window.prompt("输入图片地址") || "" : "";
-    return insertAtSelection(
-      `![图片说明](${url || "https://example.com/image.png"})`,
-    );
+    return openToolbarPrompt("image");
   }
   if (key === "link") {
-    const url = import.meta.client ? window.prompt("输入链接地址") || "" : "";
-    return toggleSelectionWrap(
-      "[",
-      `](${url || "https://example.com"})`,
-      "链接文本",
-    );
+    return openToolbarPrompt("link");
   }
   if (key === "math") return insertAtSelection("\n$$\na^2+b^2=c^2\n$$\n");
   if (key === "custom") return insertAtSelection("\n:::info\n提示内容\n:::\n");
   if (key === "divider") return insertAtSelection("\n---\n");
   if (key === "layoutMenu") {
-    const raw = import.meta.client
-      ? window.prompt(
-          "输入布局类型：left / center / right / grid2 / grid3",
-          "center",
-        ) || ""
-      : "";
-    const mode = raw.trim().toLowerCase();
-    if (mode === "left") return applyToolbar("alignLeft");
-    if (mode === "right") return applyToolbar("alignRight");
-    if (mode === "grid2") return applyToolbar("imageGrid2");
-    if (mode === "grid3") return applyToolbar("imageGrid3");
-    return applyToolbar("alignCenter");
+    return openToolbarPrompt("layoutMenu");
   }
   if (key === "alignLeft") {
     return replaceSelection('<div style="text-align:left;">{{content}}</div>');
@@ -1603,7 +1783,7 @@ const loadPost = async () => {
       syncFloatingToolbar();
     });
   } catch (error: any) {
-    alert(parseError(error));
+    setEditorNotice(parseError(error), "error");
     router.push("/admin/dashboard/posts");
   }
 };
@@ -1622,9 +1802,9 @@ const uploadCoverImage = async (event: Event) => {
     })) as any;
     const url = String(result?.data?.url || result?.url || "").trim();
     if (url) form.value.coverImage = url;
-    else alert("上传成功但未返回封面链接");
+    else setEditorNotice("上传成功但未返回封面链接", "warning");
   } catch (error: any) {
-    alert(parseError(error));
+    setEditorNotice(parseError(error), "error");
   } finally {
     target.value = "";
   }
@@ -1721,7 +1901,7 @@ const savePost = async () => {
       await loadPost();
     }
   } catch (error: any) {
-    alert(parseError(error));
+    setEditorNotice(parseError(error), "error");
   } finally {
     isSaving.value = false;
   }
