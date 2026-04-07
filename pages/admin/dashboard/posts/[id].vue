@@ -51,7 +51,7 @@
             class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 min-h-[100dvh] md:min-h-0"
           >
             <div
-              class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 p-2.5 sticky top-0 z-10"
+              class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 p-2.5 mb-2 md:sticky md:top-0 md:z-10"
             >
               <div class="flex flex-wrap gap-1.5">
                 <button
