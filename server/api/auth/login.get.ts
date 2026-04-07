@@ -22,7 +22,6 @@ export default defineEventHandler(async (event) => {
     client_id: oauthClientId,
     redirect_uri: oauthRedirectUri,
     response_type: 'code',
-    scope: 'all',
     state
   })
   
