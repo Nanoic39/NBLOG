@@ -45,38 +45,37 @@
         class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-3 overflow-auto min-h-0"
       >
         <div
-          class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2.5 sticky top-0 z-10"
-        >
-          <div class="flex flex-wrap gap-1.5">
-            <button
-              v-for="item in toolbarItems"
-              :key="item.key"
-              type="button"
-              class="px-2.5 py-1.5 rounded-lg text-xs border transition-colors"
-              :class="[
-                isToolbarActive(item.key)
-                  ? 'border-sky-500 bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300'
-                  : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 bg-white dark:bg-slate-900',
-                item.requiresSelection && !hasSelection ? 'opacity-45' : '',
-              ]"
-              :disabled="item.requiresSelection && !hasSelection"
-              @click="applyToolbar(item.key)"
-            >
-              {{ item.label }}
-            </button>
-          </div>
-          <p class="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-            快捷键：Ctrl/⌘+S 保存，Ctrl/⌘+B 加粗，Ctrl/⌘+I 斜体，Ctrl/⌘+K
-            链接，Ctrl/⌘+Shift+X 删除线，Ctrl/⌘+Shift+L 布局菜单
-          </p>
-        </div>
-
-        <div
           class="grid xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 items-start"
         >
           <div
-            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3"
+            class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 min-h-[100dvh] md:min-h-0"
           >
+            <div
+              class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 p-2.5 sticky top-0 z-10"
+            >
+              <div class="flex flex-wrap gap-1.5">
+                <button
+                  v-for="item in toolbarItems"
+                  :key="item.key"
+                  type="button"
+                  class="px-2.5 py-1.5 rounded-lg text-xs border transition-colors"
+                  :class="[
+                    isToolbarActive(item.key)
+                      ? 'border-sky-500 bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300'
+                      : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-300 bg-white dark:bg-slate-900',
+                    item.requiresSelection && !hasSelection ? 'opacity-45' : '',
+                  ]"
+                  :disabled="item.requiresSelection && !hasSelection"
+                  @click="applyToolbar(item.key)"
+                >
+                  {{ item.label }}
+                </button>
+              </div>
+              <p class="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                快捷键：Ctrl/⌘+S 保存，Ctrl/⌘+B 加粗，Ctrl/⌘+I 斜体，Ctrl/⌘+K
+                链接，Ctrl/⌘+Shift+X 删除线，Ctrl/⌘+Shift+L 布局菜单
+              </p>
+            </div>
             <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">
               Markdown 编辑区（回车即换行）
             </p>
@@ -84,7 +83,7 @@
               ref="editorRef"
               v-model="form.content"
               rows="1"
-              class="w-full min-h-[560px] resize-none overflow-hidden rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950 px-3 py-3 font-mono text-sm leading-7 outline-none focus:border-sky-500"
+              class="w-full min-h-[calc(100dvh-15rem)] md:min-h-[560px] resize-none overflow-hidden rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950 px-3 py-3 font-mono text-sm leading-7 outline-none focus:border-sky-500"
               :style="{ height: `${editorHeight}px` }"
               placeholder="在此输入 Markdown 正文内容"
               @input="handleEditorInteraction"
