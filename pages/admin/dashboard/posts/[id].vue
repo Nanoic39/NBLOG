@@ -807,15 +807,6 @@ const coverKeyword = ref("");
 const editorComments = ref<EditorCommentItem[]>([]);
 const editorRef = ref<HTMLTextAreaElement | null>(null);
 const editorHeight = ref(560);
-const editorHeightSyncTimer = ref<ReturnType<typeof setTimeout> | null>(null);
-const editorHeightLateSyncTimer = ref<ReturnType<typeof setTimeout> | null>(
-  null,
-);
-const editorResizeObserver = ref<ResizeObserver | null>(null);
-const lastEditorWidth = ref(0);
-const editorHeightStabilizerTimer = ref<ReturnType<typeof setInterval> | null>(
-  null,
-);
 const selectionState = ref({
   start: 0,
   end: 0,
@@ -1469,52 +1460,7 @@ const updateEditorHeight = () => {
   editorHeight.value = next;
 };
 
-const clearEditorHeightTimers = () => {
-  if (editorHeightSyncTimer.value) {
-    clearTimeout(editorHeightSyncTimer.value);
-    editorHeightSyncTimer.value = null;
-  }
-  if (editorHeightLateSyncTimer.value) {
-    clearTimeout(editorHeightLateSyncTimer.value);
-    editorHeightLateSyncTimer.value = null;
-  }
-};
-
-const stopEditorHeightStabilizer = () => {
-  if (!editorHeightStabilizerTimer.value) return;
-  clearInterval(editorHeightStabilizerTimer.value);
-  editorHeightStabilizerTimer.value = null;
-};
-
-const startEditorHeightStabilizer = () => {
-  if (!import.meta.client) return;
-  stopEditorHeightStabilizer();
-  let attempts = 0;
-  let stableTicks = 0;
-  let lastMeasured = -1;
-  editorHeightStabilizerTimer.value = setInterval(() => {
-    const editor = editorRef.value;
-    if (!editor) {
-      stopEditorHeightStabilizer();
-      return;
-    }
-    updateEditorHeight();
-    const current = Math.round(editorHeight.value || 0);
-    if (Math.abs(current - lastMeasured) <= 1) {
-      stableTicks += 1;
-    } else {
-      stableTicks = 0;
-      lastMeasured = current;
-    }
-    attempts += 1;
-    if (stableTicks >= 4 || attempts >= 24) {
-      stopEditorHeightStabilizer();
-    }
-  }, 100);
-};
-
 const syncEditorHeightSoon = () => {
-  clearEditorHeightTimers();
   nextTick(() => {
     updateEditorHeight();
     if (!import.meta.client) return;
@@ -1524,31 +1470,7 @@ const syncEditorHeightSoon = () => {
         updateEditorHeight();
       });
     });
-    editorHeightSyncTimer.value = setTimeout(() => {
-      updateEditorHeight();
-    }, 80);
-    editorHeightLateSyncTimer.value = setTimeout(() => {
-      updateEditorHeight();
-    }, 220);
-    startEditorHeightStabilizer();
   });
-};
-
-const bindEditorResizeObserver = () => {
-  if (!import.meta.client || typeof ResizeObserver === "undefined") return;
-  editorResizeObserver.value?.disconnect();
-  const editor = editorRef.value;
-  if (!editor) return;
-  const observer = new ResizeObserver((entries) => {
-    const width = Math.round(entries[0]?.contentRect?.width || 0);
-    if (!width) return;
-    if (width === lastEditorWidth.value) return;
-    lastEditorWidth.value = width;
-    syncEditorHeightSoon();
-  });
-  observer.observe(editor);
-  editorResizeObserver.value = observer;
-  lastEditorWidth.value = Math.round(editor.getBoundingClientRect().width || 0);
 };
 
 const focusEditorSelection = (start: number, end: number) => {
@@ -2111,27 +2033,18 @@ const handleWindowSelectionSync = () => {
   syncFloatingToolbar();
 };
 
-const handleWindowResize = () => {
-  syncEditorHeightSoon();
-  handleWindowSelectionSync();
-};
-
 onMounted(async () => {
   await Promise.all([loadTags(), loadMyImages()]);
   await loadPost();
-  bindEditorResizeObserver();
   syncEditorHeightSoon();
   window.addEventListener("keydown", handlePageKeydown);
-  window.addEventListener("resize", handleWindowResize);
+  window.addEventListener("resize", handleWindowSelectionSync);
   window.addEventListener("scroll", handleWindowSelectionSync, true);
 });
 
 onBeforeUnmount(() => {
-  clearEditorHeightTimers();
-  stopEditorHeightStabilizer();
-  editorResizeObserver.value?.disconnect();
   window.removeEventListener("keydown", handlePageKeydown);
-  window.removeEventListener("resize", handleWindowResize);
+  window.removeEventListener("resize", handleWindowSelectionSync);
   window.removeEventListener("scroll", handleWindowSelectionSync, true);
 });
 
@@ -2155,20 +2068,10 @@ watch(
 );
 
 watch(
-  () => editorRef.value,
-  () => {
-    bindEditorResizeObserver();
-    syncEditorHeightSoon();
-  },
-  { flush: "post" },
-);
-
-watch(
   () => form.value.content,
   () => {
     syncEditorHeightSoon();
   },
-  { flush: "post" },
 );
 </script>
 
