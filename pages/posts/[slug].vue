@@ -185,7 +185,7 @@
               </div>
 
               <div
-                v-if="article.editDate"
+                v-if="lastModifiedAt"
                 class="flex-1 min-w-[120px] bg-gray-50/80 dark:bg-gray-800/40 rounded-xl p-3.5 border border-gray-100/80 dark:border-gray-700/50 flex flex-col items-center justify-center transition-colors hover:bg-gray-100 dark:hover:bg-gray-800/60"
                 :title="updateWarning.text"
               >
@@ -205,12 +205,12 @@
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                     ></path>
                   </svg>
-                  最后更新于
+                  最后修改于
                 </span>
                 <span
                   class="text-sm font-medium transition-colors"
                   :class="updateWarning.colorClass"
-                  >{{ formatDate(article.editDate) }}</span
+                  >{{ formatDate(lastModifiedAt) }}</span
                 >
               </div>
 
@@ -1152,6 +1152,10 @@ type ArticleDetail = {
   pubDate?: string | number;
   createdAt?: string | number;
   editDate?: string | number;
+  updatedAt?: string | number;
+  updateTime?: string | number;
+  modifiedAt?: string | number;
+  modifyTime?: string | number;
   wordCount?: number;
   views?: number;
   tags?: string[];
@@ -1310,6 +1314,11 @@ const publishedAt = computed(() => {
   return payload?.createdAt ?? payload?.pubDate ?? "";
 });
 
+const lastModifiedAt = computed(() => {
+  const payload = article.value as ArticleDetail | null | undefined;
+  return payload?.updatedAt ?? "";
+});
+
 // Format date helper
 const formatDate = (timestamp?: string | number) => {
   const normalized = normalizeTimestamp(timestamp);
@@ -1368,8 +1377,7 @@ const ccLicenseName = computed(() => {
 
 const ccLicenseIcons = computed(() => {
   const icons = (article.value as any)?.license?.icon;
-  if (!Array.isArray(icons)) return [];
-  return icons
+  const mapped = (Array.isArray(icons) ? icons : [])
     .map((x: any) => String(x || "").trim())
     .filter(Boolean)
     .map((icon) => {
@@ -1378,9 +1386,40 @@ const ccLicenseIcons = computed(() => {
       const maybeName = normalized
         .replace(/^icons?\//i, "")
         .replace(/^cc\//i, "")
-        .replace(/^license\//i, "");
-      return `https://mirrors.creativecommons.org/presskit/icons/${maybeName}`;
+        .replace(/^license\//i, "")
+        .replace(/\.svg$/i, "")
+        .toLowerCase();
+      const canonicalNameMap: Record<string, string> = {
+        cc: "cc",
+        by: "by",
+        nc: "nc",
+        nd: "nd",
+        sa: "sa",
+        zero: "zero",
+        cc0: "zero",
+      };
+      const canonical = canonicalNameMap[maybeName] || maybeName;
+      return `https://mirrors.creativecommons.org/presskit/icons/${canonical}.svg`;
     });
+  if (mapped.length > 0) return mapped;
+  const cc = String((article.value as any)?.license?.cc || "")
+    .trim()
+    .toLowerCase();
+  if (!cc) return [];
+  if (cc.includes("cc0") || cc.includes("zero")) {
+    return [
+      "https://mirrors.creativecommons.org/presskit/icons/cc.svg",
+      "https://mirrors.creativecommons.org/presskit/icons/zero.svg",
+    ];
+  }
+  if (!/\bby\b/.test(cc)) return [];
+  const names = ["cc", "by"];
+  if (/\bnc\b/.test(cc)) names.push("nc");
+  if (/\bnd\b/.test(cc)) names.push("nd");
+  if (/\bsa\b/.test(cc)) names.push("sa");
+  return names.map(
+    (name) => `https://mirrors.creativecommons.org/presskit/icons/${name}.svg`,
+  );
 });
 
 const ccLicenseUrl = computed(() => {
@@ -1398,7 +1437,9 @@ const ccLicenseUrl = computed(() => {
 
   if (normalized.includes("cc0") || normalized.includes("zero")) {
     const versionMatched = normalized.match(/\b(\d(?:\.\d)?)\b/)?.[1] || "1.0";
-    const v = versionMatched.includes(".") ? versionMatched : `${versionMatched}.0`;
+    const v = versionMatched.includes(".")
+      ? versionMatched
+      : `${versionMatched}.0`;
     // TODO: 这里就一个，所以写死了
     return `https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hans`;
   }
@@ -1416,7 +1457,7 @@ const ccLicenseUrl = computed(() => {
 
 const showCcLicense = computed(() => {
   if (articleTypeLabel.value !== "原创") return false;
-  return Boolean(ccLicenseName.value) && ccLicenseIcons.value.length > 0;
+  return Boolean(ccLicenseName.value);
 });
 
 type RecommendedPost = {
@@ -1442,8 +1483,8 @@ const showRecommendations = computed(() => {
 
 // Calculate days since last update
 const daysSinceUpdate = computed(() => {
-  if (!article.value?.editDate) return 0;
-  const normalized = normalizeTimestamp(article.value.editDate);
+  if (!lastModifiedAt.value) return 0;
+  const normalized = normalizeTimestamp(lastModifiedAt.value);
   if (!normalized) return 0;
   const editDate = new Date(normalized);
   const now = new Date();

@@ -25,7 +25,9 @@ export default defineEventHandler(async (event) => {
         : Array.isArray(listPayload?.records)
           ? listPayload.records
           : [];
-  const hit = list.find((item: any) => String(item?.slug || "").trim() === slug);
+  const hit = list.find(
+    (item: any) => String(item?.slug || "").trim() === slug,
+  );
   if (!hit?.id) {
     throw createError({
       statusCode: 404,
@@ -36,9 +38,17 @@ export default defineEventHandler(async (event) => {
     path: `/api/posts/${encodeURIComponent(String(hit.id))}`,
   });
   const detail = unwrapApiData<any>(detailRaw);
+  const lastModified = detail?.updatedAt ?? "";
   return {
+    // TODO：点击输入文本。（待删除）
     ...detail,
-    editDate: String(Date.now()),
-    content: detail?.content || `# ${detail?.title || ""}\n\n${detail?.description || ""}`,
+    editDate: lastModified ?? detail?.editDate,
+    updatedAt: detail?.updatedAt ?? hit?.updatedAt,
+    updateTime: detail?.updateTime ?? hit?.updateTime,
+    modifiedAt: detail?.modifiedAt ?? hit?.modifiedAt,
+    modifyTime: detail?.modifyTime ?? hit?.modifyTime,
+    content:
+      detail?.content ||
+      `# ${detail?.title || ""}\n\n${detail?.description || ""}`,
   };
 });
