@@ -241,9 +241,7 @@
           >
             <!-- 左侧图片 -->
             <div class="w-full md:w-2/5 p-3 shrink-0 h-56 md:h-auto">
-              <div
-                class="relative w-full h-full rounded-lg overflow-hidden"
-              >
+              <div class="relative w-full h-full rounded-lg overflow-hidden">
                 <img
                   :src="
                     post.coverImage ||
@@ -252,7 +250,10 @@
                   :alt="post.title"
                   class="w-full h-full object-cover transition-transform duration-700"
                   :style="
-                    getTransitionStyle('article-cover', getPostTransitionId(post))
+                    getTransitionStyle(
+                      'article-cover',
+                      getPostTransitionId(post),
+                    )
                   "
                 />
                 <div
@@ -565,6 +566,14 @@ interface LatestPostsResponse {
     returned?: number;
   };
 }
+interface ArticleDetailCacheItem {
+  id?: string | number;
+  slug?: string;
+  title?: string;
+  description?: string;
+  content?: string;
+  coverImage?: string;
+}
 
 // 获取文章数据
 const route = useRoute();
@@ -593,9 +602,12 @@ const unwrapApiData = <T,>(
 const parseBoolean = (value: unknown, defaultValue = true) => {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value !== 0;
-  const normalized = String(value ?? "").trim().toLowerCase();
+  const normalized = String(value ?? "")
+    .trim()
+    .toLowerCase();
   if (!normalized) return defaultValue;
-  if (["false", "0", "off", "no", "disabled"].includes(normalized)) return false;
+  if (["false", "0", "off", "no", "disabled"].includes(normalized))
+    return false;
   if (["true", "1", "on", "yes", "enabled"].includes(normalized)) return true;
   return defaultValue;
 };
@@ -608,7 +620,10 @@ const totalPosts = ref(0);
 const totalPages = computed(() => Math.ceil(totalPosts.value / size));
 const activePostTransition = useState<string>("activePostTransition", () => "");
 const postListReturnPath = useState<string>("postListReturnPath", () => "/");
-const postListReturnScrollY = useState<number>("postListReturnScrollY", () => 0);
+const postListReturnScrollY = useState<number>(
+  "postListReturnScrollY",
+  () => 0,
+);
 const postListShouldRestore = useState<boolean>(
   "postListShouldRestore",
   () => false,
@@ -665,6 +680,18 @@ if (import.meta.client && !(globalThis as any).window?.DOMPurify) {
 }
 
 const latestPosts = computed(() => initialData.value?.posts || []);
+const articleDetailCache = useState<Record<string, ArticleDetailCacheItem>>(
+  "articleDetailCache",
+  () => ({}),
+);
+const preloadedPageCache = useState<Record<string, string[]>>(
+  "preloadedPageCache",
+  () => ({}),
+);
+const preloadingDetailSlugs = useState<Record<string, boolean>>(
+  "preloadingDetailSlugs",
+  () => ({}),
+);
 const filteredPosts = computed(() => {
   const tag = selectedTag.value;
   if (!tag) return latestPosts.value;
@@ -682,7 +709,9 @@ watchEffect(() => {
       const coverUrl =
         post.coverImage ||
         `https://www.loliapi.com/acg/?id=${encodeURIComponent(String(post.id || post.slug || "post"))}`;
-      const transitionKey = String(post?.id || post?.slug || `post-${index + 1}`);
+      const transitionKey = String(
+        post?.id || post?.slug || `post-${index + 1}`,
+      );
       postCache.value[post.slug] = {
         id: post.id,
         title: post.title,
@@ -692,6 +721,88 @@ watchEffect(() => {
     });
   }
 });
+
+const normalizePageNumber = (value: number) =>
+  Number.isFinite(value) && value > 0 ? Math.floor(value) : 1;
+
+const preloadArticleDetailBySlug = async (slug: string) => {
+  const normalizedSlug = String(slug || "").trim();
+  if (!normalizedSlug) return;
+  if (articleDetailCache.value[normalizedSlug]) return;
+  if (preloadingDetailSlugs.value[normalizedSlug]) return;
+  preloadingDetailSlugs.value[normalizedSlug] = true;
+  try {
+    const response = await $fetch<
+      ArticleDetailCacheItem | { data?: ArticleDetailCacheItem }
+    >(withApiBase("/api/article/detail"), {
+      credentials: "include",
+      query: { slug: normalizedSlug },
+    });
+    const payload = unwrapApiData<ArticleDetailCacheItem>(response);
+    if (payload) {
+      articleDetailCache.value[normalizedSlug] = payload;
+    }
+  } catch {}
+  delete preloadingDetailSlugs.value[normalizedSlug];
+};
+
+const getPageSlugsForPreload = async (targetPage: number) => {
+  const pageNumber = normalizePageNumber(targetPage);
+  const cacheKey = `${selectedTag.value || "_all"}::${pageNumber}`;
+  if (preloadedPageCache.value[cacheKey]) {
+    return preloadedPageCache.value[cacheKey];
+  }
+  if (pageNumber === normalizePageNumber(page.value)) {
+    const currentPageSlugs = latestPosts.value
+      .map((post: any) => String(post?.slug || "").trim())
+      .filter(Boolean);
+    preloadedPageCache.value[cacheKey] = currentPageSlugs;
+    return currentPageSlugs;
+  }
+  try {
+    const response = await $fetch<
+      LatestPostsResponse | { data?: LatestPostsResponse }
+    >(withApiBase("/api/posts/latest"), {
+      credentials: "include",
+      query: { page: pageNumber, size, tag: selectedTag.value || undefined },
+    });
+    const payload = unwrapApiData<LatestPostsResponse>(response);
+    const slugs = Array.isArray(payload?.posts)
+      ? payload!.posts
+          .map((post: any) => String(post?.slug || "").trim())
+          .filter(Boolean)
+      : [];
+    preloadedPageCache.value[cacheKey] = slugs;
+    return slugs;
+  } catch {
+    preloadedPageCache.value[cacheKey] = [];
+    return [];
+  }
+};
+
+const preloadAroundCurrentPage = async () => {
+  if (!import.meta.client) return;
+  const currentPage = normalizePageNumber(page.value);
+  const upperBound = Math.max(currentPage + 2, Number(totalPages.value || 0));
+  const pageCandidates = Array.from({ length: 5 }, (_, index) => {
+    return currentPage - 2 + index;
+  }).filter((candidate) => candidate > 0 && candidate <= upperBound);
+  const pageSlugGroups = await Promise.all(
+    pageCandidates.map((candidate) => getPageSlugsForPreload(candidate)),
+  );
+  const slugs = Array.from(
+    new Set(
+      pageSlugGroups
+        .flat()
+        .map((slug) => String(slug || "").trim())
+        .filter(Boolean),
+    ),
+  );
+  for (let i = 0; i < slugs.length; i += 4) {
+    const chunk = slugs.slice(i, i + 4);
+    await Promise.all(chunk.map((slug) => preloadArticleDetailBySlug(slug)));
+  }
+};
 
 const getPostTransitionId = (post: any) => {
   const cached = postCache.value[String(post?.slug || "")];
@@ -728,7 +839,9 @@ const openPost = async (
   postListReturnPath.value = String(route.fullPath || "/");
   postListReturnScrollY.value = Math.max(
     0,
-    Math.floor(globalThis.window?.scrollY || globalThis.window?.pageYOffset || 0),
+    Math.floor(
+      globalThis.window?.scrollY || globalThis.window?.pageYOffset || 0,
+    ),
   );
   postListShouldRestore.value = true;
   activePostTransition.value = String(transitionId);
@@ -792,10 +905,21 @@ onMounted(() => {
     totalPosts.value = initialData.value.total;
   }
   restoreReturnScroll();
+  preloadAroundCurrentPage();
 });
 
 onActivated(() => {
   restoreReturnScroll();
+});
+
+watchEffect(() => {
+  if (!import.meta.client) return;
+  const current = normalizePageNumber(page.value);
+  const total = Number(totalPages.value || 0);
+  const tag = String(selectedTag.value || "");
+  const marker = `${current}|${total}|${tag}|${latestPosts.value.length}`;
+  if (!marker) return;
+  preloadAroundCurrentPage();
 });
 
 // 获取所有标签

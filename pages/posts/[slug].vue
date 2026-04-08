@@ -686,6 +686,28 @@ const escapeHtmlAttr = (value: string) => {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 };
+const parseCodeBlockMeta = (langRaw?: string) => {
+  const raw = String(langRaw || "").trim();
+  if (!raw) {
+    return {
+      languageLabel: "plaintext",
+      language: "plaintext",
+      title: "",
+    };
+  }
+  const [rawLang, ...titleParts] = raw.split("|");
+  const languageLabel = String(rawLang || "").trim() || "plaintext";
+  const normalizedLang = languageLabel.toLowerCase();
+  const language = hljs.getLanguage(normalizedLang)
+    ? normalizedLang
+    : "plaintext";
+  const title = titleParts.join("|").trim();
+  return {
+    languageLabel,
+    language,
+    title,
+  };
+};
 
 const getAudioMetaFromSrc = (src: string) => {
   let host = "";
@@ -1030,8 +1052,10 @@ marked.use({
   renderer: {
     // 自定义代码块渲染
     code({ text, lang }) {
-      const validLang = lang || "plaintext";
-      const language = hljs.getLanguage(validLang) ? validLang : "plaintext";
+      const codeMeta = parseCodeBlockMeta(lang);
+      const languageLabel = codeMeta.languageLabel;
+      const language = codeMeta.language;
+      const title = codeMeta.title;
       const source = text.replace(/\r\n/g, "\n");
       const highlighted = hljs.highlight(source, { language }).value;
       const highlightedLines = highlighted.split("\n");
@@ -1057,8 +1081,9 @@ marked.use({
 
       return `
         <div class="code-block-wrapper relative group my-6 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:shadow-md">
-          <div class="code-block-header flex justify-between items-center px-4 py-2 bg-gray-100 dark:bg-[#2d2d2d] border-b border-gray-200 dark:border-gray-800">
-            <span class="text-xs text-gray-500 dark:text-gray-400 font-mono uppercase tracking-wider">${language}</span>
+          <div class="code-block-header grid grid-cols-[auto_1fr_auto] items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#2d2d2d] border-b border-gray-200 dark:border-gray-800">
+            <span class="text-xs text-gray-500 dark:text-gray-400 font-mono uppercase tracking-wider">${escapeHtmlAttr(languageLabel)}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-300 text-center truncate">${escapeHtmlAttr(title)}</span>
             <button class="copy-btn flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" data-code="${safeCode}" title="复制代码">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
               <span class="copy-text">复制</span>
@@ -1155,6 +1180,10 @@ const withApiBase = (path: string) => {
   return apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath;
 };
 const articleSlug = route.params.slug as string;
+const articleDetailCache = useState<Record<string, ArticleDetail>>(
+  "articleDetailCache",
+  () => ({}),
+);
 const unwrapApiData = <T,>(
   response: T | { data?: T } | null | undefined,
 ): T | null => {
@@ -1218,6 +1247,10 @@ const {
   credentials: "include",
   transform: (response) => unwrapApiData<ArticleDetail>(response),
   query: { slug: articleSlug },
+  default: () => {
+    const cached = articleDetailCache.value[String(articleSlug || "")];
+    return cached || null;
+  },
 });
 
 const { data: latestPostsData } = await useFetch(
@@ -1664,6 +1697,16 @@ watch(
     });
   },
   { flush: "post" },
+);
+
+watch(
+  article,
+  (payload) => {
+    const slug = String(articleSlug || "");
+    if (!slug || !payload) return;
+    articleDetailCache.value[slug] = payload;
+  },
+  { immediate: true },
 );
 
 onBeforeUnmount(() => {
