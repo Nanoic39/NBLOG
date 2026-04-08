@@ -558,7 +558,11 @@
                     ></path>
                   </svg>
                 </button>
-                <div v-else class="w-6 shrink-0"></div>
+                <span
+                  v-else
+                  aria-hidden="true"
+                  class="inline-flex w-5 h-5 mr-1 shrink-0"
+                ></span>
                 <button
                   @click="scrollToHeading(item.id)"
                   class="transition-all duration-300 block w-full text-left truncate cursor-pointer py-1.5 px-2 rounded-lg font-medium relative overflow-hidden"
@@ -593,40 +597,36 @@
                 "
               >
                 <ul
-                  class="overflow-hidden pl-6 border-l-2 border-gray-100 dark:border-gray-800 ml-2.5"
+                  class="overflow-hidden pl-6 border-l-2 border-gray-100 dark:border-gray-800 ml-2.5 space-y-1.5 mt-1 pb-1"
                 >
-                  <div class="space-y-1.5 mt-1 pb-1">
-                    <li v-for="child in item.children" :key="child.id">
-                      <button
-                        @click="scrollToHeading(child.id)"
-                        class="transition-all duration-300 block w-full text-left truncate cursor-pointer py-1 px-2 rounded-md text-xs relative overflow-hidden"
+                  <li v-for="child in item.children" :key="child.id">
+                    <button
+                      @click="scrollToHeading(child.id)"
+                      class="transition-all duration-300 block w-full text-left truncate cursor-pointer py-1 px-2 rounded-md text-xs relative overflow-hidden"
+                      :class="
+                        activeTocId === child.id
+                          ? 'text-[#0284C7] dark:text-[#38bdf8] bg-blue-50/30 dark:bg-blue-900/10 translate-x-1 font-medium'
+                          : 'text-gray-500 dark:text-blue-300 hover:text-[#0284C7] dark:hover:text-[#38bdf8] hover:bg-gray-50 dark:hover:bg-gray-800/30'
+                      "
+                      :title="child.text"
+                    >
+                      <!-- 激活状态的左侧点缀 -->
+                      <div
+                        class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 bg-[#0284C7] dark:bg-[#38bdf8] transition-all duration-300 rounded-full"
                         :class="
                           activeTocId === child.id
-                            ? 'text-[#0284C7] dark:text-[#38bdf8] bg-blue-50/30 dark:bg-blue-900/10 translate-x-1 font-medium'
-                            : 'text-gray-500 dark:text-blue-300 hover:text-[#0284C7] dark:hover:text-[#38bdf8] hover:bg-gray-50 dark:hover:bg-gray-800/30'
+                            ? 'opacity-100 scale-100'
+                            : 'opacity-0 scale-0'
                         "
-                        :title="child.text"
+                      ></div>
+                      <span
+                        class="transition-transform duration-300 inline-block"
+                        :class="activeTocId === child.id ? 'translate-x-1' : ''"
                       >
-                        <!-- 激活状态的左侧点缀 -->
-                        <div
-                          class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 bg-[#0284C7] dark:bg-[#38bdf8] transition-all duration-300 rounded-full"
-                          :class="
-                            activeTocId === child.id
-                              ? 'opacity-100 scale-100'
-                              : 'opacity-0 scale-0'
-                          "
-                        ></div>
-                        <span
-                          class="transition-transform duration-300 inline-block"
-                          :class="
-                            activeTocId === child.id ? 'translate-x-1' : ''
-                          "
-                        >
-                          {{ child.text }}
-                        </span>
-                      </button>
-                    </li>
-                  </div>
+                        {{ child.text }}
+                      </span>
+                    </button>
+                  </li>
                 </ul>
               </div>
             </li>
