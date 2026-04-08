@@ -1849,7 +1849,6 @@ const loadPost = async () => {
     selectedTags.value = [];
     editorComments.value = [];
     saveMessage.value = "";
-    syncEditorHeightSoon();
     nextTick(syncFloatingToolbar);
     return;
   }
@@ -1901,7 +1900,6 @@ const loadPost = async () => {
       if (!allTags.value.includes(tag)) allTags.value.unshift(tag);
     });
     await loadEditorComments();
-    syncEditorHeightSoon();
     nextTick(syncFloatingToolbar);
   } catch (error: any) {
     setEditorNotice(parseError(error), "error");
@@ -2036,7 +2034,6 @@ const handleWindowSelectionSync = () => {
 onMounted(async () => {
   await Promise.all([loadTags(), loadMyImages()]);
   await loadPost();
-  syncEditorHeightSoon();
   window.addEventListener("keydown", handlePageKeydown);
   window.addEventListener("resize", handleWindowSelectionSync);
   window.addEventListener("scroll", handleWindowSelectionSync, true);
