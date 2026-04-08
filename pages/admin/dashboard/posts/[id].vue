@@ -2,7 +2,9 @@
   <section class="h-full min-h-0 flex flex-col gap-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+        <h2
+          class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight"
+        >
           {{ isCreateMode ? "新建文章" : "编辑文章内容" }}
         </h2>
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -652,7 +654,9 @@
       >
         <div class="flex items-center justify-between gap-3">
           <div>
-            <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">
+            <h3
+              class="text-base font-semibold text-slate-900 dark:text-slate-100"
+            >
               {{ toolbarPrompt.title }}
             </h3>
             <p class="text-xs text-slate-500 dark:text-slate-400">
@@ -710,6 +714,8 @@
 <script setup lang="ts">
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import hljs from "highlight.js";
+import "highlight.js/styles/atom-one-dark.css";
 import { pinyin } from "pinyin-pro";
 import {
   computed,
@@ -1036,18 +1042,111 @@ const wrapPreviewTables = (html: string) =>
     )
     .replace(/<\/table>/g, "</table></div></div>");
 
+const parseCodeBlockMeta = (langRaw?: string) => {
+  const raw = String(langRaw || "").trim();
+  if (!raw) {
+    return {
+      languageLabel: "plaintext",
+      language: "plaintext",
+      title: "",
+    };
+  }
+  const [rawLang, ...titleParts] = raw.split("|");
+  const languageLabel = String(rawLang || "").trim() || "plaintext";
+  const normalizedLang = languageLabel.toLowerCase();
+  const language = hljs.getLanguage(normalizedLang)
+    ? normalizedLang
+    : "plaintext";
+  const title = titleParts.join("|").trim();
+  return {
+    languageLabel,
+    language,
+    title,
+  };
+};
+
 const enhanceSitePreviewHtml = (html: string) =>
   wrapPreviewTables(html).replace(
     /<img([^>]*?)>/g,
     '<img$1 loading="lazy" data-zoomable="true">',
   );
 
+const renderPreviewMarkdown = (markdown: string) => {
+  const previewRenderer = new marked.Renderer();
+  previewRenderer.code = ({ text, lang }) => {
+    const codeMeta = parseCodeBlockMeta(lang);
+    const languageLabel = codeMeta.languageLabel;
+    const language = codeMeta.language;
+    const title = codeMeta.title;
+    const source = String(text || "").replace(/\r\n/g, "\n");
+    const highlighted = hljs.highlight(source, { language }).value;
+    const highlightedLines = highlighted.split("\n");
+    if (highlightedLines[highlightedLines.length - 1] === "") {
+      highlightedLines.pop();
+    }
+    if (highlightedLines.length === 0) {
+      highlightedLines.push("");
+    }
+    const lineNumbersHtml = highlightedLines
+      .map(
+        (_, index) =>
+          `<div class="line-number text-right px-3 text-gray-400 dark:text-gray-500 text-sm select-none font-mono">${index + 1}</div>`,
+      )
+      .join("");
+    const codeLinesHtml = highlightedLines
+      .map((line) => `<span class="code-line">${line || "&nbsp;"}</span>`)
+      .join("");
+    const safeCode = encodeURIComponent(source);
+    const safeLanguageLabel = DOMPurify.sanitize(languageLabel, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
+    const safeTitle = DOMPurify.sanitize(title, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
+    return `
+      <div class="code-block-wrapper relative group my-6 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm transition-all hover:shadow-md">
+        <div class="code-block-header grid grid-cols-[auto_1fr_auto] items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#2d2d2d] border-b border-gray-200 dark:border-gray-800">
+          <span class="text-xs text-gray-500 dark:text-gray-400 font-mono uppercase tracking-wider">${safeLanguageLabel}</span>
+          <span class="text-xs text-gray-500 dark:text-gray-300 text-center truncate">${safeTitle}</span>
+          <button class="copy-btn flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors" data-code="${safeCode}" title="复制代码">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            <span class="copy-text">复制</span>
+          </button>
+        </div>
+        <div class="code-block-content flex bg-gray-50 dark:bg-[#1e1e1e] overflow-x-auto">
+          <div class="line-numbers shrink-0 py-4 border-r border-gray-200 dark:border-gray-700/50 bg-gray-100/50 dark:bg-[#1e1e1e] flex flex-col">
+            ${lineNumbersHtml}
+          </div>
+          <pre class="!bg-transparent !m-0 !p-4 !rounded-none w-full !border-0 !overflow-x-auto"><code class="hljs language-${language} code-lines font-mono text-sm" style="background: transparent; padding: 0;">${codeLinesHtml}</code></pre>
+        </div>
+      </div>
+    `;
+  };
+  previewRenderer.image = ({ href, title, text }) => {
+    const altText = text ? `alt="${text}"` : "";
+    const titleAttr = title ? `title="${title}"` : "";
+    return `
+      <figure class="image-wrapper my-8 mx-auto flex flex-col items-center justify-center">
+        <img src="${href}" ${altText} ${titleAttr} class="rounded-xl shadow-md border border-gray-100 dark:border-gray-800 max-w-full h-auto" data-zoomable="true" loading="lazy" />
+        ${text ? `<figcaption class="mt-3 text-sm text-gray-500 dark:text-gray-400 text-center">${text}</figcaption>` : ""}
+      </figure>
+    `;
+  };
+  return marked.parse(markdown, {
+    gfm: true,
+    breaks: true,
+    renderer: previewRenderer,
+  }) as string;
+};
+
 const renderedPreview = computed(() => {
   const markdown = String(form.value.content || "");
   if (!markdown.trim()) {
     return `<p class="text-slate-400">暂无预览内容</p>`;
   }
-  const html = marked.parse(markdown, { gfm: true, breaks: true }) as string;
+  const html = renderPreviewMarkdown(markdown);
   const siteLikeHtml = enhanceSitePreviewHtml(html);
   return DOMPurify.sanitize(siteLikeHtml, {
     ADD_ATTR: [
@@ -1056,11 +1155,19 @@ const renderedPreview = computed(() => {
       "style",
       "target",
       "rel",
+      "data-code",
       "data-zoomable",
       "loading",
       "align",
+      "stroke-linecap",
+      "stroke-linejoin",
+      "stroke-width",
+      "viewBox",
+      "fill",
+      "stroke",
+      "d",
     ],
-    ADD_TAGS: ["section", "figure", "figcaption"],
+    ADD_TAGS: ["section", "figure", "figcaption", "svg", "path"],
   });
 });
 
@@ -1353,6 +1460,19 @@ const updateEditorHeight = () => {
   editorHeight.value = next;
 };
 
+const syncEditorHeightSoon = () => {
+  nextTick(() => {
+    updateEditorHeight();
+    if (!import.meta.client) return;
+    requestAnimationFrame(() => {
+      updateEditorHeight();
+      requestAnimationFrame(() => {
+        updateEditorHeight();
+      });
+    });
+  });
+};
+
 const focusEditorSelection = (start: number, end: number) => {
   const editor = editorRef.value;
   if (!editor) return;
@@ -1579,11 +1699,17 @@ const submitToolbarPrompt = () => {
   const value = String(toolbarPrompt.value.value || "").trim();
   closeToolbarPrompt();
   if (mode === "image") {
-    insertAtSelection(`![图片说明](${value || "https://example.com/image.png"})`);
+    insertAtSelection(
+      `![图片说明](${value || "https://example.com/image.png"})`,
+    );
     return;
   }
   if (mode === "link") {
-    toggleSelectionWrap("[", `](${value || "https://example.com"})`, "链接文本");
+    toggleSelectionWrap(
+      "[",
+      `](${value || "https://example.com"})`,
+      "链接文本",
+    );
     return;
   }
   if (mode === "layoutMenu") {
@@ -1723,10 +1849,8 @@ const loadPost = async () => {
     selectedTags.value = [];
     editorComments.value = [];
     saveMessage.value = "";
-    nextTick(() => {
-      updateEditorHeight();
-      syncFloatingToolbar();
-    });
+    syncEditorHeightSoon();
+    nextTick(syncFloatingToolbar);
     return;
   }
   try {
@@ -1777,10 +1901,8 @@ const loadPost = async () => {
       if (!allTags.value.includes(tag)) allTags.value.unshift(tag);
     });
     await loadEditorComments();
-    nextTick(() => {
-      updateEditorHeight();
-      syncFloatingToolbar();
-    });
+    syncEditorHeightSoon();
+    nextTick(syncFloatingToolbar);
   } catch (error: any) {
     setEditorNotice(parseError(error), "error");
     router.push("/admin/dashboard/posts");
@@ -1914,7 +2036,7 @@ const handleWindowSelectionSync = () => {
 onMounted(async () => {
   await Promise.all([loadTags(), loadMyImages()]);
   await loadPost();
-  nextTick(updateEditorHeight);
+  syncEditorHeightSoon();
   window.addEventListener("keydown", handlePageKeydown);
   window.addEventListener("resize", handleWindowSelectionSync);
   window.addEventListener("scroll", handleWindowSelectionSync, true);
@@ -1948,7 +2070,38 @@ watch(
 watch(
   () => form.value.content,
   () => {
-    nextTick(updateEditorHeight);
+    syncEditorHeightSoon();
   },
 );
 </script>
+
+<style>
+.custom-prose .code-block-header {
+  border-radius: 0;
+}
+
+.custom-prose .code-lines {
+  display: block;
+  white-space: pre;
+}
+
+.custom-prose .code-line {
+  display: block;
+  line-height: 1.7;
+}
+
+.custom-prose .line-number {
+  line-height: 1.7;
+}
+
+.custom-prose .table-container {
+  width: 100%;
+  margin: 1.5rem 0;
+}
+
+.custom-prose .table-wrapper {
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+</style>

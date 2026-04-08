@@ -1399,7 +1399,8 @@ const ccLicenseUrl = computed(() => {
   if (normalized.includes("cc0") || normalized.includes("zero")) {
     const versionMatched = normalized.match(/\b(\d(?:\.\d)?)\b/)?.[1] || "1.0";
     const v = versionMatched.includes(".") ? versionMatched : `${versionMatched}.0`;
-    return `https://creativecommons.org/publicdomain/zero/${v}/`;
+    // TODO: 这里就一个，所以写死了
+    return `https://creativecommons.org/publicdomain/zero/1.0/deed.zh-hans`;
   }
 
   const hasBy = /\bby\b/.test(normalized);
@@ -1410,7 +1411,7 @@ const ccLicenseUrl = computed(() => {
   if (/\bnd\b/.test(normalized)) parts.push("nd");
   if (/\bsa\b/.test(normalized)) parts.push("sa");
 
-  return `https://creativecommons.org/licenses/${parts.join("-")}/${version}/`;
+  return `https://creativecommons.org/licenses/${parts.join("-")}/${version}/deed.zh-hans`;
 });
 
 const showCcLicense = computed(() => {
